@@ -141,7 +141,8 @@ public class Project3 extends Project2 {
     /** Select which Oszillor to use :
      */
     public int getOszi(double w, double max, int maxGen) {
-	int z = (int) ((double) (maxGen) * ( (max - w) / max)) ;
+	//int z = (int) ((double) (maxGen) * ( (max - w) / max)) ;
+	int z = 0;
 	return ((Integer) this.generators.elementAt(z)).intValue();
     }
     public void initKomp(Defaults def) {

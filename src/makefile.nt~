@@ -30,3 +30,6 @@ jar:
 
 clean:
 	del SOUND\*.class
+
+source: 	
+	jar cvf phs_source_106.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* 

@@ -17,7 +17,7 @@ public class Project2 {
 
     public static final int[] loud = new int[] {
 	0      , 35   , 45  , 55 , 62  , 68  , 75 , 85  , 90 };
-
+    // bei fof ist 90 zu laut, bei 85 Schluß !
     public static final double[] GAMMAT = new double[] {
 	0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
 	1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9,
@@ -510,7 +510,8 @@ public class Project2 {
 	    if (nt.generator > 0) tmp+= "\t"+nt.generator;
 	    if (nt.amplitude >= 0) tmp+= "\t"+nt.amplitude;
 	    if (nt.envelope > 0 ) tmp+= "\t"+nt.envelope;
-	    if (nt.balance > 0 ) tmp+= "\t"+nt.balance;
+	    if (nt.balance > 0 ) tmp+= "\t"+Converter.formatDouble(nt.balance, 6, 4);// auch formatieren
+	    // Anzahl Stimmen bei fof
 	    result.addElement(tmp);
 	    debugOut("add line:"+tmp, 6);
 	}

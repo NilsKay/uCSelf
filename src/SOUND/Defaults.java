@@ -185,7 +185,7 @@ public boolean saveDef(String path, String user) {
     int n;
     File fdes;
     long millis;
-    //System.out.println("Deflts: saveDefaults.");
+    //System.out.println("Deflts: saveDefaults. path="+path+" fof="+fof);
     GregorianCalendar greg = new GregorianCalendar();
     SimpleDateFormat datef = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
 

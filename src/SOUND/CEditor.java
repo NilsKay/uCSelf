@@ -50,7 +50,7 @@ public class CEditor extends Frame implements ItemListener, FocusListener, Actio
     Choice ch, ch1, ch2, ch3, gam;	
     MenuBar mb=null;		//Der Menubalken
     Menu m1, m2;			//Das Menu im Balken
-    MenuItem   mi1_1, mi1_2, mi2_1, mi2_2, mi2_3;		//
+    MenuItem   mi1_1, mi1_2, mi2_1, mi2_2, mi2_3, mi1_3, mi1_4 ;		//
     Panel pane;
     BorderPanel body;
     // ---------- variables -------------
@@ -60,7 +60,7 @@ public class CEditor extends Frame implements ItemListener, FocusListener, Actio
      * Verbosity: 0= no, 1=important Messages, 2=less important, 3=low debug, 4=higher debug, 5 = high debug, 6 = crazy debug
      */
     int Verbosity = 1;
-    boolean fof = false; // if true, we work as FOF generator, not osci
+    //boolean fof = false; // if true, we work as FOF generator, not osci
     String text[] = new String[100];
     String CustomPath = null;
     String sFile = null;
@@ -82,8 +82,8 @@ public CEditor() {
 public CEditor(String home, String user, String opt) {
     Point p = new Point(0,0);
     xgap = 10 ;	// horiz. gap for Graidbag components
-    ygap = 1 ;	// vert.gap 
-    min = 2 ;	// minimum gap
+    ygap = 0 ;	// vert.gap 
+    min = 0 ;	// minimum gap
     this.State = false;
     this.sFile = null; 
     Toolkit tool = Toolkit.getDefaultToolkit();
@@ -93,7 +93,7 @@ public CEditor(String home, String user, String opt) {
     if (d.width <= 800) {
 	this.font = new Font("Helvetica", Font.PLAIN, fontsize);
 	this.subFont = new Font("Helvetica", Font.PLAIN, subFontsize);
-	gd = new Dimension(550, 150);
+	gd = new Dimension(550, 130);
     }
     else {
 	this.font = new Font("Helvetica", Font.PLAIN, fontsize+2);
@@ -135,7 +135,7 @@ public CEditor(String home, String user, String opt) {
     boolean defLoaded = this.def.loadDef(Home+File.separator+GetEnviroment.SAVEFILE);
     if (def.lastPath != null) this.CustomPath = def.lastPath;
     //this.fof = def.fof;
-    this.fof = false;	// as long as FOF is disabled.
+    //this.fof = false;	// as long as FOF is disabled.
     setFont(this.font);
     mb = new MenuBar();
     mb.setFont(this.font); 
@@ -158,11 +158,11 @@ public CEditor(String home, String user, String opt) {
 	this.qd = new CDebug(this, "Debug Tool, just for Nils");
 	this.qd.setVisible(true);
     }
-    if (!this.fof) this.body = getBody(); // Oszi
+    if (!this.def.fof) this.body = getBody(); // Oszi
     else this.body = getFOFBody();
     pane.add("Center", this.body);
-    mi2_2.setEnabled(this.fof);
-    mi2_3.setEnabled(!this.fof);
+    mi2_2.setEnabled(this.def.fof);
+    mi2_3.setEnabled(!this.def.fof);
     // --------- Start Button ------------
     Panel bot = new Panel();
     start = new Button(this.text[14]);
@@ -197,11 +197,22 @@ public void setMenubar() {
     m1.setFont(this.font); 
     mb.add(m1);				// zum Balken addieren
 
-    mi1_1 = new MenuItem(this.text[12]); // Load
+    mi1_1 = new MenuItem(this.text[12]); // Select Path
     mi1_1.setFont(this.font);
     mi1_1.addActionListener(this);
     m1.add(mi1_1);				//Addiere MenuPunkt zum Menu
     mi1_1.setEnabled(true);
+    m1.addSeparator();
+    mi1_3 = new MenuItem(this.text[56]); // Load Template
+    mi1_3.setFont(this.font);
+    mi1_3.addActionListener(this);
+    m1.add(mi1_3);				//Addiere MenuPunkt zum Menu
+    mi1_3.setEnabled(true);
+    mi1_4 = new MenuItem(this.text[55]); // Save Template
+    mi1_4.setFont(this.font);
+    mi1_4.addActionListener(this);
+    m1.add(mi1_4);				//Addiere MenuPunkt zum Menu
+    mi1_4.setEnabled(true);
     m1.addSeparator();
     mi1_2 = new MenuItem(this.text[13]); // Quit
     mi1_2.setFont(this.font);
@@ -219,7 +230,7 @@ public void setMenubar() {
     mi2_3 = new MenuItem(this.text[47]); // FOF
     mi2_3.setFont(this.font);
     mi2_3.addActionListener(this);
-    //m2.add(mi2_3);
+    m2.add(mi2_3);
     m2.addSeparator();
     mi2_1 = new MenuItem(this.text[32]); // About
     mi2_1.setFont(this.font);
@@ -907,6 +918,154 @@ private BorderPanel getBody() {
     pb.add(pr);
     return pb;
 }
+    public void setActual() {
+	String wert;
+	if (def.lastPath != null) this.CustomPath = def.lastPath;
+	//this.fof = def.fof;
+	this.pane.remove(this.body);
+	if (this.def.fof) {
+	    this.body = getFOFBody();
+	}
+	else this.body = getBody();
+	mi2_2.setEnabled(this.def.fof);
+	mi2_3.setEnabled(!this.def.fof);
+	pane.add("Center", this.body);
+	pack();
+
+	wert = Converter.formatInt(this.def.max_freq, this.digits);
+	tf.setText(wert);
+	wert = Converter.formatInt(this.def.min_freq, this.digits);
+	tf1.setText(wert);
+	wert = Converter.formatInt(this.def.interval, this.digits);
+	tf4.setText(wert);
+	wert = Converter.formatInt(this.def.seed, this.digits);
+	tf12.setText(wert);
+	wert = Converter.formatDouble(this.def.min_tempo, this.digits, this.post);
+	tf5.setText(wert);
+	wert = Converter.formatDouble(this.def.max_tempo, this.digits, this.post);
+	tf9.setText(wert);
+	wert = Converter.formatInt(this.def.fittest, this.digits);
+	tf3.setText(wert);
+	wert = Converter.formatDouble(this.def.r_Weight, this.digits, this.post);
+	tf6.setText(wert);
+	wert = Converter.formatInt(this.def.population, this.digits);
+	tf2.setText(wert);
+	wert = Converter.formatInt(this.def.iterations, this.digits);
+	tf7.setText(wert);
+	wert = Converter.formatDouble(this.def.diff_freq, this.digits, this.post);
+	tf8.setText(wert);
+	if (ch != null) {
+	    setLChoice(ch);
+	    ch.select(def.min_amp);
+	}
+	if (ch1 != null) {
+	    setHChoice(ch1);
+	    ch1.select(def.max_amp);
+	}
+	if (cb1 != null) cb1.setState(this.def.stereo);
+	if (cb != null) cb.setState(this.def.tonal);
+	if (ch2 != null) {
+	    setLVoice(ch2);
+	    ch2.select(Integer.toString(def.min_voice));
+	}
+	if (ch3 != null) {
+	    setHVoice(ch3);
+	    ch3.select(Integer.toString(def.max_voice));
+	}
+	if (gam != null) gam.select(Double.toString(def.gamma));
+    }
+
+    /**
+     * Select a file and save it as the new template
+     * @return true if success
+     */
+    public boolean saveTemplate() {
+	String filepath = selectFile(false);
+	if (filepath == null) return false;
+	if (!def.saveDef(filepath, this.User)) {
+	    debugOut("CEditor:Can not save Template settings !", 1);
+	    String txt[] = new String[2];
+	    txt[0] = this.text[60]+filepath;
+	    Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM);
+	    al.setVisible(true);
+	    return false;
+	}
+	State = false;
+	return true;
+    }
+    /**
+     * Select a file and load it as the new template
+     * @return true if success
+     */
+    public boolean loadTemplate() {
+	if (State) { // old values have been modified
+	    String txt[] = new String[2];
+	    txt[0] = this.text[61];
+	    txt[1] = this.text[62];
+	    Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.CONFIRMATION);
+	    al.setVisible(true);
+	    if (al.OK) {
+		saveTemplate();
+	    }
+	}
+// Now load 
+	String filepath = selectFile(true);
+	if (filepath == null) return false;
+	this.def = new Defaults();
+	boolean defLoaded = this.def.loadDef(filepath);
+	if (defLoaded) {
+	    setActual();
+	    State = false;
+	    return true;
+	}
+	else {
+	    String txt[] = new String[2];
+	    txt[0] = this.text[59]+filepath;
+	    Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM);
+	    al.setVisible(true);
+	}
+	return false;
+    }
+
+    /**
+     * Select a life for save or load
+     * @param mode true if load, else save
+     * @return path
+     */
+    public String selectFile(boolean mode) {
+	String tit = this.text[58];
+	if (mode) tit = this.text[57]; // load
+	FileDialog fd = new FileDialog(this, tit);
+	fd.setFile("");
+	fd.setDirectory(CustomPath);
+	fd.setVisible(true);
+	String tmp;
+	String sDir = fd.getDirectory();
+	String sFile = fd.getFile();
+	//System.out.println("selectFile 1:"+sDir+" "+sFile);
+	if (sFile != null) {
+	    tmp = sFile;
+	    int i = sFile.lastIndexOf(".");
+	    if (i >= 0) tmp = sFile.substring(0, i); 
+	    sFile = tmp + GetEnviroment.TEMPLATEEXT;
+	}
+	else sDir = null;
+	//System.out.println("selectFile 2:"+sDir+" "+sFile);
+	if (sDir != null) CustomPath = def.lastPath = sDir;
+	else sFile = null;
+
+	String path = sDir + File.separator + sFile;
+	if (path != null && mode) {
+	    File fdes = new File(path);
+	    if (!fdes.exists()) {
+		path = null;
+	    }
+	}
+	fd.dispose();
+	//System.out.println("selectFile: path="+path);
+	return path;
+    }
+    
     public void setLChoice(Choice c) {
 	int n;
 	for(n = 0; n < Project2.Loudness.length; n++) {
@@ -1008,7 +1167,7 @@ public void relocate() {
 	    return;	// Tu nix
 	}
 	Vector sco_lines = null;
-	if (!this.fof) sco_lines = doOszi();
+	if (!this.def.fof) sco_lines = doOszi();
 	else sco_lines = doFOF();
 
 	if (sco_lines != null) {
@@ -1151,12 +1310,18 @@ public void actionPerformed(ActionEvent e) {
 	// Bestimme den Pfad der Ausgabedatei
 	selectPath();
 	mi1_1.setEnabled(true);
-    }// end of
+    }
+    else if (o == mi1_3 ) {	// load Template 
+	loadTemplate();
+    }
+    else if (o == mi1_4 ) {	// save Template
+	saveTemplate();
+    }
     else if (o == mi1_2) {	// Quit
 	doQuitWithInquire();
     }
     else if (o == mi2_2) {	// Oszi
-	this.fof = false;
+	this.def.fof = false;
 	this.pane.remove(this.body);
 	this.body = getBody();
 	mi2_2.setEnabled(false);
@@ -1166,7 +1331,7 @@ public void actionPerformed(ActionEvent e) {
 	State = true;
     }
     else if (o == mi2_3) {    // FOF
-	this.fof = true;
+	this.def.fof = true;
 	this.pane.remove(this.body);
 	this.body = getFOFBody();
 	mi2_2.setEnabled(true);
@@ -1193,7 +1358,7 @@ public void actionPerformed(ActionEvent e) {
 	debugOut("------------------- Stop Button: Initiate halt --------------", 2);
 	if (!this.halt) {
 	    this.halt = true;
-	    if (this.fof) pr3.halt = true;
+	    if (this.def.fof) pr3.halt = true;
 	    else pr2.halt = true;
 	    ru.stop();
 	}
@@ -1318,12 +1483,12 @@ public void checkInput(TextField tfi)
 	    break;
 	case 3: this.def.population = x;	
 	    disp = this.def.population;
-	    if (disp < this.def.fittest ) throw(new NumberFormatException()); 
+	    if (disp < this.def.fittest ) disp = this.def.fittest; //throw(new NumberFormatException()); 
 	    break;
 	case 4: this.def.fittest = x;	
 	    disp = this.def.fittest;
 	    //System.out.println("CheckInput: Textfield.getText()="+t+" Fittest ="+this.def.fittest+" population="+this.def.population+" disp="+disp);
-	    if (disp > this.def.population ) throw(new NumberFormatException()); 
+	    if (disp > this.def.population ) disp = this.def.population; // throw(new NumberFormatException()); 
 	    break;
 	case 5: this.def.interval = x; // Hz	
 	    disp = this.def.interval;
@@ -1411,7 +1576,7 @@ public void doQuitWithInquire() {
 public void doQuit() {
     debugOut(" Quit: State="+State, 2);
     if (State) { // just when changed
-	def.fof = this.fof;
+	//def.def.fof = this.fof;
 	if (!def.saveDef(Home+File.separator+GetEnviroment.SAVEFILE, this.User)) {
 	    debugOut("CEditor:Can not save default settings !", 1);
 	}
@@ -1431,7 +1596,7 @@ public void doQuit() {
     }
 
 public String[] getText(String[] t) {
-    t[0] = "JcSelf Version 1.06 alpha2 © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2001)";
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2001)";
     t[1] = "Alarmbox"; 
     t[10] = "Do you really want to quit ?";
     t[11] = "File";
@@ -1478,6 +1643,14 @@ public String[] getText(String[] t) {
     t[52] = "Min. Voices:";
     t[53] = "Max. Voices:";
     t[54] = "Gamma:";
+    t[55] = "Save Template";
+    t[56] = "Load Template";
+    t[57] = "Select Template to load";
+    t[58] = "Select Template to save";
+    t[59] = "Unable to load template: ";
+    t[60] = "Unable to save template: ";
+    t[61] = "Actual settings have been modified.";
+    t[62] = "Do you want to save the settings in a template ?";
     
 //t[38] = "";
 //t[36] = "";

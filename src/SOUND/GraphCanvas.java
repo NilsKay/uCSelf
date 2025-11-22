@@ -117,17 +117,17 @@ public void setTable(RandomTable r, double gamma) {
 	for ( st = 0; st < preferredSize.width; st += ste) {
 	    off.setColor(Color.green);
 	    y = (int) ((double) h * java.lang.Math.pow( st / (double) preferredSize.width, gamma)+0.5);
-	    if (ox >= 0) off.drawLine((int) ox, oy, (int) st, h-y);
+	    //if (ox >= 0) off.drawLine((int) ox, oy, (int) st, h-y);
 	    oy = h -y;
 	    y = (int) ((double) h * java.lang.Math.pow( ((double) preferredSize.width - st) / (double) preferredSize.width, gamma) + 0.5);
-	    if (ox >= 0) off.drawLine((int) ox, ooy, (int) st, h-y);
+	    //if (ox >= 0) off.drawLine((int) ox, ooy, (int) st, h-y);
 	    ooy = h -y;
 	    off.setColor(Color.yellow);
 	    y = java.lang.Math.abs(oy - ooy);
 	    if (ox >= 0) off.drawLine((int) ox, oooy, (int) st, h-y);
 	    oooy = h -y;
 	    ox = st;
-	} 
+	    } 
 	
     }
     //System.out.println("GraphCanvas.setTable() next is display():"); 

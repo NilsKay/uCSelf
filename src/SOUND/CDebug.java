@@ -14,7 +14,7 @@ public class CDebug extends Dialog implements ActionListener {
     int no;
     Font font;
     Label la, la1, la2;
-    List ta1;
+    java.awt.List ta1;
     Button stop, go, slow, clear, stp;
     public boolean halt = false;
     boolean langsam = false;
@@ -74,7 +74,7 @@ public CDebug(Frame dw, String text) {
     top.add(la1);
     c.gridx= 1;
     c.gridy= row+1;
-    ta1 = new List(40, false);
+    ta1 = new java.awt.List(40, false);
     ta1.add("Messages:                                                                   .");
     c.gridwidth = GridBagConstraints.REMAINDER;
     c.gridheight = GridBagConstraints.REMAINDER;
