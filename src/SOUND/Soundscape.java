@@ -158,13 +158,13 @@ public class Soundscape {
 			debugOut("Too small !", 1); 
 		double val = this.addWeight[center]; // random Weight
 		//debugOut("RandomTable.writeNEntrys(1) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
-		this.table[center].freq += val;	// set center value using freq for weight...
+		this.table[center].weight += val;	// set center value using freq for weight...
 		// Hier kann man nun eine ganze menge beeinflussen:
 		// wenn nicht bei 0.0 for den rt-tabellenwert gestoppt wird, kann der
 		// sogar negativ werden und somit kommt dieser ton wohl niemals wieder.
 		// Man braucht also eine Abbruchbedingung f�r die degression ...
-		if (this.table[center].freq < 0.0) {
-		    this.table[center].freq = 0.0;
+		if (this.table[center].weight < 0.0) {
+		    this.table[center].weight = 0.0;
 		    this.addWeight[center] = this.impact;// random Weight
 		}
 		//------- Now correct the center weight value: -------
@@ -180,12 +180,12 @@ public class Soundscape {
 		    // Note: I do not use warp around for array index overflows !
 		    String me = "";
 		    if (index < this.size) {
-				this.table[index].freq += f;
+				this.table[index].weight += f;
 				me = "table[index]="+this.table[index];
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() < index="+index);
-				if (this.table[index].freq < 0.0) {
-				    this.table[index].freq = 0.0;
+				if (this.table[index].weight < 0.0) {
+				    this.table[index].weight = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
@@ -193,12 +193,12 @@ public class Soundscape {
 		    index = center - n;
 		    //System.out.println("(b) n="+n+" index="+index+" f="+f);
 		    if (index >= 0) {
-				this.table[index].freq += f;
+				this.table[index].weight += f;
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() >= index="+index);
 				me = "table[index]="+this.table[index];
-				if (this.table[index].freq < 0.0) {
-				    this.table[index].freq = 0.0;
+				if (this.table[index].weight < 0.0) {
+				    this.table[index].weight = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
