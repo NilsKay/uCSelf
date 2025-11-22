@@ -1,7 +1,6 @@
 package Utils;
 import java.io.*;
 import java.net.*;
-import java.util.Vector;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 /**
@@ -10,19 +9,12 @@ import java.awt.event.MouseEvent;
  * @author 	Nils Kay
  */
 public class GetEnviroment {
-	
-	public final static String 	CHARSET 		= "UTF-8";  		
-	public final static String  CHARSET_ASCII 	= "ASCII"; 			
-	
-    public static String sVersionCode="V 2.6";
+    public static String sVersionCode="Version V2.0";
     public final static Color DisplayBackColor = new Color(0xe0e0e0); // Display Background color
     public final static String SAVEFILE = "jcself.sav";	// here we store the user default settings
     public final static String TEMPLATEEXT = ".jct";	// 
     public final static String LOGFILE = "jcself.log"; // Log file for jcself
-    public final static String PLAYLOG = "play.log";
-    public final static String KOMPOSITIONLOG = "komposition.log";
-    public final static String KOMPOSITION = "komposition.tmp";
-    public final static String IMAGELOG = "imagelog.tmp";
+    
     public final static String DEFAULTFOFORC = "DefaultFOF.orc";
     public final static String DEFAULTFOFSCO = "DefaultFOF.sco";
 
@@ -36,8 +28,6 @@ public class GetEnviroment {
     String Platform;	// the platform we run on !
     int left_Button;
     int right_Button;
-    public int build;
-    private String systDir = "Utils";
     // --------- internal --------
 private boolean error;
 
@@ -67,7 +57,7 @@ public GetEnviroment(String rootDir) {
 	this.Host = iadr.getHostName();
 	this.Ip_address = iadr.getHostAddress();
     } catch (UnknownHostException ue) {}
-    this.build = getBuildNo();
+
     if(Platform.startsWith("x86")) {
 	this.left_Button = MouseEvent.BUTTON1_MASK;
 	this.right_Button = MouseEvent.BUTTON3_MASK;
@@ -78,47 +68,12 @@ public GetEnviroment(String rootDir) {
     }
 }
 
-@SuppressWarnings("unused")
 public boolean getPathes(){
     String StartPath = System.getProperty("user.dir") + File.separator;
     //Check for v1.2x
     String version = System.getProperty("java.version"); 
     int n;
     return error;
-}
-
-public String getSystemDir() { return this.systDir+"/"; }
-
-@SuppressWarnings("rawtypes")
-private int getBuildNo() {
-	int res = 0;
-	String name = "build.txt";
-	String pt = getSystemDir()+name;
-	//System.out.println("systemDir="+pt);
-	InputStream is;	
-	InputStreamReader isr = null;
-   
-	try {
-	    //System.out.println("ReadText.loadLanguageFile: image="+pt);
-	    //System.exit(0);
-	    is = ClassLoader.getSystemResourceAsStream (pt);
-	    Utils ut = new Utils(null);
-	    is = ClassLoader.getSystemResourceAsStream (pt);
-	    //int type = ut.identifyCharset(CHARSET_ASCII);
-	    isr = ut.getStreamReader(is, 0, false);
-	    Vector b = ut.readTextFile(isr, true);
-	    if (b != null) {
-	    	if (b.size() > 0) {
-	    		int bu = Converter.getInt((String)b.elementAt(0), 0);
-	    		res = bu;
-	    	}
-	    }
-	   
-	} catch (Exception e) {
-	    e.printStackTrace();
-	   
-	}
-	return res;
 }
 
 public int getLeftButton() {

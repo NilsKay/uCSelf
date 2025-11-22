@@ -1,4 +1,4 @@
-package SOUND;
+package Sound;
 import java.util.Random;
 
 // Java class for implementing 1D cellular automata

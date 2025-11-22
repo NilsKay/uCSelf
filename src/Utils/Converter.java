@@ -1,5 +1,7 @@
 package Utils;
-
+import java.awt.*;
+import java.util.StringTokenizer;
+import java.lang.Math.*;
 /**
  * This class converts number values to and from given Units
  * It also return a Color Object, generated from a String
@@ -13,7 +15,6 @@ public class Converter {
  *  @param digits the Number of digits
  **/    
 
-@SuppressWarnings({ "null", "unused" })
 public static void doBreak() {
     try {
 	String str=null;
@@ -40,7 +41,6 @@ public static String formatDouble(double input, int digits) {
  *  @param digits the Number of digits to display
  *  @param post the Number of digits after the colon
  **/    
-@SuppressWarnings("unused")
 public static String formatDouble(double input, int digits, int post)
     {
 	int len;
@@ -93,7 +93,6 @@ public static String formatDouble(double input, int digits, int post)
  *  @param input this is the input value as int
  *  @param digits the Number of digits to display
  **/    
-@SuppressWarnings("unused")
 public static String formatInt(int input, int digits)
     {
 	int len;
@@ -236,23 +235,12 @@ public static boolean endWith(String first, String second, boolean how) {
  * @return the parsed int
  */
     public static int getInt(String in, int def) {
-    	//in = in.trim();
-    	//System.out.println("in="+in);
-    	in = in.toLowerCase();
-    	if (in.startsWith("0x")) {
-			try {
-			    return Integer.decode(in).intValue();
-			} catch (Exception e){
-			    return def;
-			}
-    	}
-    	else {
-    		try {
-			    return Integer.parseInt(in);
-			} catch (Exception e){
-			    return def;
-			}
-    	}
+	try {
+	    //return Integer.parseInt(in);
+	    return Integer.decode(in).intValue();
+	} catch (NumberFormatException e){
+	    return def;
+	}
     }
 /**
  * Converts a String into a double, when an Exception occurs, the default Value will be used

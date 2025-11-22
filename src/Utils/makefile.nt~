@@ -1,0 +1,11 @@
+# compile Java und C Implementation for GUI
+!include ../makent.sw
+
+CLASSFILES= Tools_G.class GetEnviroment.class Alarmbox.class Converter.class QSort.class BorderPanel.class
+
+JAVAFILES= Tools_G.java GetEnviroment.java Alarmbox.java Converter.java QSort.java BorderPanel.java
+
+default: $(CLASSFILES)
+
+clean:
+	del $(CLASSFILES)

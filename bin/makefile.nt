@@ -1,0 +1,49 @@
+# compile Java und C Implementation for GUI
+!include ..\makent.sw
+
+SUBDIRS = SOUND Utils
+
+SUBMAKE = $(MAKE) -nologo -f makefile.nt
+
+CLASSFILES= SOUND\*.class Utils\*.class
+
+default: $(SUBDIRS)
+
+# subdir targets:
+FRC:
+#dummy
+
+$(SUBDIRS) :       FRC
+	@cd $@ 
+	@echo make: Entering directory `$@' 
+	$(SUBMAKE) $(ACTION) 
+	@cd ..
+	@echo make: Leaving directory `$@' 
+
+jar: 	
+	-del c:\temp\PHS\Sound\*.class
+	-del c:\temp\PHS\Utils\*.class
+	copy SOUND\*.class c:\temp\PHS\Sound
+	copy Utils\*.class c:\temp\PHS\Utils
+	cd c:\temp\PHS
+#c:\jshrink\jshrink.exe .
+	jar -cvf jcself_FNS.jar $(CLASSFILES)
+	java -cp "C:\Program Files\retroguard-v1.1\retroguard.jar" RetroGuard jcself_FNS.jar jcself.jar Jcself.rgs
+	copy jcself.jar l:\MyProjects\PHS\jcself.jar
+
+clean:
+	del SOUND\*.class
+
+source: 	
+	jar cvf phs_source_20.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* jcself.jar
+	move phs_source_20.jar Source_backup\phs_source_20.jar
+
+cca:
+	-del c:\temp\PHS\Sound\*.class
+	-del c:\temp\PHS\Sound\*.java
+	-del c:\temp\PHS\Utils\*.class
+	copy SOUND\CCA* c:\temp\PHS\Sound
+	copy SOUND\TotalisticCA* c:\temp\PHS\Sound
+	cd c:\temp\PHS
+	jar -cvf ccar.jar SOUND\*.class
+	copy ccar.jar l:\MyProjects\PHS\ccar.jar

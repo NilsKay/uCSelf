@@ -1,0 +1,11 @@
+# compile Java und C Implementation for GUI
+!include ..\..\makent.sw
+
+CLASSFILES= FitnessTable.class TotalisticCA.class CCA.class MidiSpecs.class MyMidi.class SoundInfoListener.class Defaults.class ScoAccess.class Note.class GraphCanvas.class RandomTable.class Project2.class CeditApplet.class CDebug.class CEditor.class Project3.class
+
+JAVAFILES= FitnessTable.java TotalisticCA.java CCA.java MidiSpecs.java MyMidi.java SoundInfoListener.java Defaults.java ScoAccess.java Note.java GraphCanvas.java RandomTable.java Project2.java CeditApplet.java CDebug.java CEditor.java Project3.java
+
+default: $(CLASSFILES)
+
+clean:
+	del $(CLASSFILES)

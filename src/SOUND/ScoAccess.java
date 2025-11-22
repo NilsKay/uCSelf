@@ -1,5 +1,5 @@
-package SOUND;
-
+package Sound;
+import java.awt.*;
 import java.util.*;
 import java.io.*;
 import java.text.*;
@@ -27,8 +27,7 @@ public final static String ORCEXTENSION = ".orc";
  * @param File name
  * @return Vector with data or null
  */
-    @SuppressWarnings("rawtypes")
-	public Vector getFileContent(String path, String file) {
+    public Vector getFileContent(String path, String file) {
 	if (!path.endsWith(File.separator)) path += File.separator;
 	return getFileContent(path+file);
     }
@@ -40,8 +39,7 @@ public final static String ORCEXTENSION = ".orc";
  * @param File name
  * @return Vector with data or null
  */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector getFileContent(String pathfile) {
+    public Vector getFileContent(String pathfile) {
 	File fdes;
 	BufferedReader br = null;
 	fdes = new File( pathfile);   
@@ -73,7 +71,6 @@ public final static String ORCEXTENSION = ".orc";
  * This Method loads the Sco file 
  * @param path which default file to use
  */
-@SuppressWarnings({ "unused", "rawtypes" })
 public boolean loadSco(String path) {
     String res0, res1;
     double d;
@@ -107,7 +104,6 @@ public boolean loadSco(String path) {
  * @param path wich file to save
  * @param user the name of the user
  */
-@SuppressWarnings({ "rawtypes", "unused" })
 public boolean saveSco(String path, String user, Vector data) {
     Calendar rightNow;
     double d;

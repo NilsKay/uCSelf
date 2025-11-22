@@ -1,19 +1,16 @@
-package SOUND;
+package Sound;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.*;
 import java.util.*;
 import java.text.*;
-
+import Utils.*; 
 /**
  * This class creates a Dialog to display the debug info
  * @author 	Nils Kay
  */
 public class CDebug extends Dialog implements ActionListener {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 8976543L;
-	Color bg,fg,tbg,bbg1,bbg2,xbg,ybg;
+    Color bg,fg,tbg,bbg1,bbg2,xbg,ybg;
     int no;
     Font font;
     Label la, la1, la2;
@@ -33,7 +30,6 @@ public class CDebug extends Dialog implements ActionListener {
  * @param dw the owner of the dialog
  * @param text the title
  */
-@SuppressWarnings("unused")
 public CDebug(Frame dw, String text) {
     super(dw, text, false);
     super.setLocation(0, 10);
@@ -47,7 +43,7 @@ public CDebug(Frame dw, String text) {
     int ygap = 2;
     greg = new GregorianCalendar();
     datef = new SimpleDateFormat("HH:mm:ss");
-    Panel pane = new Panel();
+    Panel pane = new BorderPanel();
     pane.setFont(this.font);
     pane.setLayout(new BorderLayout());
     //Panel body = new Panel();
@@ -158,7 +154,7 @@ private void addComItem(String tmp) {
  */
 public void setValues() {    
     // Textentrys of the Double Values
-    //String wert;
+    String wert;
     go.setEnabled(this.halt | this.langsam | this.stepp);
     stop.setEnabled(!this.halt);
     slow.setEnabled(!this.langsam);
@@ -199,8 +195,7 @@ public void actionPerformed(ActionEvent ev) {
  *
  */
     class WDListener extends WindowAdapter {
-    @SuppressWarnings("unused")
-	public void windowClosing(WindowEvent ev) {
+    public void windowClosing(WindowEvent ev) {
 	String arg;
 	halt = false;
 	//log.writeLog("Close WindowEvent="+ev+", Source="+ev.getSource());
@@ -211,7 +206,7 @@ public void actionPerformed(ActionEvent ev) {
 	}
     }
     public void windowIconified(WindowEvent ev) {
-	//String arg;
+	String arg;
     }
     }// end of inner class
 } // end of class 

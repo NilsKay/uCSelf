@@ -1,5 +1,5 @@
-package SOUND;
-
+package Sound;
+import java.applet.*;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -10,11 +10,7 @@ import java.awt.event.*;
 */
 
 public class CCA extends Frame implements ActionListener, ItemListener {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 875232L;
-	private int default_k = 4;
+    private int default_k = 4;
     private int default_r = 2;
     private long default_nr = 36;
     private int k, r;
@@ -202,14 +198,12 @@ public class CCA extends Frame implements ActionListener, ItemListener {
     isChanging = false;
   }
 
-  @SuppressWarnings("deprecation")
-public void start() {
+  public void start() {
     if (drawing_thread != null) 
       drawing_thread.resume();
   }
   
-  @SuppressWarnings("deprecation")
-public void stop() {
+  public void stop() {
     if (drawing_thread != null) 
       drawing_thread.suspend();
   }
@@ -223,8 +217,7 @@ public void stop() {
 	return true;
     }
 */
-      @SuppressWarnings("deprecation")
-	public void actionPerformed(ActionEvent e) {
+      public void actionPerformed(ActionEvent e) {
 	  Object o = e.getSource();
 	  if (o == restart_button) {
 	      if (drawing_thread != null) 
@@ -256,7 +249,6 @@ public void stop() {
 	  }
       }
 
-@SuppressWarnings({ "unused", "deprecation" })
 public void itemStateChanged(ItemEvent e) {
     if (isChanging) return;
     int state = e.getStateChange();
@@ -295,7 +287,6 @@ public void itemStateChanged(ItemEvent e) {
 }
 
 // Container for the CA image data
-@SuppressWarnings("serial")
 class CA_Canvas extends Canvas implements Runnable {
 
   private int width = -1;
@@ -333,7 +324,7 @@ class CA_Canvas extends Canvas implements Runnable {
 
   public void run() {
     Graphics g;
-    Dimension d = getSize();
+    Dimension d = size();
     int[] ca_line;
 
     width = d.width;
@@ -404,7 +395,7 @@ class CA_Canvas extends Canvas implements Runnable {
  */
     class MDListener extends WindowAdapter {
     public void windowClosing(WindowEvent ev) {
-	//String arg;
+	String arg;
 	AWTEvent event = (AWTEvent) ev;
 	if (event.getID() == Event.WINDOW_DESTROY) {
 	    //dispose();
