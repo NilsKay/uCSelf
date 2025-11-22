@@ -59,7 +59,7 @@ public class SelectionListener extends MouseAdapter {
 					if (sep != null) {
 						Vector<OneNote> res = new Vector<OneNote>();
 						for (int n = 0; n < sep.length; n++) {
-							OneNote on = new OneNote(ut.getDouble(sep[n], 0), 0, -1);
+							OneNote on = new OneNote(ut.getDouble(sep[n], 0),"-", -1);
 							if (on.freq >= sd.ce.def.min_freq &&
 							on.freq <= sd.ce.def.max_freq)
 								res.addElement(on);

@@ -22,28 +22,27 @@ public class MyMidi {
     Sequence sequence;
     MidiChannel[] midiChannels;
     Instrument[] instruments;
-    Soundbank sb = null;
+    
     Synthesizer synthesizer;
     Track track;
     long startTime;
 
     public boolean open(Defaults def) {
 		try {
-			if (synthesizer == null) {
-				if ((synthesizer = MidiSystem.getSynthesizer()) == null) {
-					System.out.println("getSynthesizer() failed!");
-					return false;
-				}
-			} 
-			synthesizer.open();
-			sequencer = MidiSystem.getSequencer();
-			sequence = new Sequence(Sequence.PPQ, 10);
-		} catch (Exception ex) { 
-			ex.printStackTrace();
-			return false; 
+	            if (synthesizer == null) {
+	                if ((synthesizer = MidiSystem.getSynthesizer()) == null) {
+	                    System.out.println("getSynthesizer() failed!");
+	                    return false;
+	                }
+	            } 
+	            synthesizer.open();
+	            sequencer = MidiSystem.getSequencer();
+	            sequence = new Sequence(Sequence.PPQ, 10);
+	        } catch (Exception ex) { 
+		    ex.printStackTrace();
+		    return false; 
 		}
-		this.sb = synthesizer.getDefaultSoundbank();	
-		//sb = null; // test
+		Soundbank sb = synthesizer.getDefaultSoundbank();	
 		System.out.println("------------------- > Soundbank sb="+sb);
 		if (sb != null) {
 			instruments = synthesizer.getDefaultSoundbank().getInstruments();
@@ -83,20 +82,20 @@ public class MyMidi {
     }
 
     public void startRecord(int instr) {
-		track = sequence.createTrack();
-		startTime = System.currentTimeMillis();
-		// add a program change right at the beginning of 
-		// the track for the current instrument
-		/*for (int q = 0; q < 16; q++) {
-		    if (ti[q] != null) {
-			if (ti[q] == o)  {
-			    stopChannel(q);
-			    return;
-			}
-		    }
+	track = sequence.createTrack();
+	startTime = System.currentTimeMillis();
+	// add a program change right at the beginning of 
+	// the track for the current instrument
+	/*for (int q = 0; q < 16; q++) {
+	    if (ti[q] != null) {
+		if (ti[q] == o)  {
+		    stopChannel(q);
+		    return;
 		}
-		createShortEvent(PROGRAM, instr);//Instrument change
-		*/
+	    }
+	}
+	createShortEvent(PROGRAM, instr);//Instrument change
+	*/
     }
     public Sequence readMifiFile(String file) {
 	Sequence seq = null;
@@ -168,8 +167,6 @@ public class MyMidi {
         try {
             long millis = System.currentTimeMillis() - startTime;
             long tick = millis * sequence.getResolution() / 500;
-           // System.out.println("ShortEvent:"+cd.num+" vel="+cd.velocity+" rev="+cd.reverb+" bend="+cd.bend);
-            //System.out.println("ShortEvent: type="+type+" num="+cd.num+" data="+data+" velocity ="+cd.velocity);
             message.setMessage(type+cd.num, data, cd.velocity); 
             MidiEvent event = new MidiEvent(message, tick);
             track.add(event);
@@ -203,9 +200,9 @@ public class MyMidi {
         MidiChannel channel;
         boolean solo, mono, mute, sustain;
         int velocity; // (0-127) volume 
-        int pressure, bend, reverb;
+	int pressure, bend, reverb;
         int row, col;
-        int num; // the midi channel (0-15)
+	int num; // the midi channel (0-15)
  
         public ChannelData(MidiChannel channel, int num) {
             this.channel = channel;

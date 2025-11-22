@@ -971,32 +971,6 @@ public class Utils {
     		});
     	return in;
     }
-    public boolean save(String file, String charset, Vector<String> raw) {
-		File of = new File(file+"~");
-		File f = new File(file);
-		f.renameTo(of);
-		//System.out.println("save() name="+file);
-		try {
-			PrintWriter prs = null;
-			if (charset != null) {
-				OutputStreamWriter out = new OutputStreamWriter( new FileOutputStream(f), charset );
-				prs = new PrintWriter(out);
-			}
-			else
-				prs = new PrintWriter(new FileOutputStream(f)); // standart
-		     // Headder Information
-		     //prs.println("");
-		     for (int n = 0; n < raw.size(); n++) {
-		    	 prs.println((String) raw.elementAt(n));
-		     }
-		     prs.close();
-		}
-		catch (java.io.IOException e) {
-		    System.out.println("Save(): "+e );
-		    return false; 	// Kann File nicht schreiben ! 
-		} // End of IO Excep
-		return true;
-    }
 }
 
 

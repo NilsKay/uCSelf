@@ -1,7 +1,5 @@
 package Utils;
 
-import SOUND.OneNote;
-
 public class QSort {
 
     /** 
@@ -11,7 +9,7 @@ public class QSort {
     * @param lo0     left boundary of array partition
     * @param hi0     right boundary of array partition
     */
-   public void quickSort(double a[], OneNote b[], int lo0, int hi0) {
+   public void quickSort(double a[], int b[], int lo0, int hi0) {
       int lo = lo0;
       int hi = hi0;
       double mid;
@@ -58,8 +56,8 @@ public class QSort {
       }
    }
 
-   private void swap(double a[], OneNote b[], int i, int j) {
-      OneNote T;
+   private void swap(double a[], int b[], int i, int j) {
+      int T;
       double dT;
       dT = a[i]; 
       T = b[i]; 
@@ -69,7 +67,7 @@ public class QSort {
       b[j] = T; 
    }
 
-   public void sort(double a[], OneNote b[]) {
+   public void sort(double a[], int b[]) {
       quickSort(a, b, 0, a.length - 1);
    }
 }
