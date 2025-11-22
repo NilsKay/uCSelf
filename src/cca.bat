@@ -1,7 +1,0 @@
-echo "CCA startup"
-set TopUi=l:\MyProjects\PHS\ccar.jar
-set JRE_TOP="d:\Program Files\JavaSoft\JRE\1.1"
-set CLASSPATH=%TopUi%
-set JAVAPAR=-cp %CLASSPATH%
-rem echo "JAVATOP="%JAVAPAR%
-java %JAVAPAR% SOUND.CCA

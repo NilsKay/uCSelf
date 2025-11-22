@@ -15,15 +15,6 @@ public class Converter {
  *  @param digits the Number of digits
  **/    
 
-public static void doBreak() {
-    try {
-	String str=null;
-	int l = str.length();
-    } catch (Exception ex) {
-	ex.printStackTrace();
-    }
-}
-
 /**
  * Formatting of a double to a number of digits, where per default 3 digits
  * behind the colon will be used.

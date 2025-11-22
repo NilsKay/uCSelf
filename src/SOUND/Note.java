@@ -26,27 +26,16 @@ public class Note {
     public double iokt;
     public double t1,t2,t3;// Splitter
     public int iform,iband;
-    //---------------
-    public int voices;		// Number of voices active at this time (together with this) 
 
     public Note(double s, double d, double b, double freq, int gen, int amp, int env) {
 	this.start = s;
 	this.dauer = d;
-	/*String tmp = Utils.Converter.formatDouble(d, 8);
-	if (tmp.equals("NaN")) 
-	    Utils.Converter.doBreak();
-	*/
 	this.freq = freq;
 	this.generator = gen;
 	this.amplitude = amp;
 	this.envelope = env;
 	this.balance = b;
     }
-    public String toString() {
-	String out = "Start="+start+" Dauer="+dauer+" freq="+freq+" gen="+generator+" amp="+amplitude+" env="+envelope+" bal="+balance;
-	return out;
-    }
-
 } // end of class
 
 

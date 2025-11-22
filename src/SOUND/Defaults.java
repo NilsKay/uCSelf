@@ -15,20 +15,16 @@ public class Defaults {
     int max_freq, min_freq;
     int population, fittest;
     int interval, iterations, diff_freq;
-    double length, r_Weight, degression;
-    double impact;
-    boolean tonal, stereo, preferLowerNotes;
-    boolean fof;	// To switch between Input panels
-    boolean newFOF;	// To modify just the Oszi to behave like FOF
+    double length, r_Weight, impact;
+    boolean tonal, stereo, fof;
     // Other vars, also saved as Properties:
     public String lastPath = null;
     String min_amp, max_amp;	// pp, p, mp, mf, f, ff 
     public final int voiceMax = 7;
     double amplify_amp;
     double min_tempo, max_tempo;
-    int duration_step_index = 0;	// 0 = free
     int min_voice = 1, max_voice=1;
-    int seed, mode;
+    int seed;
     // Project3 values:
     double vibrato1_ampl_min, vibrato1_ampl_max;
     double vibrato1_speed_min, vibrato1_speed_max;
@@ -54,7 +50,6 @@ public boolean loadDef(String path) {
     int q, ii;
     // set default, overwrite if possible
     seed = 0;
-    mode = 0;
     max_freq = 20000;
     min_freq = 20;
     interval = 50;
@@ -63,19 +58,15 @@ public boolean loadDef(String path) {
     iterations = 50;
     diff_freq = 250;
     r_Weight = 20;
-    degression = 0.0;
     tonal = false;
-    preferLowerNotes = true;
     stereo = true;
     fof = false;
-    newFOF = false;
     impact = 200;
     min_amp = Project2.Loudness[0];
     max_amp = Project2.Loudness[Project2.Loudness.length - 1];
     amplify_amp = 1.0;
     min_tempo = 0.5;
     max_tempo = 1.0;
-    duration_step_index = 0; //free
     gamma = 0.6;
     vibrato1_ampl_min = 0.0;
     vibrato1_ampl_max = 20.0;
@@ -130,25 +121,16 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("MAXFREQUENCY")) this.max_freq = Converter.getInt(res1, 20000); 
 		    else if (res0.equals("MINFREQUENCY")) this.min_freq = Converter.getInt(res1, 20); 
 		    else if (res0.equals("SEED")) this.seed = Converter.getInt(res1, 0);
-		    else if (res0.equals("MODE")) this.mode = Converter.getInt(res1, 0);
 		    else if (res0.equals("POPULATION")) this.population = Converter.getInt(res1, 200); 
 		    else if (res0.equals("FITTEST")) this.fittest = Converter.getInt(res1, 30); 
 		    else if (res0.equals("INTERVAL")) this.interval = Converter.getInt(res1, 50); 
 		    else if (res0.equals("MINVOICE")) this.min_voice = Converter.getInt(res1, 1);
 		    else if (res0.equals("MAXVOICE")) this.max_voice = Converter.getInt(res1, 1);
 		    else if (res0.equals("ITERATIONS")) this.iterations = Converter.getInt(res1, 20); 
-		    else if (res0.equals("RANDOMWEIGHT")) {
-			this.r_Weight = Converter.getDouble(res1, 1.0);
-			this.impact = this.r_Weight;
-		    }
-		    else if (res0.equalsIgnoreCase("DEGRESSION")) this.degression = Converter.getDouble(res1, 0.0);
+		    else if (res0.equals("RANDOMWEIGHT")) this.r_Weight = Converter.getDouble(res1, 1.0);
 		    else if (res0.equals("DIFFFREQ")) this.diff_freq = Converter.getInt(res1, 250); 
 		    else if (res0.equals("TONAL")) this.tonal = Converter.checkState(res1);
-		    else if (res0.equalsIgnoreCase("duration_step_index")) this.duration_step_index =
-									       Converter.getInt(res1, 0); 
-		    else if (res0.equals("preferLowerNotes")) this.preferLowerNotes = Converter.checkState(res1);
-		    //else if (res0.equals("FOF")) this.fof = Converter.checkState(res1); // out since V1.7a1, use modified oszi instaed
-		    else if (res0.equals("newFOF")) this.newFOF = Converter.checkState(res1);
+		    else if (res0.equals("FOF")) this.fof = Converter.checkState(res1);
 		    else if (res0.equals("STEREO")) this.stereo = Converter.checkState(res1);
 		    else if (res0.equals("MINAMP")) min_amp = res1;
 		    else if (res0.equals("MAXAMP")) max_amp = res1;
@@ -203,7 +185,7 @@ public boolean saveDef(String path, String user) {
     int n;
     File fdes;
     long millis;
-    //System.out.println("Deflts: saveDefaults. path="+path+" fof="+fof);
+    //System.out.println("Deflts: saveDefaults.");
     GregorianCalendar greg = new GregorianCalendar();
     SimpleDateFormat datef = new SimpleDateFormat("dd MMM yyyy HH:mm:ss");
 
@@ -220,7 +202,6 @@ public boolean saveDef(String path, String user) {
 	prs.println("# , written "+ wert);
 	prs.println("# ----------- JcSelf Default:");
 	prs.println("LastPath="+this.lastPath);
-	prs.println("MODE="+this.mode+"	# 0=2d, 1=3d, 2= My3d");
 	prs.println("MAXFREQUENCY="+this.max_freq+"	# Maximal used frequency");
 	prs.println("MINFREQUENCY="+this.min_freq+"	# Minimal used frequency");
 	prs.println("SEED="+this.seed+"	# Initial frequency 0 = use random");
@@ -231,20 +212,17 @@ public boolean saveDef(String path, String user) {
 	prs.println("FITTEST="+this.fittest+"	# Choose from these with the highest weight");
 	prs.println("ITERATIONS="+this.iterations+"	# ");
 	prs.println("RANDOMWEIGHT="+this.r_Weight+"	# how much the weight will be influenced by the random function.");
-	prs.println("DEGRESSION="+this.degression+"	# modify the random weight.");
 	prs.println("DIFFFREQ="+this.diff_freq+"	# Frequency area influenced by one impact");
 	prs.println("TONAL="+this.tonal+"	# If true, use just tonel notes, else all possible frequencys");
-	prs.println("preferLowerNotes="+preferLowerNotes+"	# If true, use the same frequency distribution as with non tonal, if fase, prefer lower notes !");
 	prs.println("FOF="+this.fof+"	# if true, work in FOF mode, else OSZI ");
-	prs.println("newFOF="+this.newFOF+"	# if true, work OSZI in FOF mode");
 	prs.println("STEREO="+this.stereo+"	# if true, use stereo effects");
 	prs.println("MINAMP="+this.min_amp+"	# Minimal amplitude, use pp, p, mp, mf, f, ff");
 	prs.println("MAXAMP="+this.max_amp+"	# Maximal amplitude, use pp, p, mp, mf, f, ff");
 	prs.println("AMPLIFYAMP="+this.amplify_amp+"	# factor on the weight to incease/decrease amplitude differences");
 	prs.println("MINTEMPO="+this.min_tempo+"	# minimal duration of a tone");
-	prs.println("MAXTEMPO="+this.max_tempo+"	# maximal duration of a tone");
-	prs.println("duration_step_index="+duration_step_index+"	# If duration is free or in steps."); 
 	prs.println("GAMMA="+this.gamma+"	# How voices are influenced");
+	prs.println("MAXTEMPO="+this.max_tempo+"	# maximal duration of a tone");
+
 	prs.println("VIBRATO1_AMPL_MIN="+vibrato1_ampl_min+" # Vibrato 1 minimal Amplitude"); 
 	prs.println("VIBRATO1_AMPL_MAX="+ vibrato1_ampl_max+" # Vibrato 1 maximal Amplitude");
 	prs.println("VIBRATO1_SPEED_MIN="+ vibrato1_speed_min+" # Vibrato 1 minimal speed");
