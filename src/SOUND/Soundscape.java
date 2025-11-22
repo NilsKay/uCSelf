@@ -285,7 +285,7 @@ public class Soundscape {
 		    index = getStep( freq - this.start, this.step);
 		    //System.out.println("maxindex="+this.table.length+" freq="+freq+" index="+index);
 		   if (index >= 0)
-			   val = addWeight[index]; //erro from OneNote introduction this.table[index].freq;
+			   val = addWeight[index]; //error from OneNote introduction this.table[index].freq;
 		    //System.out.println("val="+val);
 		} catch (ArrayIndexOutOfBoundsException e) {
 		    e.printStackTrace();
