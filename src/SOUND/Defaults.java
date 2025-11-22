@@ -22,14 +22,15 @@ import Utils.Utils;
  * @author 	Nils Kay
  */
 public class Defaults {
-	String text[] = new String[100];
+	int maxText = 140;
+	String text[] = new String[maxText];
     // ---------- All the variables from the ui-mask :
-    int max_freq, min_freq;
+    int max_freq, min_freq, lang;
     int population, fittest;
-    int interval, iterations, diff_freq;
+    int interval, iterations, diff_freq, delay;
     double length, r_Weight, degression;
     double impact;
-    boolean tonal, stereo, preferLowerNotes, useSelectNotes = false;
+    boolean tonal, stereo, preferLowerNotes, useSelectNotes = false, akkord, pedal;
     boolean fof;	// To switch between Input panels
     boolean newFOF;	// To modify just the Oszi to behave like FOF
     // Other vars, also saved as Properties:
@@ -55,6 +56,11 @@ public class Defaults {
     int iBand_min, iBand_max;
     Vector<OneNote> selectedNotes;
     Vector<Integer> channels; 
+    //--- State machine ----------
+    int range, trigger, cascadeCount, stepUp, stepDown;
+    int loopDepth, loopRepeat;
+    int minTempo, maxTempo, speedStep;
+    boolean useLoop, useSpeed, useCascade, permutation;
     
 /**
  * This Method loads the saved Default values from .motor.def
@@ -75,18 +81,32 @@ public boolean loadDef(String path) {
     for(int i = 0; i < voiceMax; i++) {
     	this.channels.addElement(new Integer(10+i*3)); // Old default
     }
+    range = 3;
+    trigger = 3;
+    cascadeCount = 5;
+    stepUp = 2;
+    stepDown = 1;
+    loopDepth = 6;
+    loopRepeat = 1;
+    this.minTempo = 30;
+    this.maxTempo = 120;
+    speedStep = 1;
     seed = 0;
     mode = 0;
     max_freq = 20000;
+    lang = 0; // eng
     min_freq = 20;
     interval = 50;
     population = 200;
     fittest = 15;
     iterations = 50;
+    delay = 0;
     diff_freq = 250;
     r_Weight = 20;
     degression = 0.0;
     tonal = false;
+    akkord = false;
+    pedal = false;
     preferLowerNotes = true;
     stereo = true;
     fof = false;
@@ -153,6 +173,16 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("MAXFREQUENCY")) this.max_freq = Converter.getInt(res1, 20000); 
 		    else if (res0.equals("MINFREQUENCY")) this.min_freq = Converter.getInt(res1, 20); 
 		    else if (res0.equals("SEED")) this.seed = Converter.getInt(res1, 0);
+		    else if (res0.equals("range")) this.range = Converter.getInt(res1, 0);
+		    else if (res0.equals("trigger")) this.trigger = Converter.getInt(res1, 0);
+		    else if (res0.equals("cascadeCount")) this.cascadeCount = Converter.getInt(res1, 0);
+		    else if (res0.equals("stepUp")) this.stepUp = Converter.getInt(res1, 0);
+		    else if (res0.equals("stepDown")) this.stepDown = Converter.getInt(res1, 0);
+		    else if (res0.equals("loopDepth")) this.loopDepth = Converter.getInt(res1, 6);
+		    else if (res0.equals("loopRepeat")) this.loopRepeat = Converter.getInt(res1, 1);
+		    else if (res0.equals("minSTempo")) this.minTempo = Converter.getInt(res1, 10);
+		    else if (res0.equals("maxSTempo")) this.maxTempo = Converter.getInt(res1, 120);
+		    else if (res0.equals("speedStep")) this.speedStep = Converter.getInt(res1, 1);
 		    else if (res0.equals("MODE")) this.mode = Converter.getInt(res1, 0);
 		    else if (res0.equals("POPULATION")) this.population = Converter.getInt(res1, 200); 
 		    else if (res0.equals("FITTEST")) this.fittest = Converter.getInt(res1, 30); 
@@ -160,13 +190,22 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("MINVOICE")) this.min_voice = Converter.getInt(res1, 1);
 		    else if (res0.equals("MAXVOICE")) this.max_voice = Converter.getInt(res1, 1);
 		    else if (res0.equals("ITERATIONS")) this.iterations = Converter.getInt(res1, 20); 
+		    else if (res0.equals("DELAY")) this.delay = Converter.getInt(res1, 0); 
 		    else if (res0.equals("RANDOMWEIGHT")) {
-			this.r_Weight = Converter.getDouble(res1, 1.0);
-			this.impact = this.r_Weight;
+			    this.r_Weight = Converter.getDouble(res1, 1.0);
+				this.impact = this.r_Weight;
 		    }
+		    else if (res0.equalsIgnoreCase("language")) this.lang = Converter.getInt(res1, 0); 
+		    
 		    else if (res0.equalsIgnoreCase("DEGRESSION")) this.degression = Converter.getDouble(res1, 0.0);
 		    else if (res0.equals("DIFFFREQ")) this.diff_freq = Converter.getInt(res1, 250); 
 		    else if (res0.equals("TONAL")) this.tonal = Converter.checkState(res1);
+		    else if (res0.equals("useSpeed")) this.useSpeed = Converter.checkState(res1);
+		    else if (res0.equals("useCascade")) this.useCascade = Converter.checkState(res1);
+		    else if (res0.equals("permutation")) this.permutation = Converter.checkState(res1);
+		    else if (res0.equals("useLoop")) this.useLoop = Converter.checkState(res1);
+		    else if (res0.equals("akkord")) this.akkord = Converter.checkState(res1);
+		    else if (res0.equals("pedal")) this.pedal = Converter.checkState(res1);
 		    else if (res0.equalsIgnoreCase("duration_step_index")) this.duration_step_index =
 									       Converter.getInt(res1, 0); 
 		    else if (res0.equals("preferLowerNotes")) this.preferLowerNotes = Converter.checkState(res1);
@@ -204,13 +243,19 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("IBAND_MAX")) iBand_max = Converter.getInt(res1, 40);
 		    else if (res0.equals("ONENOTE")) {
 		    	String[] sep = new Utils().getSeparatedValues(res1, ';');
-		    	if (sep != null && sep.length > 2) {
-		    		
-		    		OneNote on = new OneNote(Converter.getDouble(sep[0], 0),
+		    	if (sep != null && sep.length > 1) {
+		    		res1 = sep[0];
+		    	}
+		    		/*OneNote on = new OneNote(Converter.getDouble(sep[0], 0),
 		    				sep[1], 
 		    				Converter.getInt(sep[2], 0));
 		    		this.selectedNotes.addElement(on);
 		    	}
+		    	*/
+		    	double f = Converter.getDouble(res1, 0.0);
+		    	OneNote on = new OneNote(f, 0, 0);
+		    	on.getMidiNote();
+		    	this.selectedNotes.addElement(on);
 		    }
 		    else if (res0.equals("CHANNEL")) {
 		    	if (!firstChannel) {
@@ -228,9 +273,11 @@ public boolean loadDef(String path) {
     } // end of try
     catch (java.io.IOException e) {
 	System.out.println("loadDef in Defaults.java : "+e);
+	
 	return false;
     }
     //System.out.println("Default.load() (2) : amplify_amp = "+this.amplify_amp);
+    this.text = getText();
     return true;
 }// end of method
 
@@ -265,6 +312,8 @@ public boolean saveDef(String path, String user) {
 	prs.println("# , written "+ wert);
 	prs.println("# ----------- JcSelf Default:");
 	prs.println("LastPath="+this.lastPath);
+	
+	prs.println("Language="+this.lang+"	# 0=eng 1=ger");
 	prs.println("MODE="+this.mode+"	# 0=2d, 1=3d, 2= My3d");
 	prs.println("MAXFREQUENCY="+this.max_freq+"	# Maximal used frequency");
 	prs.println("MINFREQUENCY="+this.min_freq+"	# Minimal used frequency");
@@ -274,11 +323,15 @@ public boolean saveDef(String path, String user) {
 	prs.println("MAXVOICE="+this.max_voice+"		# max. amount voices");
 	prs.println("POPULATION="+this.population+"	# Number of random frequencys per Iteration");
 	prs.println("FITTEST="+this.fittest+"	# Choose from these with the highest weight");
+	prs.println("DELAY="+this.delay+"	# ");
 	prs.println("ITERATIONS="+this.iterations+"	# ");
 	prs.println("RANDOMWEIGHT="+this.r_Weight+"	# how much the weight will be influenced by the random function.");
 	prs.println("DEGRESSION="+this.degression+"	# modify the random weight.");
 	prs.println("DIFFFREQ="+this.diff_freq+"	# Frequency area influenced by one impact");
 	prs.println("TONAL="+this.tonal+"	# If true, use just tonel notes, else all possible frequencys");
+	prs.println("akkord="+this.akkord+"	# If true, generate an akkord on the first voice");
+	prs.println("pedal="+this.pedal+"	# If true, use a pedal to modify duration on the first voice");
+	
 	prs.println("preferLowerNotes="+preferLowerNotes+"	# If true, use the same frequency distribution as with non tonal, if fase, prefer lower notes !");
 	prs.println("useSelectNotes="+useSelectNotes+"	# If true, use only the selected frequencies !");
 	prs.println("FOF="+this.fof+"	# if true, work in FOF mode, else OSZI ");
@@ -314,7 +367,7 @@ public boolean saveDef(String path, String user) {
 	if (this.selectedNotes.size() > 0) {
 		for (int q = 0; q < this.selectedNotes.size(); q++) {
 			OneNote o = this.selectedNotes.elementAt(q);
-			prs.println("ONENOTE="+o.toString());
+			prs.println("ONENOTE="+o.freq);
 		}
 	}
 	if (this.channels != null) {
@@ -323,8 +376,20 @@ public boolean saveDef(String path, String user) {
 			prs.println("CHANNEL="+ I.intValue()+" # channel Instrument");
 		}
 	}
-//prs.println("="+this.+"	# ");
-
+	prs.println("range="+this.range+"	# increase trigger count if the number of the selected freq. is below this");
+	prs.println("trigger="+this.trigger+"	# start state machine if range was n-time hit");
+	prs.println("useSpeed="+this.useSpeed+"	# If true, use the speed-state-machine");
+	prs.println("useCascade="+this.useCascade+"	# If true, use the cascade-state-machine");
+	prs.println("permutation="+this.permutation+"	# If true, vary the loop, else not");
+	prs.println("useLoop="+this.useLoop+"	# If true, use the loop-state-machine");
+	prs.println("cascadeCount="+this.cascadeCount+"	# Number of steps to do the cascade");
+	prs.println("stepUp="+this.stepUp+"	# Notes to go up");
+	prs.println("stepDown="+this.stepDown+"	# Notes to go down");
+	prs.println("loopDepth="+this.loopDepth+"	# How many notes for a loop");
+	prs.println("loopRepeat="+this.loopRepeat+"	# How many repeats for loops");
+	prs.println("minSTempo="+this.minTempo+"	# Minimal tempo change");
+	prs.println("maxSTempo="+this.maxTempo+"	# Maximal tempo change");
+	prs.println("speedStep="+this.speedStep+"	# How much to chan ge the speed");
 	prs.close();
 
     }
@@ -346,8 +411,8 @@ public Vector<OneNote> clipNotes(Vector<OneNote> source) {
 	return res;
 }
 public String[] getText() {
-	String[] t = new String[100];
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2003)";
+	String[] t = new String[maxText];
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
     t[1] = "Alarmbox"; 
     t[10] = "Do you really want to quit ?";
     t[11] = "File";
@@ -428,11 +493,169 @@ public String[] getText() {
     t[86] = "OK";
     t[87] = "Cancel";
     t[88] = "Your selection has no frequencys, aborting...";
-    t[89] = "Select Instruments";
+    t[89] = "Select Instruments...";
+    t[90] = "No Soundbank found, Instrument Selection not possible !";
+    t[91] = "Akkord";
+    t[92] = "Shadow";
+    t[93] = "Language";
+    t[94] = "English";
+    t[95] = "German";
+    t[96] = "Display 2D";
+    t[97] = "Display 3D";
+    t[98] = "Restart the programm to make the change effective";
+    t[99] = "Delay";
+    t[100] = "msec";
+    t[101] = "Range";
+    t[102] = "Trigger";
+    t[103] = "Up-Step";
+    t[104] = "Down-Step";
+    t[105] = "Amount";
+    t[106] = "Kascade Effect";
+    t[107] = "Loop Effect";
+    t[108] = "Speed Effect";
+    t[109] = "Setup State Machine...";
+    t[110] = "The larger this number the more values are added to the trigger count value";
+    t[111] = "Threshhold, at this value of the trigger count value the effect is triggered";
+    t[112] = "Number of intervals where this effect is active";
+    t[113] = "How many notes it goes up";
+    t[114] = "How many notes it goes down";
+    t[115] = "Loop Depth";
+    t[116] = "Loop Repeats";
+    t[117] = "How many intervals will be repeated";
+    t[118] = "How may times the loop will be repeated";
+    t[119] = "Min. Tempo";
+    t[120] = "Max. Tempo";
+    t[121] = "Step";
+    t[122] = "How much the speed will be changed per trigger event";
+    t[123] = "Permutation";
+    t[124] = "If selected the loop will vary in speed, amplitude etc. but not in frequency";
+    
 //t[38] = "";
 //t[36] = "";
-
+    if (this.lang == 1)
+    	t = getGermanText();
    
+    return t;
+}
+public String[] getGermanText() {
+	String[] t = new String[maxText];
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
+    t[1] = "Alarmbox"; 
+    t[10] = "Wollen Sie das Programm wirklich beenden ?";
+    t[11] = "Datei";
+    t[12] = "Pfad auswählen";
+    t[13] = "Beenden";
+    t[14] = "Erzeugen";
+    t[15] = ".sco Datei auswählen";
+    t[16] = "Es is nicht möglich die Datei zu speichern:";
+    t[17] = "Fertig";
+    t[18] = "Maximum Frequenz:";
+    t[19] = "Minimum Frequenz:";
+    t[20] = "Population:";
+    t[21] = "Auswahlmenge:";	//"Number of Fittest:";
+    t[22] = "Treffer Effekt:";
+    t[23] = "Frequenzraster:";
+    t[24] = "Minimum Dauer:";
+    t[25] = "Hz";
+    t[26] = "sec";
+    t[27] = "Zufallsgewichtung:";
+    t[28] = "Durchläufe:";
+    t[29] = "Gewichtung:"; 
+    t[30] = "12 temperierte Noten";	//"Use chromatic Notes";
+    t[31] = "Abbruch";
+    t[32] = "Über";
+    t[33] = "Optionen";
+    t[34] = "CSound Editor";
+    t[35] = "Die Programm wurde geschrieben um eine 'orchestra Datei' und eine 'score Datei' für CSound zu erzeugen.";
+    t[36] = "Die Regeln um einen Ton zu erzeugen basieren auf Zufall und Evolution.";
+    t[37] = "Die Verteilung der Wahrscheinlichkeiten für die Frequenzen verändern";
+    t[38] = "sich selbststruckturierend während eines Programmdurchlaufs."; 
+    //t[39] = "In the end, with the correct parameters, a nearly constant note will appear";
+    t[39] = "Idee : Peter Heeren (Deutscher Komponist) www.peter-heeren.de";
+    t[40] = "Programm: geschrieben in 100% Java by Nils Kay (Diplomingenieur) Nils.Kay@esko.com";
+    t[42] = "Maximale Dauer:";
+    t[43] = "Stereo Effekte";
+    t[44] = "Minimale Lautstärke:";
+    t[45] = "Maximale Lautstärke:";
+    t[46] = "Saatfrequenz:";
+    t[47] = "FOF Komposer";
+    t[48] = "OSZI Komposer";
+    t[49] = "Bereich";
+    t[50] = "Stochastik";
+    t[51] = "Komposition";
+    t[52] = "Min. Stimmen:";
+    t[53] = "Max. Stimmen:";
+    t[54] = "Gamma:";
+    t[55] = "Template speichern";
+    t[56] = "Template laden";
+    t[57] = "Template zum Laden auswählen";
+    t[58] = "Template zum Speichern auswählen";
+    t[59] = "Es ist nicht möglich dies Template zu laden: ";
+    t[60] = "Es ist nicht möglich dies Template zu speichern: ";
+    t[61] = "Die aktuellen Einstellungen wurden modifiziert.";
+    t[62] = "Möchten Sie diese Einstellungen als Template speichern ?";
+    t[63] = "Abspielen";
+    t[64] = "Midi speichern";
+    t[65] = "Tiefere Noten bevorzugen";
+    t[66] = "Since version 'V1.08 alpha1' there was some Midi-options added.";
+    t[67] = "It is now possible to play the generated composition with JcSelf and once";
+    t[68] = "it was played it can be saved as a '*.mid' file to be used by other programs";
+    t[69] = "Es ist nicht möglich das MIDI device zu öffnen. Es wird möglicherweise von einer anderen Applikation benutzt!";
+    t[70] = "Laden";
+    t[71] = "Dauerintervall";
+    t[72] = "Abnahme:";
+    t[73] = "Wählen Sie gültige Noten";
+    t[74] = "Auswahl";
+    t[75] = "Hinzufügen";
+    t[76] = "Entfernen";
+    t[77] = "Eingabe der Feqenzen. Z.B. 100; 150; 200";
+    t[78] = "Schließen";
+    t[79] = "Benutze Frequenzauswahl.";
+    t[80] = "Ihre Auswahl mußte Reduziert werden, um zwischen die Minimum- und Maximum-Frequenz zu passen!";
+    t[81] = "Mögliche Frequenzen";
+    t[82] = "Ausgewählte Frequenzen";
+    t[83] = "Die Frequenz in die Auswahl bewegen.";
+    t[84] = "Die Frequenz von der Auswahl entfernen.";
+    t[85] = "Ihre Auswahl hat weniger als 2 frequenzen, das klingt vermutlich eher langweilig...";
+    t[86] = "OK";
+    t[87] = "Abbruch";
+    t[88] = "Ihre Auswahl enthält keine Frequenzen, Abbruch...";
+    t[89] = "Instrumente Auswählen";
+    t[90] = "Es wurde keine Soundbank gefunden, darum ist es nicht möglich Instrumente auszuwählen !";
+    t[91] = "Akkord";
+    t[92] = "Schatten";
+    t[93] = "Sprachen";
+    t[94] = "Englisch";
+    t[95] = "Deutsch";
+    t[96] = "Anzeige 2D";
+    t[97] = "Anzeige 3D";
+    t[98] = "Starten Sie das Programm erneut, um die Änderungen wirksam zu machen."; 
+    t[99] = "Verlängerung";
+    t[100] = "msec";
+    t[101] = "Bereich";
+    t[102] = "Schwellwert";
+    t[103] = "Schritt nach oben";
+    t[104] = "Schritt nach unten";
+    t[105] = "Anzahl";
+    t[106] = "Kaskadeneffect";
+    t[107] = "Schleifeneffect";
+    t[108] = "Geschwindigkeitsffect";
+    t[109] = "Statusmachine konfigurieren...";
+    t[110] = "Je höher dieser Wert, desto schneller wird der Zähler erhöht";
+    t[111] = "Schwellwert, bei diesem Wert des Zählers wird der Effekt angestoßen";
+    t[112] = "Anzahl der Intervalle, in denen der Effekt wirksam ist";
+    t[113] = "Wieviele Noten es pro Intervall nach oben geht";
+    t[114] = "Wieviele Noten es pro Intervall nach unten geht";
+    t[115] = "Schleifentiefe";
+    t[116] = "Schleifenwiederholungen";
+    t[117] = "Wie viele Töne wiederholt werden sollen";
+    t[118] = "Wie oft die Schleife wiederholt werden soll";
+    t[119] = "Min. Tempo";
+    t[120] = "Max. Tempo";
+    t[121] = "Schritte";
+    t[122] = "Um wieviel die Geschwindigkeit pro Treffer geändert wird";
+    t[123] = "Permutation";
+    t[124] = "Wenn gewählt variiert in der Schleife die Geschwindigkeit, Amplitude etc., nicht aber die Frequenz";
     return t;
 }
 public int getInstrumentForChannel(int c) {

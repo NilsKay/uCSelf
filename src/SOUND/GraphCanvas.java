@@ -32,7 +32,7 @@ class GraphCanvas extends JPanel {
     boolean first, change;
 
     public GraphCanvas() {
-	this(new Dimension(550, 150), 10, Color.lightGray);	 
+    	this(new Dimension(550, 150), 10, Color.lightGray);	 
     }
 /**
  * create a Canvas for Graph display
@@ -62,12 +62,12 @@ public Dimension getPreferredSize() {
     return preferredSize;
 }
 
-/**
- * Malt den Graphen
- */
-public void setTable(RandomTable r) {
-    this.setTable(r, 1.0, 0);
-}
+	/**
+	 * Malt den Graphen
+	 */
+	public void setTable(RandomTable r) {
+	    this.setTable(r, 1.0, 0);
+	}
     private FitnessTable getPolygon(RandomTable rt, double xscale, double yscale, int height, boolean log) {
 	int[] xpoints, ypoints;
 	xpoints = new int[rt.size * 5];
@@ -84,7 +84,7 @@ public void setTable(RandomTable r) {
 	    oldY = y;
 	    freq = n * rt.step;
 	    x = ((double) freq *  xscale +0.5);	// start of graph
-	    y = (int) ( (rt.table[n] - 1.0) * yscale);
+	    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
 	    if (log) rt.debugOut("n="+n+" x="+x+" y="+y+" dx="+dx+" oldY="+oldY+" x="+x,55);		
 	    if ( y != oldY) {
 		xp = (int) ( x + 0.5);
@@ -149,7 +149,7 @@ public void setTable(RandomTable r) {
 	    x = (int) ((double) freq *  xscale +0.5);	// start of graph
 	    dx = (int) ((double) ((freq + rt.step) *  xscale +0.5));	
 	    dx -= x;
-	    y = (int) ( (rt.table[n] - 1.0) * yscale);
+	    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
 	    if( y > 0 && dx > 0) {
 		off.fillRect(x, this.height - y, dx, y);
 		rt.debugOut("GraphCanvas.setTable() index n="+n+" freq="+freq+" draw x="+x+" draw y="+y+" dx="+dx, 6);
@@ -161,14 +161,14 @@ public void setTable(RandomTable r) {
 /**
  * Malt den Graphen
  */
-@SuppressWarnings({ "unused", "unchecked" })
+@SuppressWarnings({ "unused" })
 public void setTable(RandomTable r, double gamma, int mode) {
     this.rt = r;
     this.mode = mode;
     change = false;
     this.mode = mode;
     if (this.offImage == null) {
-	return;
+    	return;
     }
     //Utils.Converter.doBreak();
     //Graphics2D off = (Graphics2D) this.offImage.getGraphics();
@@ -192,34 +192,34 @@ public void setTable(RandomTable r, double gamma, int mode) {
     int depth = 0;
     int back_w = width, dw = 0, dh = 0, redw = 0;
     if (mode == 0) {
-	offsetY = 20;
-	hei = this.height - 35 - offsetY;
+    	offsetY = 20;
+    	hei = this.height - 35 - offsetY;
     }
     else if (mode == 1) {
-	hei = 100;
-	offsetY = 50;
-	//width = (int) ((double) (this.height - hei - offsetY) * ( Math.cos(beta) / Math.sin(beta)) + 0.5);
-	width = (int) ((double) (this.height - hei - offsetY) / Math.sin(beta) + 0.5);
-	width -= (int) ((double) (hei + offsetY) * Math.tan(beta));
-	depth = (int) ((double) (hei + offsetY - minH) / Math.tan(alpha+beta) + 0.5);
+		hei = 100;
+		offsetY = 50;
+		//width = (int) ((double) (this.height - hei - offsetY) * ( Math.cos(beta) / Math.sin(beta)) + 0.5);
+		width = (int) ((double) (this.height - hei - offsetY) / Math.sin(beta) + 0.5);
+		width -= (int) ((double) (hei + offsetY) * Math.tan(beta));
+		depth = (int) ((double) (hei + offsetY - minH) / Math.tan(alpha+beta) + 0.5);
     }
     else if (mode == 2) {
-	hei = 100;
-	wid = (int) ((double) width * Math.cos(beta) + 0.5);	
-	offsetY = (int) ((double) width * Math.sin(beta) + 0.5);	
-	depth = (int) ((double) (this.height - minH - offsetY) / Math.tan(alpha) + 0.5);
-	double tanB = Math.tan(beta);
-	//double tanG = Math.tan(gamm);
-	double h = (double) this.height;
-	double w = width;
-	double m = h / (double) (w - wid);
-	double ddw = m * (double) wid + (double) (h - minH) + tanB * (double) depth;
-	ddw = ddw / ( tanB + m);
-	double ddh = m * (ddw - (double) wid);
-	redw = (int) (((double) (h - minH) - ddh) / Math.sin(beta) +0.5); // reduced width
-	//System.out.println("This.height="+this.height+" width="+width+" ddw="+ddw+" ddh="+ddh+" redw="+redw);
-	dh = (int) (ddh +0.5);
-	dw = (int) (ddw +0.5);
+		hei = 100;
+		wid = (int) ((double) width * Math.cos(beta) + 0.5);	
+		offsetY = (int) ((double) width * Math.sin(beta) + 0.5);	
+		depth = (int) ((double) (this.height - minH - offsetY) / Math.tan(alpha) + 0.5);
+		double tanB = Math.tan(beta);
+		//double tanG = Math.tan(gamm);
+		double h = (double) this.height;
+		double w = width;
+		double m = h / (double) (w - wid);
+		double ddw = m * (double) wid + (double) (h - minH) + tanB * (double) depth;
+		ddw = ddw / ( tanB + m);
+		double ddh = m * (ddw - (double) wid);
+		redw = (int) (((double) (h - minH) - ddh) / Math.sin(beta) +0.5); // reduced width
+		//System.out.println("This.height="+this.height+" width="+width+" ddw="+ddw+" ddh="+ddh+" redw="+redw);
+		dh = (int) (ddh +0.5);
+		dw = (int) (ddw +0.5);
     }
     //System.out.println("GraphCanvas.setTable() width="+width);
     double yscale = (double) (hei) / max;
@@ -229,97 +229,102 @@ public void setTable(RandomTable r, double gamma, int mode) {
     //oldMethod(off, rt, xscale, yscale, hei); // for tests this may be in !
     
     FitnessTable fitness = getPolygon(this.rt, xscale, yscale, hei, false);
-    this.rt.history.addElement(fitness); // the most-recent Polygon
     if (mode == 0) {
-	do2D(off, rt, fitness, wid, hei, offsetY); 
+    	do2D(off, rt, fitness, wid, hei, offsetY); 
     }
     else if (mode == 1) {
-	do3DDraw(off, hei, width, depth, minH);
+    	this.rt.history.addElement(fitness); // the most-recent Polygon
+    	do3DDraw(off, hei, width, depth, minH);
     }
     else if (mode == 2) {
-	doMy3DDraw(off, hei, width, depth, minH, dh, dw, redw);
+    	this.rt.history.addElement(fitness); // the most-recent Polygon
+    	doMy3DDraw(off, hei, width, depth, minH, dh, dw, redw);
     }
     if (this.offImage != null) {
-	Graphics g = this.offImage.getGraphics();
-	g.drawImage(pImage, 0, 0, this); // display buffered Image
+    	Graphics g = this.offImage.getGraphics();
+    	g.drawImage(pImage, 0, 0, this); // display buffered Image
     }
+   
     change = true;
     repaint();
+    fitness = null;
+    //System.gc();
     
 }
 
     @SuppressWarnings("unused")
 	private void do2D(Graphics2D off, RandomTable rt, FitnessTable fitness, int wid, int hei, int offsetY) {
-	int x, y;
-	GradientPaint redtowhite = new GradientPaint(0, 0, 
-						     new Color(160, 250, 100), 
-						     0, hei, 
-						     new Color(255, 120, 50));
-	Polygon poly = fitness.getPolygon(this.height, offsetY);
-	off.setPaint(redtowhite);
-	off.fill(poly);
-	off.setColor(Color.black);
-	off.draw(poly);
-	//------------------
-	//----- actual freq marker:
-	int freq, df, dy,dx;
-	dx = (int) ((double) (rt.centerFreq - rt.start) * xscale);
-	Point p = new Point(dx, offsetY);
-	rt.debugOut("GraphCanvas.setTable() mark-freq="+(rt.centerFreq),5);
-	off.setColor(Color.red);
-	dy = this.height - p.y;
-	off.drawLine(p.x, dy , p.x, dy + 10);
-	off.drawLine(p.x, dy , p.x - 2, dy + 3);
-	off.drawLine(p.x, dy , p.x + 2, dy + 3);
-	//----- Freq. Scale --------------
-	double fm = (double) wid / (double) (rt.stop - rt.start);
-	off.setColor(Color.black);
-	off.setFont(norm);
-	for (int n=0; n <= rt.stop; n += 1000) { // loop over all Frequencys
-	    dx = (int) ((double) (n - rt.start) * fm +0.5);
-	    dy = this.height - offsetY;
-	    off.drawLine(dx, dy , dx, dy + 5);
-	    if (n/1000 > 0) 
-		off.drawString(Integer.toString(n/1000)+"k", dx-3, dy + 15);
-	}
-	//System.out.println("Scale last Point="+dx+" transformed="+p.x);
-	// zero line:
-	off.setColor(Color.black);
-	dx = wid;
-	dy = this.height - offsetY;
-	//System.out.println("Scale width = "+wid+" transformed="+dx);
-	off.drawLine(0, this.height - offsetY, dx, dy);
-	off.drawLine(0, this.height - offsetY, 0, this.height - offsetY - hei);
+		int x, y;
+		GradientPaint redtowhite = new GradientPaint(0, 0, 
+							     new Color(160, 250, 100), 
+							     0, hei, 
+							     new Color(255, 120, 50));
+		Polygon poly = fitness.getPolygon(this.height, offsetY);
+		off.setPaint(redtowhite);
+		off.fill(poly);
+		off.setColor(Color.black);
+		off.draw(poly);
+		//------------------
+		//----- actual freq marker:
+		int freq, df, dy,dx;
+		drawArrow(off, Color.red, rt.centerFreq);
+		/*dx = (int) ((double) (rt.centerFreq - rt.start) * xscale);
+		Point p = new Point(dx, offsetY);
+		rt.debugOut("GraphCanvas.setTable() mark-freq="+(rt.centerFreq),5);
+		off.setColor(Color.red);
+		dy = this.height - p.y;
+		off.drawLine(p.x, dy , p.x, dy + 10);
+		off.drawLine(p.x, dy , p.x - 2, dy + 3);
+		off.drawLine(p.x, dy , p.x + 2, dy + 3);
+		*/
+		//---- fittest ?
+		drawArrow(off, Color.black, rt.fittest_freq);
+		//----- Freq. Scale --------------
+		double fm = (double) wid / (double) (rt.stop - rt.start);
+		off.setColor(Color.black);
+		off.setFont(norm);
+		for (int n=0; n <= rt.stop; n += 1000) { // loop over all Frequencys
+		    dx = (int) ((double) (n - rt.start) * fm +0.5);
+		    dy = this.height - offsetY;
+		    off.drawLine(dx, dy , dx, dy + 5);
+		    if (n/1000 > 0) 
+			off.drawString(Integer.toString(n/1000)+"k", dx-3, dy + 15);
+		}
+		//System.out.println("Scale last Point="+dx+" transformed="+p.x);
+		// zero line:
+		off.setColor(Color.black);
+		dx = wid;
+		dy = this.height - offsetY;
+		//System.out.println("Scale width = "+wid+" transformed="+dx);
+		off.drawLine(0, this.height - offsetY, dx, dy);
+		off.drawLine(0, this.height - offsetY, 0, this.height - offsetY - hei);
+		
+		//----- Iteration
+		off.setColor(Color.black);
+		off.drawString(Integer.toString(rt.iteration+1), 1, 20); //draw the title
+		//------ Seed ---
+		drawArrow(off, Color.green, rt.seed);
+		/*off.setColor(Color.green);
+		dx = (int) ((double) (rt.seed - rt.start) * fm + 0.5);
+		//System.out.println("GraphCanvas.setTable() rt.seed="+rt.seed+" dx="+dx);
+		dy = this.height - offsetY;
+		off.drawLine(dx, dy , dx, dy + 10);
+		off.drawLine(dx, dy , dx - 2, dy + 3);
+		off.drawLine(dx, dy , dx + 2, dy + 3);
+		*/
 	
-	//----- Iteration
-	off.setColor(Color.black);
-	off.drawString(Integer.toString(rt.iteration+1), 1, 20); //draw the title
-	//------ Seed ---
-	off.setColor(Color.green);
-	dx = (int) ((double) (rt.seed - rt.start) * fm + 0.5);
-	//System.out.println("GraphCanvas.setTable() rt.seed="+rt.seed+" dx="+dx);
-	dy = this.height - offsetY;
-	off.drawLine(dx, dy , dx, dy + 10);
-	off.drawLine(dx, dy , dx - 2, dy + 3);
-	off.drawLine(dx, dy , dx + 2, dy + 3);
-/*
-	//----- actual freq marker:
-	x = (int) ((double) (rt.centerFreq - rt.start) * xscale);
-	rt.debugOut("GraphCanvas.setTable() mark-freq="+(rt.centerFreq),5);
-	off.setColor(Color.red);
-	off.drawLine(x, 10 , x, this.height);
-	//----- Iteration
-	off.setColor(Color.black);
-	off.setFont(norm);
-	off.drawString(Integer.toString(rt.iteration+1), 1, 20); //draw the title
-	//------ Seed ---
-	off.setColor(Color.green);
-	x = (int) ((double) (rt.seed - rt.start) * xscale);
-	//System.out.println("GraphCanvas.setTable() rt.seed="+rt.seed+" x="+x);
-	off.drawLine(x, 0 , x, 9);
-*/
     }
-
+    
+    private void drawArrow(Graphics2D off, Color c, double pos) {
+    	int dx = (int) ((double) (pos - rt.start) * xscale);
+		Point p = new Point(dx, offsetY);
+		rt.debugOut("GraphCanvas.setTable() mark-freq="+(rt.centerFreq),5);
+		off.setColor(c);
+		int dy = this.height - p.y;
+		off.drawLine(p.x, dy , p.x, dy + 10);
+		off.drawLine(p.x, dy , p.x - 2, dy + 3);
+		off.drawLine(p.x, dy , p.x + 2, dy + 3);
+    }
 
     // Resets the alpha and composite rules with selected items.    
 	public void changeRule(float a) {
@@ -365,9 +370,9 @@ public void setTable(RandomTable r, double gamma, int mode) {
 	    Point pts[] = new Point[xpts.length];
 	    int tmp;
 	    for (int n = 0; n < xpts.length; n++) {
-		tmp = ypts[n] + offsetY;
-		pts[n] = new FitnessTable().translatePoint(xpts[n], tmp, cosB, sinB);
-		//pts[n] = new Point(xpts[n], tmp);
+	    	tmp = ypts[n] + offsetY;
+	    	pts[n] = new FitnessTable().translatePoint(xpts[n], tmp, cosB, sinB);
+	    	//pts[n] = new Point(xpts[n], tmp);
 	    }
 	    /*off.drawLine(pts[0].x, this.height - pts[0].y, pts[1].x, this.height - pts[1].y);
 	      off.drawLine(pts[1].x, this.height - pts[1].y, pts[2].x, this.height - pts[2].y);
@@ -393,7 +398,7 @@ public void setTable(RandomTable r, double gamma, int mode) {
 	    xpts[3] = pts[3].x;
 	    ypts[3] = 0;
 	    for (int n = 0; n < xpts.length; n++) 
-		ypts[n] = this.height - ypts[n];
+	    	ypts[n] = this.height - ypts[n];
 	    Polygon pg = new Polygon(xpts, ypts, 4);
 	    off.setColor(Color.yellow);
 	    off.fill(pg);
@@ -430,6 +435,7 @@ public void setTable(RandomTable r, double gamma, int mode) {
 				       new Color(160, 250, 100), 
 				       0, this.height, 
 				       new Color(255, 120, 50));
+	//System.out.println("History size="+this.rt.history.size());
 	for (int n = start; n < this.rt.history.size(); n++) {
 	    redH = (int) ((double) (hei) - x * (double) (hei - minH) / (double) depth +0.5);
 	    redW = (int) (((double) (wid) - x * (double) (wid - redw) / (double) depth) +0.5);

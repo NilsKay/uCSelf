@@ -20,6 +20,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 
+import Utils.Utils;
+
 
 
 @SuppressWarnings("serial")
@@ -34,6 +36,10 @@ public class InstrumentDialog extends JDialog {
 		this.ce = ce;
 		this.setResizable(false);
 		
+		if (ce.mid.sb == null)  {
+			 new Utils().doMessagePane( ce.def.text[90]);
+			 doQuit();
+		}
 		JPanel pane = new JPanel();
 		pane.setLayout(new BorderLayout());
 		pane.add("Center", getSComponents());

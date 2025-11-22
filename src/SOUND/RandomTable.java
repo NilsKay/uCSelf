@@ -24,9 +24,8 @@ public class RandomTable {
     double min;
 
     /** This is the table */
-    double table[];
-    @SuppressWarnings("rawtypes")
-	Vector history;
+    OneNote table[];
+    Vector<FitnessTable> history;
     double addWeight[];
     double impact;
     CDebug qd;
@@ -39,14 +38,23 @@ public class RandomTable {
     public int seed;
     PrintWriter prs;
     
+    OneNote freq[];		// first random Frequencys
+    double weight[]; 	// weight for these freqencys
+    
+    // State machine:
+    int stateCnt = 0; 	// 0 is turned off, > 0 active !
+    boolean up; 		// true is going up, false going down
+    int mode = 0;		// which state machine to use to use 0= off 1=up/down
+    OneNote trigger_index = null; // invalid 
+    
     public RandomTable() {
-	this(null, 1);
+    	this(null, 1);
     }
 /**
  * Constructs a default table with 0-20000 Hz, in steps of 20, preset with 1.0
  */
     public RandomTable(CDebug qd, int ver) {
-	this(qd, ver, 0, 20000, 20, 0.0, 0.0, null);
+    	this(qd, ver, 0, 20000, 20, 0.0, 0.0, null);
     }
 /**
  * Create a Table indexed by frequencys. The content of the table is a weight (double)
@@ -55,59 +63,62 @@ public class RandomTable {
  * @param step the step - interval for the table (Hz)
  * @param def the default value for initial start
  */
-    @SuppressWarnings("rawtypes")
 	public RandomTable(CDebug qd, int ver, int min, int max, int step, double def, double impact, PrintWriter prs) {
-	this.qd = qd;
-	this.prs = prs;
-	this.Verbosity = ver;
-	this.start = min;
-	this.stop = max;
-	this.step = step;
-	this.min = def;
-	this.impact = impact;
-	this.size = getStep( (this.stop - this.start), this.step);  // Size of the table !
-	this.table = new double[this.size + 1];
-	this.addWeight = new double[this.size + 1];
-	this.history = new Vector(); 
-	debugOut("RandomTable.Constructor min="+min+"Hz max="+max+"Hz step="+step+"Hz table-size ="+size+" def="+def, 4); 
-	for ( int n = 0; n < this.size; n++) {
-	    table[n] = this.min;
-	    addWeight[n] = impact;	// Vorbelegung des variablen degressionswertes
-	}
+		this.qd = qd;
+		this.prs = prs;
+		this.Verbosity = ver;
+		this.start = min;
+		this.stop = max;
+		this.step = step;
+		this.min = def;
+		this.impact = impact;
+		this.size = getStep( (this.stop - this.start), this.step);  // Size of the table !
+		this.table = new OneNote[this.size + 1];
+		this.addWeight = new double[this.size + 1];
+		this.history = new Vector<FitnessTable>(); 
+		this.mode = 0;
+		this.up = true;
+		this.stateCnt = 0;
+		
+		debugOut("RandomTable.Constructor min="+min+"Hz max="+max+"Hz step="+step+"Hz table-size ="+size+" def="+def, 4); 
+		for ( int n = 0; n < this.size +1; n++) {
+		    table[n] = new OneNote(this.min, 0, 0);
+		    addWeight[n] = impact;	// Vorbelegung des variablen degressionswertes
+		}
     }
     // This calculates the table-index from the given frequency 
     private int getStep( int freq, int step) {
-	//return (int) ((double) freq / (double) this.step + 0.5);
-	return (int) ((double) freq / (double) this.step);
+    	//return (int) ((double) freq / (double) this.step + 0.5);
+    	return (int) ((double) freq / (double) this.step);
     }
     // This calculates the table-index from the given frequency 
     private int getFreq( int index) {
-	return this.start + index * this.step;
+    	return this.start + index * this.step;
     }
     public void debugOut(String tmp, int v) {
-	if (v == 55 && this.prs != null)  // print !
-	    this.prs.println(tmp);
-	else {
-	    if (v > this.Verbosity) return;
-	    if (this.qd != null) this.qd.put(tmp);
-	    else System.out.println(tmp);
-	}
+		if (v == 55 && this.prs != null)  // print !
+		    this.prs.println(tmp);
+		else {
+		    if (v > this.Verbosity) return;
+		    if (this.qd != null) this.qd.put(tmp);
+		    else System.out.println(tmp);
+		}
     }
     /**
      * Find the maximum weight in this table
      * @return maximum
      */
     public double getMaxx() {
-	double max = 0.0;
-	for (int n = 0; n < this.size; n++) {
-	    if (table[n] > max) {
-		max = table[n];
-		fittest_freq = start + n * this.step;
-	    }
-	}
-	debugOut("RandomTable.getMax: max="+max, 6);
-	this.max = max;
-	return max;
+		double max = 0.0;
+		for (int n = 0; n < this.size; n++) {
+		    if (table[n].freq > max) {
+			max = table[n].freq;
+			fittest_freq = start + n * this.step;
+		    }
+		}
+		debugOut("RandomTable.getMax: max="+max, 6);
+		this.max = max;
+		return max;
     }
 
     /**
@@ -120,27 +131,31 @@ public class RandomTable {
      * @return true if sucessful 
      */
     @SuppressWarnings("unused")
-	public boolean writeNEntrys( int freq, double degression, int diff) {
-		debugOut("RandomTable.writeNEntrys() freq="+freq, 5);
-		int center = getStep( freq - this.start, this.step);	// the center index for this frequenz
+	public boolean writeNEntrys( OneNote nt, double degression, int diff) {
+		debugOut("RandomTable.writeNEntrys() freq="+nt.freq, 5);
+		int center = getStep( (int)nt.freq - this.start, this.step);	// the center index for this frequenz
+		if (center < 0)
+			center = 0;
 		debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 5);
 		//debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 55);
 		
-		this.centerFreq = freq;
+		this.centerFreq = (int)nt.freq;
 		int steps = getStep( diff, this.step); // how many steps to go left and right
 		int index;
 		double f;
 		//System.out.println("writeNEntrys() this.size="+this.size+" freq="+freq+" center="+center+" steps="+steps); 
 		//------------------
+		if (center < 0)
+			debugOut("To small !", 1); 
 		double val = this.addWeight[center]; // random Weight
 		//debugOut("RandomTable.writeNEntrys(1) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
-		this.table[center] += val;	// set center value
+		this.table[center].freq += val;	// set center value using freq for weight...
 		// Hier kann man nun eine ganze menge beeinflussen:
 		// wenn nicht bei 0.0 for den rt-tabellenwert gestoppt wird, kann der
 		// sogar negativ werden und somit kommt dieser ton wohl niemals wieder.
 		// Man braucht also eine Abbruchbedingung für die degression ...
-		if (this.table[center] < 0.0) {
-		    this.table[center] = 0.0;
+		if (this.table[center].freq < 0.0) {
+		    this.table[center].freq = 0.0;
 		    this.addWeight[center] = this.impact;// random Weight
 		}
 		//------- Now correct the center weight value: -------
@@ -156,12 +171,12 @@ public class RandomTable {
 		    // Note: I do not use warp around for array index overflows !
 		    String me = "";
 		    if (index < this.size) {
-				this.table[index] += f;
+				this.table[index].freq += f;
 				me = "table[index]="+this.table[index];
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() < index="+index);
-				if (this.table[index] < 0.0) {
-				    this.table[index] = 0.0;
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
@@ -169,12 +184,12 @@ public class RandomTable {
 		    index = center - n;
 		    //System.out.println("(b) n="+n+" index="+index+" f="+f);
 		    if (index >= 0) {
-				this.table[index] += f;
+				this.table[index].freq += f;
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() >= index="+index);
 				me = "table[index]="+this.table[index];
-				if (this.table[index] < 0.0) {
-				    this.table[index] = 0.0;
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
@@ -192,15 +207,15 @@ public class RandomTable {
      * @return true if sucessful 
      */
     public boolean writeEntry(int freq, double val) {
-	int index;
-	try {
-	    index = getStep( freq - this.start, this.step);
-	    this.table[index] = val;
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    e.printStackTrace();
-	    return false;
-	}
-	return true;
+		int index;
+		try {
+		    index = getStep( freq - this.start, this.step);
+		    this.table[index].freq = val;
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    e.printStackTrace();
+		    return false;
+		}
+		return true;
     }
     /**
      * Read a value from the table
@@ -209,10 +224,13 @@ public class RandomTable {
      */
     public double readEntry(int freq) {
 		int index;
-		double val;
+		double val = -1;
 		try {
 		    index = getStep( freq - this.start, this.step);
-		    val = this.table[index];
+		    //System.out.println("maxindex="+this.table.length+" freq="+freq+" index="+index);
+		   if (index >= 0)
+			   val = this.table[index].freq;
+		    //System.out.println("val="+val);
 		} catch (ArrayIndexOutOfBoundsException e) {
 		    e.printStackTrace();
 		    return -1.0;
@@ -229,12 +247,12 @@ public class RandomTable {
 	int index;
 	try {
 	    index = getStep( freq - this.start, this.step);
-	    this.table[index] += val;
+	    this.table[index].freq += val;
 	} catch (ArrayIndexOutOfBoundsException e) {
 	    e.printStackTrace();
 	    return -1.0;
 	}
-	return this.table[index];
+	return this.table[index].freq;
     }
     /**
      * Substract a value from the table
@@ -244,15 +262,15 @@ public class RandomTable {
      * @return the new value , -1.0 if error
      */
     public double subEntry(int freq, double val) {
-	int index;
-	try {
-	    index = getStep( freq - this.start, this.step);
-	    this.table[index] -= val;
-	    if (this.table[index] < this.min) this.table[index] = this.min;
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    e.printStackTrace();
-	    return -1.0;
-	}
-	return this.table[index];
+		int index;
+		try {
+		    index = getStep( freq - this.start, this.step);
+		    this.table[index].freq -= val;
+		    if (this.table[index].freq < this.min) this.table[index].freq = this.min;
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    e.printStackTrace();
+		    return -1.0;
+		}
+		return this.table[index].freq;
     }
 } // end of class
