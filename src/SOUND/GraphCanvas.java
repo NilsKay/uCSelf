@@ -84,7 +84,7 @@ public Dimension getPreferredSize() {
 		    oldY = y;
 		    freq = n * rt.step;
 		    x = ((double) freq *  xscale +0.5);	// start of graph
-		    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
+		    y = (int) ( (rt.table[n].weight - 1.0) * yscale);
 		    if (log) rt.debugOut("n="+n+" x="+x+" y="+y+" dx="+dx+" oldY="+oldY+" x="+x,55);		
 		    if ( y != oldY) {
 			xp = (int) ( x + 0.5);
@@ -149,7 +149,7 @@ public Dimension getPreferredSize() {
 	    x = (int) ((double) freq *  xscale +0.5);	// start of graph
 	    dx = (int) ((double) ((freq + rt.step) *  xscale +0.5));	
 	    dx -= x;
-	    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
+	    y = (int) ( (rt.table[n].weight - 1.0) * yscale);
 	    if( y > 0 && dx > 0) {
 		off.fillRect(x, this.height - y, dx, y);
 		rt.debugOut("GraphCanvas.setTable() index n="+n+" freq="+freq+" draw x="+x+" draw y="+y+" dx="+dx, 6);

@@ -119,8 +119,8 @@ public class Soundscape {
     public double getMaxx() {
 		double max = 0.0;
 		for (int n = 0; n < this.size; n++) {
-		    if (table[n].freq > max) {
-			max = table[n].freq;
+		    if (table[n].weight > max) {
+			max = table[n].weight;
 			fittest_freq = start + n * this.step;
 		    }
 		}
