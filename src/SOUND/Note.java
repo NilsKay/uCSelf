@@ -26,6 +26,8 @@ public class Note {
     public double iokt;
     public double t1,t2,t3;// Splitter
     public int iform,iband;
+    //---------------
+    public int voices;		// Number of voices active at this time (together with this) 
 
     public Note(double s, double d, double b, double freq, int gen, int amp, int env) {
 	this.start = s;

@@ -16,7 +16,9 @@ public class Defaults {
     int population, fittest;
     int interval, iterations, diff_freq;
     double length, r_Weight, impact;
-    boolean tonal, stereo, fof;
+    boolean tonal, stereo, preferLowerNotes;
+    boolean fof;	// To switch between Input panels
+    boolean newFOF;	// To modify just the Oszi to behave like FOF
     // Other vars, also saved as Properties:
     public String lastPath = null;
     String min_amp, max_amp;	// pp, p, mp, mf, f, ff 
@@ -59,8 +61,10 @@ public boolean loadDef(String path) {
     diff_freq = 250;
     r_Weight = 20;
     tonal = false;
+    preferLowerNotes = true;
     stereo = true;
     fof = false;
+    newFOF = false;
     impact = 200;
     min_amp = Project2.Loudness[0];
     max_amp = Project2.Loudness[Project2.Loudness.length - 1];
@@ -130,7 +134,9 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("RANDOMWEIGHT")) this.r_Weight = Converter.getDouble(res1, 1.0);
 		    else if (res0.equals("DIFFFREQ")) this.diff_freq = Converter.getInt(res1, 250); 
 		    else if (res0.equals("TONAL")) this.tonal = Converter.checkState(res1);
-		    else if (res0.equals("FOF")) this.fof = Converter.checkState(res1);
+		    else if (res0.equals("preferLowerNotes")) this.preferLowerNotes = Converter.checkState(res1);
+		    //else if (res0.equals("FOF")) this.fof = Converter.checkState(res1); // out since V1.7a1, use modified oszi instaed
+		    else if (res0.equals("newFOF")) this.newFOF = Converter.checkState(res1);
 		    else if (res0.equals("STEREO")) this.stereo = Converter.checkState(res1);
 		    else if (res0.equals("MINAMP")) min_amp = res1;
 		    else if (res0.equals("MAXAMP")) max_amp = res1;
@@ -214,7 +220,9 @@ public boolean saveDef(String path, String user) {
 	prs.println("RANDOMWEIGHT="+this.r_Weight+"	# how much the weight will be influenced by the random function.");
 	prs.println("DIFFFREQ="+this.diff_freq+"	# Frequency area influenced by one impact");
 	prs.println("TONAL="+this.tonal+"	# If true, use just tonel notes, else all possible frequencys");
+	prs.println("preferLowerNotes="+preferLowerNotes+"	# If true, use the same frequency distribution as with non tonal, if fase, prefer lower notes !");
 	prs.println("FOF="+this.fof+"	# if true, work in FOF mode, else OSZI ");
+	prs.println("newFOF="+this.newFOF+"	# if true, work OSZI in FOF mode");
 	prs.println("STEREO="+this.stereo+"	# if true, use stereo effects");
 	prs.println("MINAMP="+this.min_amp+"	# Minimal amplitude, use pp, p, mp, mf, f, ff");
 	prs.println("MAXAMP="+this.max_amp+"	# Maximal amplitude, use pp, p, mp, mf, f, ff");

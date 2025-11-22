@@ -2,9 +2,12 @@ package Sound;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import javax.swing.*; 
+import javax.swing.event.*;
 import java.io.*;
-import java.util.*;
+import java.util.Vector;
 import java.text.*;
+import java.lang.Thread;
 import Utils.*; 
 
 /**
@@ -20,7 +23,7 @@ public class CEditor extends Frame implements ItemListener, FocusListener, Actio
     int fontsize = 11;	// Font for min. window size (800*600)
     int subFontsize = 9;
     boolean child = true, State; //true when we run as a child of another window
-    boolean halt = false;
+    boolean halt = false, mHalt = false;
     String Home;
     String User;
     String Host;
@@ -33,29 +36,39 @@ public class CEditor extends Frame implements ItemListener, FocusListener, Actio
     int digits = 8;	// Anzahl Stellen
     int post = 3;	// Post colon digits
     Runner ru;
+    PlayMidi pm;
     // --------- Other classes: ---------------
     Defaults def;
     GraphCanvas gc;
     CDebug qd;
     Project2 pr2;
     Project3 pr3;
+    MyMidi mid;
+    Timer[] ti;
     // --------- The UI Elements: --------------
     Font font;
     Font subFont;
     Label la, la1, la2,la3,la4, la5, la6, la7, la8, la9, la10, la11, la12, la13, la14, la15;
     Label lau, lau1, lau2, lau3,lau4,lau5, lau6, lau8, lau9, lau12;
     TextField tf, tf1, tf2, tf3, tf4, tf5, tf6, tf7, tf8, tf9, tf12;
-    Button start, stp;
-    Checkbox cb, cb1;
+    Button start, stp, play, save;
+    Checkbox cb, cb1, cb2;
     Choice ch, ch1, ch2, ch3, gam;	
     MenuBar mb=null;		//Der Menubalken
     Menu m1, m2;			//Das Menu im Balken
-    MenuItem   mi1_1, mi1_2, mi2_1, mi2_2, mi2_3, mi1_3, mi1_4 ;		//
+    MenuItem   mi1_1, mi1_2, mi2_1, mi2_2, mi2_3, mi1_3, mi1_4, mi1_5 ;		//
     Panel pane;
     BorderPanel body;
+    BorderPanel pr, pt;
     // ---------- variables -------------
+    Vector ton;
     String options = null;
     boolean debug = false;
+    boolean enableFOF = false, playMidi = false, played = false, enableMidi = true;
+    int idx[], ampl[], akt[];
+    boolean isOn[] = new boolean[16];
+    int balance[] = new int[16];
+    long SysStartTime, tTime;
     /**
      * Verbosity: 0= no, 1=important Messages, 2=less important, 3=low debug, 4=higher debug, 5 = high debug, 6 = crazy debug
      */
@@ -90,6 +103,11 @@ public CEditor(String home, String user, String opt) {
     Dimension d = tool.getScreenSize();
     Dimension gd;
     System.out.println("Screensize="+d);
+    this.text = getText(this.text);
+    //------------ Midi init ----------
+    this.mid = new MyMidi();
+    //this.enableMidi = doMidiOpen();
+    //------------------------------------
     if (d.width <= 800) {
 	this.font = new Font("Helvetica", Font.PLAIN, fontsize);
 	this.subFont = new Font("Helvetica", Font.PLAIN, subFontsize);
@@ -129,7 +147,6 @@ public CEditor(String home, String user, String opt) {
     if (this.CustomPath == null) this.CustomPath = this.Home;
     left_Button = gsp.getLeftButton();	//MouseEvent.BUTTON1_MASK;
     right_Button = gsp.getRightButton();
-    this.text = getText(this.text);
     // user defaults:
     this.def = new Defaults();
     boolean defLoaded = this.def.loadDef(Home+File.separator+GetEnviroment.SAVEFILE);
@@ -158,13 +175,27 @@ public CEditor(String home, String user, String opt) {
 	this.qd = new CDebug(this, "Debug Tool, just for Nils");
 	this.qd.setVisible(true);
     }
+    if (!enableFOF) this.def.fof = false; // oszi
     if (!this.def.fof) this.body = getBody(); // Oszi
     else this.body = getFOFBody();
     pane.add("Center", this.body);
-    mi2_2.setEnabled(this.def.fof);
-    mi2_3.setEnabled(!this.def.fof);
-    // --------- Start Button ------------
+    mi2_2.setEnabled(this.def.newFOF);	//fof);
+    mi2_3.setEnabled(!this.def.newFOF);	//.fof);
+    mi1_5.setEnabled(false);
     Panel bot = new Panel();
+    // --------- Play Button ------------
+    play = new Button(this.text[63]);
+    play.setFont(this.subFont);
+    play.addActionListener(new STListener());
+    bot.add(play);
+    play.setEnabled(false);
+    // --------- Save Button ------------
+    save = new Button(this.text[64]);
+    save.setFont(this.subFont);
+    save.addActionListener(new STListener());
+    bot.add(save);
+    save.setEnabled(false);
+    // --------- Start Button ------------
     start = new Button(this.text[14]);
     start.setFont(this.subFont);
     start.addActionListener(new STListener());
@@ -187,10 +218,20 @@ public CEditor(String home, String user, String opt) {
     debugOut(this.text[0], 1);
 } // end of constructor
 
+    private boolean doMidiOpen() {
+	this.enableMidi = this.mid.open();
+	if (!enableMidi) {
+	    System.out.println("MidiOpen failed, msgs="+this.text[69]);
+	    String txt[] = new String[2];
+	    txt[0] = this.text[69];
+	    Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM);	
+	    al.setVisible(true);
+	}
+	return this.enableMidi;
+    }
     /**
      * Adds the various Menu Items to the Menubar
      **/
-
 public void setMenubar() {
     // erzeuge das Menu
     m1 = new Menu(this.text[11],true);	// File Tear off Menu(muss clicken)
@@ -226,12 +267,18 @@ public void setMenubar() {
     mi2_2 = new MenuItem(this.text[48]); // Oszi
     mi2_2.setFont(this.font);
     mi2_2.addActionListener(this);
-    m2.add(mi2_2);	
+    if ( enableFOF ) m2.add(mi2_2);	
     mi2_3 = new MenuItem(this.text[47]); // FOF
     mi2_3.setFont(this.font);
     mi2_3.addActionListener(this);
-    m2.add(mi2_3);
+    if ( enableFOF ) m2.add(mi2_3);
     m2.addSeparator();
+    mi1_5 = new MenuItem(this.text[70]); // Load
+    mi1_5.setFont(this.font);
+    mi1_5.addActionListener(this);
+    m2.add(mi1_5);
+    m2.addSeparator();
+    //--
     mi2_1 = new MenuItem(this.text[32]); // About
     mi2_1.setFont(this.font);
     mi2_1.addActionListener(this);
@@ -525,8 +572,8 @@ private BorderPanel getBody() {
     int row = 0;
     BorderPanel pb = new BorderPanel();
     pb.setTextFont(this.font); 
-    BorderPanel pr = new BorderPanel();	//Random related
-    BorderPanel pt = new BorderPanel();	//Tone related
+    this.pr = new BorderPanel();	//Random related
+    this.pt = new BorderPanel();	//Tone related
     //Font Tfont = new Font("TimesRoman", Font.PLAIN, 10);
     int gap = 0;
     pr.setTextFont(this.subFont); 
@@ -535,7 +582,8 @@ private BorderPanel getBody() {
     pt.setTextFont(this.subFont); 
     pt.setText(this.text[51]);
     pr.setGap(gap);
-    pb.setText(this.text[48]);
+    if (this.def.newFOF) pb.setText(this.text[47]); // fof
+    else pb.setText(this.text[48]);
     pb.setGap(gap);
     debugOut(this.text[48], 1);
     String wert;
@@ -681,7 +729,17 @@ private BorderPanel getBody() {
     c.insets = rig;
     gridbag.setConstraints(cb,c);
     pt.add(cb);
-
+    // --------- Prefer lower Notes ------------
+    c.gridx= 4;
+    c.gridy= row+2;
+    c.insets = left;
+    cb2 = new Checkbox(this.text[65]);
+    cb2.setFont(this.subFont);
+    cb2.addItemListener(this);
+    cb2.setState(this.def.preferLowerNotes);
+    c.insets = rig;
+    gridbag.setConstraints(cb2,c);
+    pt.add(cb2);
     // --------- Min. loudness Choice ------------
     row += 2;
     c.gridx= 0;
@@ -927,8 +985,8 @@ private BorderPanel getBody() {
 	    this.body = getFOFBody();
 	}
 	else this.body = getBody();
-	mi2_2.setEnabled(this.def.fof);
-	mi2_3.setEnabled(!this.def.fof);
+	mi2_2.setEnabled(this.def.newFOF); 	// fof);
+	mi2_3.setEnabled(!this.def.newFOF);	// fof);
 	pane.add("Center", this.body);
 	pack();
 
@@ -1028,7 +1086,7 @@ private BorderPanel getBody() {
     }
 
     /**
-     * Select a life for save or load
+     * Select a file for save or load
      * @param mode true if load, else save
      * @return path
      */
@@ -1068,7 +1126,9 @@ private BorderPanel getBody() {
     
     public void setLChoice(Choice c) {
 	int n;
-	for(n = 0; n < Project2.Loudness.length; n++) {
+	int max = Project2.Loudness.length;
+	if (this.def.newFOF) max = Project2.maxFOFLoudIndex;
+	for(n = 0; n < max; n++) {
 	    c.add(Project2.Loudness[n]);
 	    if (def.max_amp.equals(Project2.Loudness[n])) break;
 	}
@@ -1077,7 +1137,9 @@ private BorderPanel getBody() {
     public void setHChoice(Choice c) {
 	int n;
 	boolean flag = false;
-	for(n = 0; n < Project2.Loudness.length; n++) {
+	int max = Project2.Loudness.length;
+	if (this.def.newFOF) max = Project2.maxFOFLoudIndex;
+	for(n = 0; n < max; n++) {
 	    if (def.min_amp.equals(Project2.Loudness[n])) flag = true;
 	    if (flag) c.add(Project2.Loudness[n]);
 	}
@@ -1212,18 +1274,23 @@ public void relocate() {
 	// Als nächstes addieren wir mal ein paar Zeilen mit Tönen zum Vector
 	// Der Vector ton speichert die Zeilen mit den Toenen
 	
-	Vector ton = pr3.generateSound(this.def);
+	ton = pr3.generateSound(this.def);
 	// Der Inhalt des Vector ton wird nun in sco_lines kopiert
 	for (int n= 0; n < ton.size(); n++)
 	    sco_lines.addElement(ton.elementAt(n));
 	return sco_lines;
     }
     private Vector doOszi() {
-	Vector sco_lines = new Vector();	
-	// generate and save the orc file:
+	Vector sco_lines = null;
+	//-------------- generate and save the orc file:
 	pr2 = new Project2(this.qd, this.Verbosity, (SoundInfoListener) this);
-	sco_lines = pr2.getOrc();
-	//ScoAccess sc = new ScoAccess();
+	if (this.def.newFOF) { // In fof mode check for default orc file
+	    sco_lines = new ScoAccess().getFileContent(Home+File.separator+GetEnviroment.DEFAULTFOFORC);
+	}
+	if (sco_lines == null) {
+	    sco_lines = new Vector();	
+	    sco_lines = pr2.getOrc(this.def.newFOF);
+	}
 	if (!new ScoAccess().saveSco(CustomPath+oFile, this.User, sco_lines)) {
 	    String txt[] = new String[2];
 	    txt[0] = this.text[16]+CustomPath+oFile;
@@ -1231,14 +1298,23 @@ public void relocate() {
 	    al.setVisible(true);
 	    return null;
 	}
-	// Generate and save the sco file:
-	sco_lines = pr2.getHeader();	// Hier holen wir uns den Anfang der sco Datei
+	sco_lines = null;
+	//-------------- Generate and save the sco file:
+	if (this.def.newFOF) { // In fof mode check for default sco headder file
+	    sco_lines = new ScoAccess().getFileContent(Home+File.separator+GetEnviroment.DEFAULTFOFSCO);
+	}
+	if (sco_lines == null) {
+	    sco_lines = new Vector();	
+	    sco_lines = pr2.getHeader(this.def.newFOF);	// Hier holen wir uns den Anfang der sco Datei
+	}
 	// Dieser Vector (sco_lines) speichert alle Zeilen, die in die .sco datei geschrieben werden sollen
 	// Nun ist der Headder der neuen sco Datei fertig
 	// ------------------------------------------------------------
 	// Als nächstes addieren wir mal ein paar Zeilen mit Tönen zum Vector
 	// Der Vector ton speichert die Zeilen mit den Toenen
-	Vector ton = pr2.doProject(this.def);
+	ton = pr2.doProject(this.def);
+	mi1_5.setEnabled(this.def.tonal & ton.size() > 0);
+	play.setEnabled(this.def.tonal & ton.size() > 0);
 	// Der Inhalt des Vector ton wird nun in sco_lines kopiert
 	for (int n= 0; n < ton.size(); n++)
 	    sco_lines.addElement(ton.elementAt(n));
@@ -1257,12 +1333,25 @@ public void relocate() {
 		this.def.tonal = true;
 	    }
 	    else this.def.tonal = false;
+	    boolean b = ton != null;
+	    if (b) b = ton.size() > 0;
+	    mi1_5.setEnabled(this.def.tonal & b);
+	    play.setEnabled(this.def.tonal & b);
+	    save.setEnabled(this.def.tonal & b & played);
+	    cb2.setEnabled(this.def.tonal);
 	}
 	else if (o == cb1) {
 	    if (state == e.SELECTED) {
 		this.def.stereo = true;
 	    }
 	    else this.def.stereo = false;
+	}
+	else if (o == cb2) { // prefer lower notes (false !) 
+	    if (state == e.SELECTED) {
+		this.def.preferLowerNotes = true;
+	    }
+	    else this.def.preferLowerNotes = false;
+	    System.out.println("preferLowerNotes="+this.def.preferLowerNotes);
 	}
 	else if (o == ch) { // min. Loudness
 	    this.def.min_amp = this.ch.getSelectedItem();
@@ -1300,11 +1389,31 @@ public void relocate() {
 	setValues(true);
     }
 
+    public void stopChannel(int n) {
+	if (isOn[n] == true  ) {
+	    mid.channels[n].channel.noteOff(idx[n], ampl[n]);
+	    mid.createShortEvent(mid.NOTEOFF+n, idx[n], mid.channels[n]);
+	    //System.out.println("Channel "+n+" stop with "+idx[n]+" at :"+(System.currentTimeMillis()-SysStartTime));
+	    //System.out.println("Channel "+n+" stop after :"+(System.currentTimeMillis()-tTime)+" akt[n]="+akt[n]+" idx[n]="+idx[n]);
+	    isOn[n] = false;
+	}
+    }
 public void actionPerformed(ActionEvent e) {
     // react to the menues
     String arg = e.getActionCommand();
     Object o = (Object) e.getSource();
     Class c = ((Object) tf).getClass();
+    //System.out.println("actionPerformed e="+e+" at :"+(System.currentTimeMillis()-SysStartTime));
+    if (ti != null) {
+	for (int q = 0; q < 16; q++) {
+	    if (ti[q] != null) {
+		if (ti[q] == o)  {
+		    stopChannel(q);
+		    return;
+		}
+	    }
+	}
+    }
     if (o == mi1_1 ) {	// load
 	mi1_1.setEnabled(false);
 	// Bestimme den Pfad der Ausgabedatei
@@ -1321,7 +1430,7 @@ public void actionPerformed(ActionEvent e) {
 	doQuitWithInquire();
     }
     else if (o == mi2_2) {	// Oszi
-	this.def.fof = false;
+	this.def.newFOF = false;	//fof = false;
 	this.pane.remove(this.body);
 	this.body = getBody();
 	mi2_2.setEnabled(false);
@@ -1331,36 +1440,58 @@ public void actionPerformed(ActionEvent e) {
 	State = true;
     }
     else if (o == mi2_3) {    // FOF
-	this.def.fof = true;
+	this.def.newFOF=true; 	//fof = true;
 	this.pane.remove(this.body);
-	this.body = getFOFBody();
+	//this.body = getFOFBody();
+	this.body = getBody();
 	mi2_2.setEnabled(true);
 	mi2_3.setEnabled(false);
 	pane.add("Center", this.body);
 	pack();
 	State = true;
     }	
+    else if (o == mi1_5) { // Play	/ Load	
+	//doPlayMidi();
+	
+    }   
     else if (o == mi2_1) {	// About
-	String txt[] = new String[8];
+	String txt[] = new String[12];
 	txt[0] = this.text[34];
-	txt[1] = this.text[35];
-	txt[2] = this.text[36];
-	txt[3] = this.text[37];
-	txt[4] = this.text[38];
-	txt[5] = this.text[39];
-	txt[6] = this.text[40];
-	txt[7] = this.text[41];
-	Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM, Alarmbox.LEFT, null);
+
+	txt[1] = this.text[39];
+	txt[2] = this.text[40];
+	txt[3] = " ";
+	txt[4] = this.text[35];
+	txt[5] = this.text[36];
+	txt[6] = this.text[37];
+	txt[7] = this.text[38];
+	txt[8] = " ";
+	txt[9] = this.text[66];
+	txt[10] = this.text[67];
+	txt[11] = this.text[68];
+	
+	//Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM, Alarmbox.LEFT, null);
+	Alarmbox al = new Alarmbox(this, this.text[1], txt, 12, Alarmbox.ALARM);	
 	al.setVisible(true);
     }
 
     else if (o == stp) { // stop Button
 	debugOut("------------------- Stop Button: Initiate halt --------------", 2);
-	if (!this.halt) {
-	    this.halt = true;
-	    if (this.def.fof) pr3.halt = true;
-	    else pr2.halt = true;
-	    ru.stop();
+	if (!playMidi) {
+	    if (!this.halt) {
+		this.halt = true;
+		if (this.def.fof) pr3.halt = true;
+		else pr2.halt = true;
+		ru.stop();
+	    }
+	    stp.setEnabled(!this.halt);
+	}
+	else { // midi playing
+	    if (!this.mHalt) {
+		this.mHalt = true;
+		pm.stop();
+	    }
+	    stp.setEnabled(!this.halt);
 	}
 	stp.setEnabled(!this.halt);
 	setToWait(this, true);
@@ -1370,6 +1501,148 @@ public void actionPerformed(ActionEvent e) {
 	checkInput((TextField) e.getSource());
     }
 }
+    private void doPlayMidi() {
+	setToWait(this, false);
+	this.body.setEnabled(false);
+	stp.setEnabled(true);
+	start.setEnabled(false);
+	save.setEnabled(false);
+	mi1_5.setEnabled(false);
+	play.setEnabled(false);
+	this.pm = new PlayMidi();
+	this.pm.start();
+    }
+    private void playKomposition() {
+	if ( this.pr2.komposition == null | this.pr2.komposition.size() <= 0) return;
+	mid.close();
+	this.enableMidi = doMidiOpen();
+	if (!this.enableMidi) {
+	    setToWait(this, true);
+	    return;
+	}
+	this.playMidi = true;
+	Note nt;
+	int sl, c;
+	mid.startRecord(12); // instrument
+	ti = new Timer[16]; 
+	ampl = new int[16];
+	idx = new int[16];
+	akt = new int[16];
+	double startTime = 0.0, old;
+	Vector v = null, flow;
+	flow = new Vector();
+	v = new Vector();
+	//-------- Combine the voices :
+	for (int n = 0; n < this.pr2.komposition.size(); n++) {
+	    old = startTime;
+	    nt = (Note)  this.pr2.komposition.elementAt(n);
+	    startTime = nt.start;
+	    if (old != startTime) {
+		// change
+		if (v != null) {
+		    flow.addElement(v);
+		    //System.out.println("playKomposition() -------------");
+		}
+		v = new Vector();
+		v.addElement(nt);	
+		//System.out.println("playKomposition() n="+n+" start="+nt.start+" freq="+nt.freq+" nt.dauer="+nt.dauer+" nt.amplitude="+nt.amplitude);
+		
+	    }
+	    else {
+		v.addElement(nt);
+		//System.out.println("playKomposition() n="+n+" start="+nt.start+" freq="+nt.freq+" nt.dauer="+nt.dauer+" nt.amplitude="+nt.amplitude);
+	    }
+	}
+	// Instruments:
+	for (int i = 0; i < mid.channels.length; i++) {
+	    mid.channels[i].channel.programChange(10+i*3);
+	    mid.createShortEvent(mid.PROGRAM, 10+i*3, mid.channels[i]);//Instrument change
+        }
+	double maxd = 0.0;
+	int sleep, slp;
+	// loop over komposition
+	for (int n = 0; n < flow.size(); n++) {
+	    maxd = 0.0; // reset max-dauer
+	    v = (Vector) flow.elementAt(n);
+	    // find the delay until the next note:
+	    int[] drw = new int[v.size()];
+	    for ( c = 0; c < v.size(); c++) {
+		nt = (Note)  v.elementAt(c);
+		if (nt.dauer > maxd) maxd = nt.dauer;
+		drw[c] = (int) nt.freq;
+	    }
+	    sleep = (int) (maxd * 1000.0);
+	    int millis;
+	    SysStartTime = System.currentTimeMillis(); //
+	    //System.out.println("playKomposition() -----> new interval n="+n+" with "+sleep+" ms");
+	    this.gc.showNote(pr2.rt, drw);
+	    // Loop over all notes in this time-intervall
+	    for ( c = 0; c < v.size(); c++) {
+		nt = (Note)  v.elementAt(c);
+		sl = (int) (nt.dauer * 1000.0);
+		//System.out.println("playKomposition() c="+c+" start="+nt.start+" freq="+nt.freq+" nt.dauer="+nt.dauer+" nt.amplitude="+nt.amplitude+" bal="+nt.balance);
+		// init time if needed
+		if (ti[c] == null) {
+		    ti[c] = new Timer(sl, this);
+		    ti[c].setRepeats(false);
+		}
+		akt[c] = idx[c];
+		idx[c] = this.pr2.getNoteIndex(nt.freq);
+		ampl[c] = pr2.mapAplitude(nt.amplitude);
+		balance[c] = (int) ((nt.balance - 0.5) * 127.0 + 0.5) + 64;
+		//----------------- Timer ---
+		ti[c].setInitialDelay(sl);
+		//System.out.println("Channel "+c+" start with delay="+sl+" initdely="+ti[c].getInitialDelay());
+		ti[c].restart();
+		//System.out.println("playKomposition() note "+c+" dauer="+sl+" ms");
+		tTime = System.currentTimeMillis();    
+		isOn[c] = true;
+		//---------- Play it now:--------------
+		// ----------- Stereo -------y
+		mid.channels[c].channel.controlChange(mid.PAN, balance[c]); 	
+		mid.createControlEvent(mid.PAN, balance[c], mid.channels[c]);
+		//------------ Note ---------
+		mid.channels[c].channel.noteOn(idx[c], ampl[c]);
+		mid.createShortEvent(mid.NOTEON + c, idx[c], mid.channels[c]);
+		//System.out.println("playKomposition() note="+idx[c]+" nt.amplitude="+nt.amplitude+" volume="+ampl[c]+" balance="+balance[c]);
+		
+	    }
+	    millis = (int) (System.currentTimeMillis() - SysStartTime);
+	    slp = sleep - millis;
+	    try {
+		java.lang.Thread.sleep(slp);
+	    }	
+	    catch (InterruptedException e){}
+	    //System.out.println("playKomposition() ------------- end of intervall, slept "+(slp));	
+	    for ( c = 0; c < v.size(); c++) stopChannel(c);
+	    //System.out.println("playKomposition()  end of intervall. real time needed="+(System.currentTimeMillis() - SysStartTime));
+	    if (this.mHalt) break; 
+	}
+	/*
+	//----------- Play the midi seq.:
+	try {
+	    mid.sequencer.open();
+	    mid.sequencer.setSequence(mid.sequence);
+	} catch (Exception ex) { 
+	    ex.printStackTrace(); 
+	}
+	mid.sequencer.start();
+	setToWait(this, true);
+	mid.sequencer.stop();
+	*/
+	setToWait(this, true);
+	played = true;
+    }
+
+    public void saveMidi() {
+	//------save --------
+	String midf = CustomPath+oFile;
+	int id = midf.lastIndexOf(".");
+	midf = midf.substring(0, id);
+	midf = midf + ".mid";
+	mid.saveMidiFile(new File(midf));
+    }
+  
     public void displayRT(RandomTable rt) {
 	if (this.gc != null) gc.setTable(rt, this.def.gamma);
     }
@@ -1394,10 +1667,18 @@ public void focusLost(FocusEvent e) {
     class STListener implements ActionListener {
     public void actionPerformed(ActionEvent ev) {
 	if (ev.getSource() == start) { // start Button
+	    body.setEnabled(false);
 	    start.setEnabled(false);
 	    stp.setEnabled(true);
+	    save.setEnabled(false);
 	    ru = new Runner();
 	    ru.start();
+	}
+	else if (ev.getSource() == play) { // start Button
+	    doPlayMidi();
+	}
+	else if (ev.getSource() == save) { // save Button
+	    saveMidi();
 	}
     }	
     }// end of inner class
@@ -1596,13 +1877,13 @@ public void doQuit() {
     }
 
 public String[] getText(String[] t) {
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2001)";
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2003)";
     t[1] = "Alarmbox"; 
     t[10] = "Do you really want to quit ?";
     t[11] = "File";
     t[12] = "Select Path";
     t[13] = "Quit";
-    t[14] = "Start";
+    t[14] = "Generate";
     t[15] = "Select .sco file";
     t[16] = "Unable to save file:";
     t[17] = "Ready";
@@ -1623,7 +1904,7 @@ public String[] getText(String[] t) {
     t[32] = "About";
     t[33] = "Options";
     t[34] = "CSound Editor";
-    t[35] = "This program is used to generate an 'orchestra file' and a 'score file'for CSound.";
+    t[35] = "This program is used to generate an 'orchestra file' and a 'score file' for CSound.";
     t[36] = "The rule to generate one tone is based on random and evolution.";
     t[37] = "The distribution of the probabilities for the frequency values";
     t[38] = "changes self-structuring while the program is working."; 
@@ -1651,13 +1932,21 @@ public String[] getText(String[] t) {
     t[60] = "Unable to save template: ";
     t[61] = "Actual settings have been modified.";
     t[62] = "Do you want to save the settings in a template ?";
-    
+    t[63] = "Play";
+    t[64] = "Save Midi";
+    t[65] = "Prefer Lower Notes";
+    t[66] = "Since version 'V1.08 alpha1' there was some Midi-options added.";
+    t[67] = "It is now possible to play the generated composition with JcSelf and once";
+    t[68] = "it was played it can be saved as a '*.mid' file to be used by other programs";
+    t[69] = "Unable to open Midi-Device. Device may be busy by another application !";
+    t[70] = "Load";
 //t[38] = "";
 //t[36] = "";
 
 
     return t;
 }
+
 /**
  * Set The Cursor to Wait or normal state and disable/enable whatever neccassary.
  */
@@ -1667,11 +1956,16 @@ public void setToWait(Component Co, boolean w) {
     else cu = Cursor.getDefaultCursor();
     Co.setCursor(cu);
     //this.setEnabled(w);
-    start.setEnabled(w);   
+    start.setEnabled(w);
+    Color col = Color.black;
+    if (!w) col = Color.red;
+    this.pt.setColor(col);
+    this.pr.setColor(col);
+    this.body.setColor(col);
 }
 
     class Runner implements Runnable{
-	private Thread evoThread = null;
+	private volatile Thread evoThread = null;
 	public void start() {
 	    halt = false;
 	    try {
@@ -1687,19 +1981,61 @@ public void setToWait(Component Co, boolean w) {
 	public void stop() {
 	    stp.setEnabled(false);
 	    start.setEnabled(true);
+	    save.setEnabled(played);
 	    debugOut("CEditor: stopping", 2);
-	    if (evoThread != null) {
+	    body.setEnabled(true);
+	    evoThread = null;
+	    /*if (evoThread != null) {
 		evoThread.stop();
 		evoThread = null;
 	    }
+	    */
 	    //System.out.println("CEditor: stopping done");
 	}
 
 	public void run() {
-	    debugOut("CEditor: RUN", 2);
-	    doScoFile();
-	    halt = true; 
-	    this.stop();
+	    Thread thisThread = Thread.currentThread();
+	    while(evoThread == thisThread) {
+		debugOut("CEditor: RUN", 2);
+		doScoFile();
+		halt = true; 
+		this.stop();
+	    }
+	}
+    }
+
+    class PlayMidi implements Runnable{
+	private volatile Thread midiThread = null;
+	public void start() {
+	    mHalt = false;
+	    try {
+		if (midiThread == null) {
+		    midiThread = new Thread(this," Play Composition");
+		}
+	    if (midiThread != null) midiThread.start();
+	    } catch (IllegalThreadStateException ex) {
+		this.start();  // ??? or what
+	    }
+	}
+
+	public void stop() {
+	    body.setEnabled(true);
+	    stp.setEnabled(false);
+	    start.setEnabled(true);
+	    save.setEnabled(played);
+	    //System.out.println("Play komp. ton="+ton);
+	    mi1_5.setEnabled(def.tonal & ton.size() > 0);
+	    play.setEnabled(def.tonal & ton.size() > 0);
+	    midiThread = null;
+	}
+
+	public void run() {
+	    Thread thisThread = Thread.currentThread();
+	    while(midiThread == thisThread) {
+		playKomposition();
+		mHalt = true; 
+		this.stop();
+	    }
 	}
     }
 

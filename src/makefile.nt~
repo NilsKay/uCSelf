@@ -24,7 +24,7 @@ jar:
 	copy SOUND\*.class c:\temp\PHS\Sound
 	copy Utils\*.class c:\temp\PHS\Utils
 	cd c:\temp\PHS
-	c:\jshrink\jshrink.exe .
+#c:\jshrink\jshrink.exe .
 	jar -cvf jcself.jar $(CLASSFILES)
 	copy jcself.jar l:\MyProjects\PHS\jcself.jar
 
@@ -32,4 +32,5 @@ clean:
 	del SOUND\*.class
 
 source: 	
-	jar cvf phs_source_106.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* 
+	jar cvf phs_source_107A1.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* jcself.jar
+

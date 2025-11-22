@@ -15,6 +15,7 @@ class GraphCanvas extends Canvas {
     Color bg;
     RandomTable rt;
     int height;
+    double xscale;
     public GraphCanvas() {
 	this(new Dimension(550, 150), 10);	 
     }
@@ -56,7 +57,7 @@ public void setTable(RandomTable r, double gamma) {
     this.rt = r;
     double max = rt.getMaxx();
     double yscale = (double) (this.height - 9) / max;
-    double xscale = (double) this.preferredSize.width / (double) (rt.stop - rt.start);
+    this.xscale = (double) this.preferredSize.width / (double) (rt.stop - rt.start);
     if (this.offImage == null) {
 	return;
     }
@@ -98,6 +99,7 @@ public void setTable(RandomTable r, double gamma) {
 	off.drawString(Integer.toString(rt.iteration+1), 1, 20); //draw the title
 	off.setColor(Color.green);
 	x = (int) ((double) (rt.seed - rt.start) * xscale);
+	//System.out.println("GraphCanvas.setTable() rt.seed="+rt.seed+" x="+x);
 	off.drawLine(x, 0 , x, 9);
 	/*if (rt.qd != null) { // Scale for debug
 	    off.setColor(Color.green);
@@ -135,6 +137,20 @@ public void setTable(RandomTable r, double gamma) {
 	Graphics g = this.getGraphics();
 	g.drawImage(offImage, 0, 0, this); // display buffered Image
 	//System.out.println("Canvas setTable displays now the offImage !");
+    }
+}
+
+public void showNote(RandomTable r, int[] freq) {
+    if (this.offImage != null) {
+	Graphics g = this.getGraphics();
+	g.drawImage(offImage, 0, 0, this); // display buffered Image
+	int x;
+	g.setColor(Color.green);
+	for (int n= 0; n < freq.length; n++) {
+	    x = (int) ((double) (freq[n] - rt.start) * this.xscale);
+	    //System.out.println("Canvas setTable displays now one note ! freq="+freq+" x="+x);
+	    g.drawLine(x, 10 , x, this.height);
+	}
     }
 }
 

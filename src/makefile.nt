@@ -25,12 +25,14 @@ jar:
 	copy Utils\*.class c:\temp\PHS\Utils
 	cd c:\temp\PHS
 #c:\jshrink\jshrink.exe .
-	jar -cvf jcself.jar $(CLASSFILES)
+	jar -cvf jcself_FNS.jar $(CLASSFILES)
+	java -cp "C:\Program Files\retroguard-v1.1\retroguard.jar" RetroGuard jcself_FNS.jar jcself.jar Jcself.rgs
 	copy jcself.jar l:\MyProjects\PHS\jcself.jar
 
 clean:
 	del SOUND\*.class
 
 source: 	
-	jar cvf phs_source_106A4.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* jcself.jar
+	jar cvf phs_source_108A1.jar make* *.bat Sound\*.java Sound\make* Utils\*.java Utils\makefile* jcself.jar
+	move phs_source_108A1.jar Source_backup\phs_source_108A1.jar
 

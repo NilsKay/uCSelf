@@ -9,10 +9,13 @@ import java.awt.event.MouseEvent;
  * @author 	Nils Kay
  */
 public class GetEnviroment {
-    public static String sVersionCode="Version V1.06 alpha4";
+    public static String sVersionCode="Version V1.08 alpha1";
     public final static Color DisplayBackColor = new Color(0xe0e0e0); // Display Background color
     public final static String SAVEFILE = "jcself.sav";	// here we store the user default settings
     public final static String TEMPLATEEXT = ".jct";	// 
+    
+    public final static String DEFAULTFOFORC = "DefaultFOF.orc";
+    public final static String DEFAULTFOFSCO = "DefaultFOF.sco";
 
     String Home; 	// the users Home dir
     String User; 	// the user name

@@ -53,8 +53,8 @@ public class Project3 extends Project2 {
 	// Tonal Values:
 	double start = 0.0;	// Notenstart
 	double dauer;	// Tondauer
-	int max_amplitude = getLoundness(this.max_amp); // Border values
-	int min_amplitude = getLoundness(this.min_amp);
+	int max_amplitude = getLoundness(this.def.max_amp); // Border values
+	int min_amplitude = getLoundness(this.def.min_amp);
 	int amplitude = max_amplitude;	// actual value
 	double bal = this.balance;
 	int generator, envelope = 0;
@@ -63,43 +63,43 @@ public class Project3 extends Project2 {
 	debugOut("KOMPOSITION: (Evolution)", 1);
 	// Angangsbedingung:
 	int freq;
-	if (seed <= min_freq) { // do random
-	    if (this.tonal) freq = getChromaticFrequency();
-	    else freq = min_freq + (int) ((double) (max_freq - min_freq) * java.lang.Math.random());
+	if (this.def.seed <= this.def.min_freq) { // do random
+	    if (this.def.tonal) freq = (int) getChromaticFrequency();
+	    else freq = this.def.min_freq + (int) ((double) (this.def.max_freq - this.def.min_freq) * java.lang.Math.random());
 	}
-	else if (this.tonal) freq = getChromaticFromSeed(seed);
-	else freq = seed;
+	else if (this.def.tonal) freq = getChromaticFromSeed(this.def.seed);
+	else freq = this.def.seed;
 	    
-	RandomTable rt = new RandomTable(this.qd, this.Verbosity, min_freq, max_freq, step, 0.0);
+	RandomTable rt = new RandomTable(this.qd, this.Verbosity, this.def.min_freq, this.def.max_freq, this.def.interval, 0.0);
 	rt.seed = freq;
 	// Veraendere die Tabelle:
 	// freq, um wieviel nach oben, welche Frequenz-differenz zu beachten ist
-	rt.writeNEntrys(freq, this.impact, diff_freq );
+	rt.writeNEntrys(freq, this.def.impact, this.def.diff_freq );
 	//this.ce.gc.setTable(rt);	// Anzeigen !
 	sil.displayRT(rt);
 	debugOut("This is our seed :"+freq+" Hz", 5);
 	flowControl();
 	// Now iterate:
-	for (it = 0; it < iterations; it++) {
+	for (it = 0; it < this.def.iterations; it++) {
 	    // Step 1 generate n random Frequencys:
 	    rt.iteration = it;// needed for the display 
-	    makeNRandomFrequencys(firstAmount, min_freq, max_freq); // create Population
+	    makeNRandomFrequencys(this.def.population, this.def.min_freq, this.def.max_freq); // create Population
 	    // Now weight array for each random frequency:
-	    makeWeight(firstAmount, rt);// Judge them
+	    makeWeight(this.def.population, rt);// Judge them
 	    // now sort it;
 	    QSort q = new QSort(); // ( index = max equals the highest weight)
 	    q.sort(this.weight, this.freq);
 	    if (this.Verbosity >= 6 ) {
-		for (z = 0; z < firstAmount; z++) 
+		for (z = 0; z < this.def.population; z++) 
 		    debugOut("Sorted: index="+z+" freq="+this.freq[z]+" weight="+this.weight[z], 6);
 	    }
 	    // Next select radomly the fittest:
-	    z = (firstAmount -1 ) - (int) ((double) toChooseFrom * java.lang.Math.random());
+	    z = (this.def.population -1 ) - (int) ((double) this.def.fittest * java.lang.Math.random());
 	    debugOut("Index that will be selected:"+z, 5);
 	    freq = this.freq[z];
 	    debugOut("This is our new selection:"+freq+" Hz", 5);
 	    // Mark the new individual in the RT
-	    rt.writeNEntrys( freq, this.impact, diff_freq );
+	    rt.writeNEntrys( freq, this.def.impact, this.def.diff_freq );
 	    sil.displayRT(rt);
 	    //this.ce.gc.setTable(rt);	// Anzeigen ! (also find max in RandomTable)
 	    //
@@ -110,12 +110,12 @@ public class Project3 extends Project2 {
 	    generator = getOszi(wght, rt.max, this.maxGenerator);
 	    debugOut("Generator="+generator, 2);
 	    amplitude = getAmplitude(wght, rt.max, min_amplitude, 
-				     max_amplitude, this.amplifier);	
+				     max_amplitude, this.def.amplify_amp);	
 	    debugOut("Resulting amplitude ="+amplitude, 5);
-	    if (this.stereo) bal = getBal(rt.fittest_freq, freq, rt.start, rt.stop);
+	    if (this.def.stereo) bal = getBal(rt.fittest_freq, freq, rt.start, rt.stop);
 	    debugOut("Resulting balance: bal="+bal, 5);
-	    dauer = getKleiner(wght, rt.max, min_tempo, max_tempo);	
-	    if (dauer < min_tempo || dauer > max_tempo) debugOut("Project2: tempo out of range ="+dauer, 4);
+	    dauer = getKleiner(wght, rt.max, this.def.min_tempo, this.def.max_tempo);	
+	    if (dauer < this.def.min_tempo || dauer > this.def.max_tempo) debugOut("Project2: tempo out of range ="+dauer, 4);
 	    nt = new Note(start, dauer, bal, freq, generator, amplitude, envelope);
 	    nt.v1a = getKleiner(wght, rt.max, vibrato1_ampl_min, vibrato1_ampl_max);
 	    debugOut("Vibrato1 Amp="+nt.v1a, 2);
@@ -147,7 +147,8 @@ public class Project3 extends Project2 {
     }
     public void initKomp(Defaults def) {
     //Initialise:
-	this.max_amp = def.max_amp;
+	this.def = def;
+	/*this.max_amp = def.max_amp;
 	this.min_amp = def.min_amp;
 	this.seed = def.seed;
 	this.min_freq = def.min_freq;
@@ -165,6 +166,7 @@ public class Project3 extends Project2 {
 	this.r_Weight = def.r_Weight;
 	this.tonal = false;
 	this.balance = 0.5;	// symetrical default
+	*/
 	// New ones:
 	this.vibrato1_ampl_min = def.vibrato1_ampl_min;
 	this.vibrato1_ampl_max = def.vibrato1_ampl_max;
@@ -199,7 +201,7 @@ public class Project3 extends Project2 {
 	String tmp = "";
 	Vector result = new Vector();
 	initKomp(def);
-	if (this.tonal) createNoteTable(this.note_mode);
+	if (this.def.tonal) createNoteTable(this.note_mode);
 	komposition = doKomposition();	// Evolution
 	// ----------------------------------------------------------
 	// so macht man dann aus einem Note - Eintrag eine sco-line :

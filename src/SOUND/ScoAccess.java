@@ -18,52 +18,84 @@ public final static String ORCEXTENSION = ".orc";
 
     public ScoAccess() {
     }
+
+
+/**
+ * Load the content of a file into a Vector.
+ * Every element represents a line from the textfile
+ * @param File path 
+ * @param File name
+ * @return Vector with data or null
+ */
+    public Vector getFileContent(String path, String file) {
+	if (!path.endsWith(File.separator)) path += File.separator;
+	return getFileContent(path+file);
+    }
+
+/**
+ * Load the content of a file into a Vector.
+ * Every element represents a line from the textfile
+ * @param File path 
+ * @param File name
+ * @return Vector with data or null
+ */
+    public Vector getFileContent(String pathfile) {
+	File fdes;
+	BufferedReader br = null;
+	fdes = new File( pathfile);   
+	if (!fdes.exists()) {
+	    System.out.println("Can not load file:"+pathfile+" , File does not exist !");
+	    return null;
+	}
+	try {
+	    br = new BufferedReader(new InputStreamReader(new FileInputStream(fdes)));
+	} catch (java.io.FileNotFoundException e) {
+	    System.out.println("Exception "+e);
+	    return null;
+	}
+	String res0;
+	Vector v = new Vector();
+	try {
+	    while((res0 = br.readLine()) != null) {
+		v.addElement(res0);
+	    }
+	} // end of try
+	catch (java.io.IOException e) {
+	    System.out.println("getFileContent in ScoAccess.java : "+e);
+	    return null;
+	}
+	if (v.size() <= 0) v = null; // make sure, that we return null on error
+	return v;
+    }
 /**
  * This Method loads the Sco file 
  * @param path which default file to use
  */
 public boolean loadSco(String path) {
     String res0, res1;
-    File fdes;
-    BufferedReader br = null;
     double d;
-    int q, ii;
-
-    fdes = new File( path );   
-    if (!fdes.exists()) {
-	System.out.println("Can not Load motor defaults, File does not exist !");
-	return false;
-    }
-    try {
-	br = new BufferedReader(new InputStreamReader(new FileInputStream(fdes)));
-    } catch (java.io.FileNotFoundException e) {
-	System.out.println("Exception "+e);
-	return false;
-    }
-    try {
-	while((res0 = br.readLine()) != null) {
-	    if (!(res0.startsWith(commentChar))) { //no comment Line
-		q = res0.indexOf('=');
-		if (q >= 0) {	// Line with a = char
-
-		    ii = res0.indexOf('\t'); // throw away all after a tab !
-		    if (ii <= 0) ii = res0.indexOf('#'); // throw away all after a comment
-		    if (ii <= 0) ii = res0.length(); // all of it
-		    res1 = res0.substring(q+1,ii);
-		    res0 = res0.substring(0,q);
-		    // check which parameter this is:
-		    if (res0.equals( "UMFANG.G")) {
-			//focUmfang = Double.valueOf(res1).doubleValue();
-		    }
-
+    int q, ii, n;
+    Vector v = getFileContent(path);
+    if ( v== null) return false;
+    for(n = 0; n < v.size(); n++) {
+	res0 = v.elementAt(n).toString();
+	if (!(res0.startsWith(commentChar))) { //no comment Line
+	    q = res0.indexOf('=');
+	    if (q >= 0) {	// Line with a = char
+		
+		ii = res0.indexOf('\t'); // throw away all after a tab !
+		if (ii <= 0) ii = res0.indexOf('#'); // throw away all after a comment
+		if (ii <= 0) ii = res0.length(); // all of it
+		res1 = res0.substring(q+1,ii);
+		res0 = res0.substring(0,q);
+		// check which parameter this is:
+		if (res0.equals( "UMFANG.G")) {
+		    //focUmfang = Double.valueOf(res1).doubleValue();
 		}
+		
 	    }
-	} // end of while
-    } // end of try
-    catch (java.io.IOException e) {
-	System.out.println("loadDef in HandlePar.java : "+e);
-	return false;
-    }
+	}
+    } // end of for loop
     return true;
 }// end of method
 
