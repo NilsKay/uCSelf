@@ -962,7 +962,47 @@ public class Utils {
         }
         return true;
     }
-    
+    public InputStreamReader getStreamReader(InputStream fis, int type, boolean bomFound) { 	
+		InputStreamReader isr = null;
+		byte[] b;
+		try {
+		    switch(type) {
+		    case 0:
+		    default:
+			isr = new InputStreamReader(fis);	// ascii 
+			break;
+		    case 1:
+			if (bomFound) { // skip bytes
+				b = new byte[4];
+				fis.read(b);
+			}
+			isr = new InputStreamReader(fis, "UTF-32");
+			break;
+		    case 2:
+		    	if (bomFound) {
+		    		b = new byte[2];
+		    		fis.read(b);
+		    	}
+			isr = new InputStreamReader(fis, "UTF-16");
+			break;
+		    case 3:
+		    	if (bomFound) {
+		    		b = new byte[3];
+		    		fis.read(b);
+		    	}
+			isr = new InputStreamReader(fis, "UTF-8");
+		    }
+		}
+		catch (java.io.UnsupportedEncodingException ux) {
+		    System.out.println("rt.getStreamReader() "+ux);
+		    return null;
+		}
+		catch (Exception x) {
+		    //System.out.println("rt.getStreamReader() "+ux);
+		    return null;
+		}
+		return isr;
+    }
     public Vector<String> sortStringVector(Vector<String> in) {
     	Collections.sort(in, new Comparator<String>() {
     		   public int compare(String o1, String o2){

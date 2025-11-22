@@ -79,6 +79,19 @@ public class StateDialog extends JDialog {
 						model.t = 1;
 					model.ptfs[model.TRIGGER].setText(""+model.t);
 				}
+				else if (o == model.ptfs[model.MRANGE]) {
+					model.mr = Converter.getInt(model.ptfs[model.MRANGE].getText(), -1);
+					if (model.mr < 0)
+						model.mr = 0;
+					//StateDialog.this.ce.def.range = model.r;
+					model.ptfs[model.MRANGE].setText(""+model.mr);
+				}
+				else if (o == model.ptfs[model.MTRIGGER]) {
+					model.mt = Converter.getInt(model.ptfs[model.MTRIGGER].getText(), -1);
+					if (model.mt < 1)
+						model.mt = 1;
+					model.ptfs[model.MTRIGGER].setText(""+model.mt);
+				}
 				else if (o == model.ptfs[model.CASCADECOUNT]) {
 					model.cc = Converter.getInt(model.ptfs[model.CASCADECOUNT].getText(), -1);
 					if (model.cc < 1)
@@ -114,6 +127,30 @@ public class StateDialog extends JDialog {
 					if (model.minTempo < 10)
 						model.minTempo = 10;
 					model.ptfs[model.MINTEMPO].setText(""+model.minTempo);
+				}
+				else if (o == model.ptfs[model.TRMIN]) {
+					model.trmin = Converter.getInt(model.ptfs[model.TRMIN].getText(), -1);
+					if (model.trmin < -50)
+						model.trmin = -50;
+					model.ptfs[model.TRMIN].setText(""+model.trmin);
+				}
+				else if (o == model.ptfs[model.TRMAX]) {
+					model.trmax = Converter.getInt(model.ptfs[model.TRMAX].getText(), -1);
+					if (model.trmax > 50)
+						model.trmax = 50;
+					model.ptfs[model.TRMIN].setText(""+model.trmax);
+				}
+				else if (o == model.ptfs[model.TROCTMIN]) {
+					model.octMin = Converter.getInt(model.ptfs[model.TROCTMIN].getText(), -1);
+					if (model.octMin < 0)
+						model.octMin = 0;
+					model.ptfs[model.TROCTMIN].setText(""+model.octMin);
+				}
+				else if (o == model.ptfs[model.TROCTMAX]) {
+					model.octMax = Converter.getInt(model.ptfs[model.TROCTMAX].getText(), -1);
+					if (model.octMax > 5)
+						model.octMax = 5;
+					model.ptfs[model.TROCTMAX].setText(""+model.octMax);
 				}
 				else if (o == model.ptfs[model.MAXTEMPO]) {
 					model.maxTempo = Converter.getInt(model.ptfs[model.MAXTEMPO].getText(), -1);
@@ -159,7 +196,10 @@ public class StateDialog extends JDialog {
 		public int USELOOP = 1;
 		public int USESPEED = 2;
 		public int PERMUTATION = 3;
-		public int cMax = 4;
+		public int LOOPBUG = 4;
+		public int MELODY = 5;
+		public int TRANSPOSITION = 6;
+		public int cMax = 7;
 		
 		// Int input:
 		public int RANGE = 0;
@@ -172,15 +212,21 @@ public class StateDialog extends JDialog {
 		public int MINTEMPO = 7;
 		public int MAXTEMPO = 8;
 		public int STEP = 9;
-		public int Max = 10;
+		public int MRANGE = 10;
+		public int MTRIGGER = 11;
+		public int TRMIN = 12;
+		public int TRMAX = 13;
+		public int TROCTMIN = 14;
+		public int TROCTMAX = 15;
+		public int Max = 16;
 		
 		JCheckBox cb[];
 		JLabel la[];
 		JTextField ptfs[];
 		JButton close;
 		JButton quit;
-		int r,t, cc, cu, cd;
-		int loopDepth, loopRepeat, minTempo, maxTempo,speedStep;
+		int r,t, mr,mt, cc, cu, cd;
+		int loopDepth, loopRepeat, minTempo, maxTempo,speedStep, trmin, trmax, octMin, octMax;
 		
 		public StateModel() {
 			close = new JButton(ce.def.text[78]);
@@ -195,6 +241,13 @@ public class StateDialog extends JDialog {
 			cb[PERMUTATION] = new JCheckBox(ce.def.text[123]);
 			cb[PERMUTATION].setSelected(ce.def.permutation);
 			cb[PERMUTATION].setToolTipText(ce.def.text[124]);
+			cb[LOOPBUG] = new JCheckBox(ce.def.text[125]);
+			cb[LOOPBUG].setSelected(ce.def.doLoopBug);
+			cb[MELODY] = new JCheckBox(ce.def.text[126]);
+			cb[MELODY].setSelected(ce.def.doMelody);
+			cb[TRANSPOSITION] = new JCheckBox(ce.def.text[128]);
+			cb[TRANSPOSITION].setSelected(ce.def.useTrans);
+			
 			
 			la = new JLabel[Max];
 			ptfs = new JTextField[Max];
@@ -208,6 +261,17 @@ public class StateDialog extends JDialog {
 			la[index] = new JLabel(ce.def.text[102], JLabel.LEFT);
 			this.t = ce.def.trigger;
 			ptfs[index] = new JTextField(""+ce.def.trigger, ce.digits);
+			ptfs[index].setToolTipText(ce.def.text[111]);
+			
+			index = MRANGE;
+			la[index] = new JLabel(ce.def.text[101], JLabel.LEFT);
+			this.mr = ce.def.m_range;
+			ptfs[index] = new JTextField(""+this.mr, ce.digits);
+			ptfs[index].setToolTipText(ce.def.text[110]);
+			index = MTRIGGER;
+			la[index] = new JLabel(ce.def.text[102], JLabel.LEFT);
+			this.mt = ce.def.m_trigger;
+			ptfs[index] = new JTextField(""+this.mt, ce.digits);
 			ptfs[index].setToolTipText(ce.def.text[111]);
 			
 			index = CASCADECOUNT;
@@ -253,6 +317,25 @@ public class StateDialog extends JDialog {
 			ptfs[index] = new JTextField(""+speedStep, ce.digits);
 			ptfs[index].setToolTipText(ce.def.text[122]);
 			
+			index = TRMIN;
+			la[index] = new JLabel(ce.def.text[129], JLabel.LEFT);
+			this.trmin = ce.def.transP_min;
+			ptfs[index] = new JTextField(""+trmin, ce.digits);
+			
+			index = TRMAX;
+			la[index] = new JLabel(ce.def.text[130], JLabel.LEFT);
+			this.trmax = ce.def.transP_max;
+			ptfs[index] = new JTextField(""+trmax, ce.digits);
+			
+			index = TROCTMIN;
+			la[index] = new JLabel(ce.def.text[131], JLabel.LEFT);
+			this.octMin = ce.def.minOct;
+			ptfs[index] = new JTextField(""+octMin, ce.digits);
+			
+			index = TROCTMAX;
+			la[index] = new JLabel(ce.def.text[132], JLabel.LEFT);
+			this.octMax = ce.def.maxOct;
+			ptfs[index] = new JTextField(""+octMax, ce.digits);
 		}
 		
 		public void addIntListeners(ActionListener al) {
@@ -261,11 +344,16 @@ public class StateDialog extends JDialog {
 		}
 		public void save() {
 			ce.def.permutation = cb[PERMUTATION].isSelected();
+			ce.def.doLoopBug = cb[LOOPBUG].isSelected();
+			ce.def.doMelody = cb[MELODY].isSelected();
 			ce.def.useSpeed = cb[USESPEED].isSelected();
+			ce.def.useTrans = cb[TRANSPOSITION].isSelected();
 			ce.def.useLoop = cb[USELOOP].isSelected();
 			ce.def.useCascade = cb[USECASCADE].isSelected();
 			ce.def.range = Converter.getInt(ptfs[RANGE].getText(), 0);
 			ce.def.trigger = Converter.getInt(ptfs[TRIGGER].getText(), 3);
+			ce.def.m_range = Converter.getInt(ptfs[MRANGE].getText(), 0);
+			ce.def.m_trigger = Converter.getInt(ptfs[MTRIGGER].getText(), 3);
 			ce.def.cascadeCount = Converter.getInt(ptfs[CASCADECOUNT].getText(), 5);
 			ce.def.stepUp = Converter.getInt(ptfs[STEPUP].getText(), 1);
 			ce.def.stepDown = Converter.getInt(ptfs[STEPDOWN].getText(), 1);
@@ -274,7 +362,8 @@ public class StateDialog extends JDialog {
 			ce.def.minTempo = Converter.getInt(ptfs[MINTEMPO].getText(), 1);
 			ce.def.maxTempo = Converter.getInt(ptfs[MAXTEMPO].getText(), 1);
 			ce.def.speedStep = Converter.getInt(ptfs[STEP].getText(), 1);
-			
+			ce.def.transP_max = Converter.getInt(ptfs[TRMAX].getText(), 1);
+			ce.def.transP_min = Converter.getInt(ptfs[TRMIN].getText(), 0);
 		}
 	}
 	
@@ -288,7 +377,7 @@ public class StateDialog extends JDialog {
 			this.tab.add(doCascadeLayout(), ce.def.text[106]);
 			this.tab.add(doLoopLayout(), ce.def.text[107]);
 			this.tab.add(doSpeedLayout(), ce.def.text[108]);
-			
+			this.tab.add(doTransLayout(), ce.def.text[128]);
 			this.add("Center", this.tab); 
 			this.add("South", getTool()); 
 		}
@@ -321,12 +410,22 @@ public class StateDialog extends JDialog {
 	        builder.add(model.cb[model.USELOOP],		cc.xy (7,  row));
 	        row += 2;
 	        builder.add(model.cb[model.USESPEED],		cc.xy (3,  row));
+	        builder.add(model.cb[model.TRANSPOSITION],	cc.xy (7,  row));
+	        
 	        row += 2;
 	        builder.add(model.la[model.RANGE],			cc.xy (1,  row));
 	        builder.add(model.ptfs[model.RANGE],		cc.xy (3,  row));
 	        builder.add(model.la[model.TRIGGER],		cc.xy (5,  row));
 	        builder.add(model.ptfs[model.TRIGGER],		cc.xy (7,  row));
 	        row += 2;
+	        builder.addSeparator(ce.def.text[127],		cc.xyw (1,  row, 8)); // melody
+	        row += 2;
+	        builder.add(model.cb[model.MELODY],			cc.xy (3,  row));
+	        row += 2;
+	        builder.add(model.la[model.MRANGE],			cc.xy (1,  row));
+	        builder.add(model.ptfs[model.MRANGE],		cc.xy (3,  row));
+	        builder.add(model.la[model.MTRIGGER],		cc.xy (5,  row));
+	        builder.add(model.ptfs[model.MTRIGGER],		cc.xy (7,  row));
 	        //builder.addSeparator("",		cc.xyw (1,  row, 8));
 	        return builder.getPanel();
 		}
@@ -379,6 +478,8 @@ public class StateDialog extends JDialog {
 	        builder.add(model.ptfs[model.LOOPREPEAT],	cc.xy (7,  row));
 	        row += 2;
 	        builder.add(model.cb[model.PERMUTATION],	cc.xy (3,  row));
+	        builder.add(model.cb[model.LOOPBUG],	cc.xy (7,  row));
+	        
 	        return builder.getPanel();
 		}
 		
@@ -407,6 +508,35 @@ public class StateDialog extends JDialog {
 	        builder.add(model.la[model.STEP],			cc.xy (1,  row));
 	        builder.add(model.ptfs[model.STEP],			cc.xy (3,  row));
 	       
+	        return builder.getPanel();
+		}
+		private JComponent doTransLayout() {
+	    	FormLayout layout = new FormLayout(
+	    			"left:pref,3dlu,l:pref,5dlu,  l:pref, 3dlu, l:pref,5dlu",
+	    			"p, 3dlu, " +
+	    			"p,1dlu,p,5dlu,  p,1dlu,p,5dlu,  p,1dlu,p,5dlu,  p,1dlu,p,5dlu, p,1dlu,p,10dlu," +
+	    			"p, 3dlu,"+		
+	    			"p,1dlu,p,5dlu,  p,1dlu,p,5dlu,  p,1dlu,p,5dlu");
+	    			
+	    	layout.setColumnGroups(new int[][]{{3, 7}});
+	        PanelBuilder builder = new PanelBuilder(layout);
+	        builder.setDefaultDialogBorder();
+	        // Obtain a reusable constraints object to place components in the grid.
+	        CellConstraints cc = new CellConstraints();
+	        int row = 1;
+	        //--------------- First Row
+	        builder.addSeparator(ce.def.text[128],		cc.xyw (1,  row, 8));
+	        row += 2;
+	        builder.add(model.la[model.TRMIN],		cc.xy (1,  row));
+	        builder.add(model.ptfs[model.TRMIN],		cc.xy (3,  row));
+	        builder.add(model.la[model.TRMAX],		cc.xy (5,  row));
+	        builder.add(model.ptfs[model.TRMAX],		cc.xy (7,  row));
+	        row += 2;
+	        /*builder.add(model.la[model.TROCTMIN],		cc.xy (1,  row));
+	        builder.add(model.ptfs[model.TROCTMIN],		cc.xy (3,  row));
+	        builder.add(model.la[model.TROCTMAX],		cc.xy (5,  row));
+	        builder.add(model.ptfs[model.TROCTMAX],		cc.xy (7,  row));
+	       */
 	        return builder.getPanel();
 		}
 	}

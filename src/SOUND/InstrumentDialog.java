@@ -83,7 +83,7 @@ public class InstrumentDialog extends JDialog {
 		for (int n = 0; n < this.ce.mid.instruments.length; n++) 
 			elements.addElement(this.ce.mid.instruments[n].getName()); // instrName[n]
 			
-		this.jc = new JComboBox[ce.def.voiceMax];
+		this.jc = new JComboBox[ce.def.voiceMax+ce.def.melodyChannels];
 		JToolBar pa = new JToolBar();
 		pa.setFloatable(false);
 		//b.add(Box.createVerticalStrut(130));

@@ -88,6 +88,7 @@ public class CEditor extends JFrame implements ItemListener, FocusListener, Acti
     String sFile = null;
     String oFile = null;
     public PrintWriter prs = null;
+    public int build;
     
     CEditorModel model;
     CEditorUi ui;
@@ -155,6 +156,7 @@ public CEditor(String home, String user, String opt) {
     	this.User = user;
     	this.options = opt;
     }
+    this.build = gsp.build;
     this.Host = gsp.getHost();
     if (this.CustomPath == null) this.CustomPath = this.Home;
     left_Button = gsp.getLeftButton();	//MouseEvent.BUTTON1_MASK;
@@ -175,7 +177,7 @@ public CEditor(String home, String user, String opt) {
     this.def = new Defaults();
     if (Home == null)
     	Home =  System.getProperty("user.home");
-    boolean defLoaded = this.def.loadDef(Home+File.separator+GetEnviroment.SAVEFILE);
+    boolean defLoaded = this.def.loadDef(Home+File.separator+GetEnviroment.SAVEFILE, this.build);
     if (def.lastPath != null) this.CustomPath = def.lastPath;
     this.mid.open(def);
     //------------
@@ -385,7 +387,7 @@ public void setMenubar() {
 		String filepath = selectFile(true);
 		if (filepath == null) return false;
 		this.def = new Defaults();
-		boolean defLoaded = this.def.loadDef(filepath);
+		boolean defLoaded = this.def.loadDef(filepath, this.build);
 		if (defLoaded) {
 		    model.setActual(this);
 		    State = false;
@@ -916,10 +918,11 @@ public void actionPerformed(ActionEvent e) {
     Vector<MidiNote> mNotes;
     @SuppressWarnings({ "rawtypes", "unchecked", "unused" })
 	private void playKomposition() {
-    	String kompo = this.pr2.kompo;
+    	/*String kompo = this.pr2.kompo;
     	if (kompo == null) 
     		return;
-		//if ( this.pr2.komposition == null | this.pr2.komposition.size() <= 0) return;
+    		*/
+		if ( this.pr2.komposition == null | this.pr2.komposition.size() <= 0) return;
 		mid.close();
 		this.enableMidi = doMidiOpen();
 		if (!this.enableMidi) {
@@ -936,7 +939,7 @@ public void actionPerformed(ActionEvent e) {
 		flow = new Vector();
 		v = new Vector();
 		//-------- Combine the voices :
-		try {
+		/*try {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(kompo)));
 			BufferedReader br = new BufferedReader(isr);
 			Vector res = new Vector();
@@ -944,6 +947,7 @@ public void actionPerformed(ActionEvent e) {
 		    while((res0 = br.readLine()) != null) {
 		    	nt = Note.getFromString(res0);
 		    	old = startTime;
+		    	System.out.println("Channel ="+nt.channel);
 			   // nt = (Note)  this.pr2.komposition.elementAt(n);
 			    startTime = nt.start;
 			    if (old != startTime) {
@@ -967,8 +971,9 @@ public void actionPerformed(ActionEvent e) {
 		    System.out.println("CEditor.playKomposition(): catched "+e);
 		    return;
 		}
-		/*
-		for (int n = 0; n < this.pr2.komposition.size(); n++) {
+		*/
+		flow = this.pr2.getInterval(this.pr2.komposition, false);
+		/*for (int n = 0; n < this.pr2.komposition.size(); n++) {
 		    old = startTime;
 		    nt = (Note)  this.pr2.komposition.elementAt(n);
 		    startTime = nt.start;
@@ -985,7 +990,8 @@ public void actionPerformed(ActionEvent e) {
 		    }
 		    else {
 		    	v.addElement(nt);
-		    	//addLog("playKomposition() n="+n+" start="+nt.start+" freq="+nt.freq+" nt.dauer="+nt.dauer+" nt.amplitude="+nt.amplitude);
+		    	addLog("playKomposition() n="+n+" start="+nt.start+" freq="+nt.freq+
+		    			" nt.dauer="+nt.dauer+" nt.amplitude="+nt.amplitude+" isMelody="+(nt.misc == 222));
 		    }
 		}
 		*/
@@ -1002,6 +1008,16 @@ public void actionPerformed(ActionEvent e) {
 		this.mNotes = new Vector<MidiNote>();
 		activeNotes = 0;
 		int intervall = 0;
+		BufferedReader br = null;
+		String ilog = this.Home+File.separator+GetEnviroment.IMAGELOG;
+		Vector<Note> res = null;
+    	try {
+			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(ilog)));
+			br = new BufferedReader(isr);
+    	} catch (java.io.IOException e) {
+    		System.out.println("CEditor.playKomposition(): catched "+e);
+    		return;
+    	}
 		//---------- loop over komposition
 		for (int n = 0; n < flow.size(); n++) {
 		    maxd = 0.0; // reset max-dauer
@@ -1011,13 +1027,18 @@ public void actionPerformed(ActionEvent e) {
 		    for ( c = 0; c < v.size(); c++) {
 				nt = (Note)  v.elementAt(c);
 				//maxd = nt.dauer;
-				intervall = (int) (nt.tempo * 1000);
+				if (nt.tempo > 0)
+					intervall = (int) (nt.tempo * 1000);
 				drw[c] = (int) nt.freq;
 		    }
 		   // sleep = (int) (maxd * 1000.0);
 		    int millis;
 		    SysStartTime = System.currentTimeMillis(); //
-		    
+		    try {
+		    	String res0 = br.readLine();
+		    	pr2.rt.setTableFromString(res0);
+		    	displayRT(pr2.rt);
+		    } catch (Exception ex) {}
 		    this.gc.showNote(pr2.rt, drw, n);
 		    // Loop over all notes in this time-intervall
 		    DecimalFormat format = new DecimalFormat("#.###");
@@ -1036,7 +1057,10 @@ public void actionPerformed(ActionEvent e) {
 				String note = ""+nt.freq;
 				if (nt.note.note.length() > 0)
 					note = nt.note.note+nt.note.Octave;
-				
+				if (nt.dauer > this.def.max_tempo && nt.misc != 222) {
+					System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>> Fatal error: Dauer zu lang:"+nt.dauer+" <<<<<<<<<<<<<<<<<<<<<<");
+					break;
+				}
 				if (!nt.isAkkord) {
 					String txt = "--> Instrument="+nt.channel+" note="+note+"\t f="+format.format(nt.note.freq)+"\t dauer="+format.format(nt.dauer*1000)+"ms";
 					if (def.delay > 0)
@@ -1061,7 +1085,7 @@ public void actionPerformed(ActionEvent e) {
 				// ----------- Stereo -------y
 				
 				mid.channels[channel].channel.controlChange(mid.PAN, midN.balance); 	
-				
+				System.out.println("pan="+mid.PAN+" bal="+midN.balance);
 				mid.createControlEvent(mid.PAN, midN.balance, mid.channels[channel]);
 				//------------ Note ---------
 				//addLog("playKomposition() set amplitude:"+midN.amplitude);
@@ -1089,6 +1113,9 @@ public void actionPerformed(ActionEvent e) {
 		    if (this.mHalt) break; 
 		    addLog(" active notes="+activeNotes);
 		} // end of loop over flow
+		try {
+			br.close();
+		} catch (Exception ex) {}
 		String logf = Home+File.separator+GetEnviroment.PLAYLOG;
 		new Utils().save(logf,  "ASCII", this.log);
 		setToWait(this, true);

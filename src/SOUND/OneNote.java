@@ -44,7 +44,7 @@ public class OneNote implements Cloneable {
 		//double e = (n * this.Octave) * 440.0 / 32.0;
 		//this.freq = Math.pow(2.0, e);
 		this.midiIndex = this.noteIndex + (12 * (this.Octave +1));// [-1 - 9]
-		this.freq = 440 * Math.pow( 2.0, (midiIndex - 69.0) / 12);
+		this.freq = 440 * Math.pow( 2.0, (midiIndex - 69.0) / 12); // OK
 		this.note = this.nts[this.noteIndex];
 	}
 	/**
@@ -64,7 +64,9 @@ public class OneNote implements Cloneable {
 	 * @return
 	 */
 	public String getMidiNote() {
-		int n = (int) ((12.0 * Math.log((int)this.freq / 440.0) / Math.log(2.0)) + 69.0);
+		double q = this.freq / 440.0;
+		
+		int n = (int) ((12.0 * Math.log(q) / Math.log(2.0)) + 69.0);
 		this.midiIndex = n;
 		int nt = n % 12;
 		this.Octave = (n / 12) -1;

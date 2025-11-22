@@ -32,7 +32,7 @@ public class Note implements Cloneable{
     public OneNote note = null;
     //---------------
     public int voices;		// Number of voices active at this time (together with this) 
-    public int channel = 0; 	// The number of the used MidiChannel for this not (equals Instrument)
+    public int channel = 0; 	// The number of the used MidiChannel for this note (equals Instrument)
     public boolean isAkkord = false;
     OneNote ndVoice = null;
     	
@@ -90,6 +90,12 @@ public class Note implements Cloneable{
     public Note clone() throws CloneNotSupportedException {
 		return (Note) super.clone();
 	}
+    
+    public int compareTo(Note n) {
+    	Double o1 = new Double(this.start);
+    	Double o2 = new Double(n.start);
+    	return o1.compareTo(o2); 
+    }
 
 } // end of class
 

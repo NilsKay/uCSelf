@@ -4,11 +4,13 @@ import java.util.*;
 
 import Utils.Akkorde;
 import Utils.GetEnviroment;
+import Utils.Melody;
 import Utils.QSort;
 import Utils.Converter;
 import Utils.Utils;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -40,7 +42,7 @@ public class Project2 {
         2.0, 2.1, 2.2, 2.3, 2.4, 3.0, 4.0, 5.0, 6.0 };
 
     public static String[] dura = new String[] {
-	"free", "1/16", "1/8", "3/16", "1/4"
+    	"free", "1/16", "1/8", "3/16", "1/4"
     };
     
     public static String[] nts = new String[] {
@@ -73,7 +75,7 @@ public class Project2 {
     RandomTable rt, shadow;
     Defaults def;
    // @SuppressWarnings("rawtypes")
-   // Vector komposition;	// this is our Komposition ! (elements of Note)
+    Vector<Note> komposition;	// this is our Komposition ! (elements of Note)
     PrintWriter prs;
     Akkorde akk;
     
@@ -204,13 +206,20 @@ public class Project2 {
 		// All possible midi notes
 		OneNote start = new OneNote(this.def.min_freq, 0, 0);
 		start.getMidiNote();
+		start.setMidiNr(start.midiIndex);
+		if (start.freq < this.def.min_freq) {
+			start.midiIndex++;
+			start.setMidiNr(start.midiIndex);
+		}
 		OneNote stop = new OneNote(this.def.max_freq, 0, 0);
 		stop.getMidiNote();
 		for (n = start.midiIndex; n <= stop.midiIndex; n++) {
-			OneNote nt = new OneNote(0, 0, 0);
-			nt.setMidiNr(n);
-			this.notes.addElement(nt);
-			debugOut("Note "+nt, 3);
+			if (n >=0 ) {
+				OneNote nt = new OneNote(0, 0, 0);
+				nt.setMidiNr(n);
+				this.notes.addElement(nt);
+				debugOut("Note "+nt, 3);
+			}
 		}
 	    break;
 	}
@@ -400,6 +409,9 @@ public class Project2 {
 }	
    String home;
     PrintWriter logw = null;
+    PrintWriter imageIt = null;
+    DataOutputStream dos;
+    
     private void addLog(String t) {
     	if (this.logw == null) {
     		
@@ -423,30 +435,97 @@ public class Project2 {
     		this.skompo.println(nt.saveAsString());
     }
     
+    /**
+     * Save the actual random table in a line
+     * @param rt
+     * @param start
+     */
+    private void addImageS(RandomTable rt, double start) {
+    	
+    	if (this.imageIt == null) {
+    		this.cache = new Vector<String>();
+    		String log = home+File.separator+GetEnviroment.IMAGELOG;
+    		try {
+    			this.imageIt = new PrintWriter(new FileOutputStream(log));
+    		}
+    		catch (java.io.IOException e) {
+    			this.imageIt = null;
+    		} // End of IO Excep
+    	}
+    	String t = rt.getTableAsString(start);
+    	if (this.cache.size() < 50) {
+    		cache.addElement(t);
+    	}
+    	else {
+    		for (int n = 0; n < cache.size(); n++)
+    			this.imageIt.println(cache.elementAt(n));
+    		this.cache = new Vector<String>();
+    	}
+    }
+    Vector<String> cache;
+    
+    /**
+     * Save the actual random table in a line
+     * @param rt
+     * @param start
+     */
+   /* private void addImage(RandomTable rt, double start) {
+    	int cacheLimit = 300;
+    	if (this.dos == null) {
+    		this.cIndex = 0;
+    		this.icache = new int[cacheLimit * rt.table.length];
+    		String log = home+File.separator+GetEnviroment.IMAGELOG;
+    		try {
+    			this.dos = new DataOutputStream (new FileOutputStream(log));
+    			//this.dos.writeInt(rt.table.length);
+    		}
+    		catch (java.io.IOException e) {
+    			this.dos = null;
+    		} // End of IO Excep
+    	}
+    	if ((cIndex / rt.table.length) < cacheLimit) {
+    		for (int n = 0; n < rt.table.length; n++)
+    			this.icache[cIndex++] = (int) rt.table[n].freq;
+    	}
+    	else {
+    		rt.writeTable(this.dos, icache, cIndex);
+    		
+    		this.cIndex = 0;
+    	}
+    	
+    }
+    */
+    int[] icache;
+    int cIndex;
+    
     @SuppressWarnings({ "rawtypes", "unused", "unchecked" })
-	public String doKomposition(String home) { // Evolution
+	public Vector<Note> doKomposition(String home) { // Evolution
     	this.home = home;
-	//System.out.println("min_dur="+this.def.min_tempo);
+    	boolean doBug = def.doLoopBug;
+    	Melody melody = new Melody();
+    	int melodyChannel = def.voiceMax; // (7) first melody channel (after maxVoices) 
+    	//System.out.println("min_dur="+this.def.min_tempo);
     //	this.log = new Vector<String>(); 
     	this.logw = null; 
-	String tmp;
-	DecimalFormat f = new DecimalFormat("#.###");
-	Note nt;
-	long dela = DELAY;
-	if (this.def.mode == 0) 
-	    dela = DDELAY;
-	int n, z, it, st;
-	double frq;
-	// Tonal Values:
-	double start = 0.0;	// Notenstart
-	double dauer = 0;	// Tondauer
-	int max_amplitude = getLoundness(this.def.max_amp); // Border values
-	int min_amplitude = getLoundness(this.def.min_amp);
-	int amplitude = max_amplitude;	// actual value
-	int stimmen = 0;
-	//int trigger = 3;
-	double bal = this.balance;
-	int generator, envelope = 0;
+    	Note melodyTone = null; // the actual played melody Note
+    	String tmp;
+    	DecimalFormat f = new DecimalFormat("#.###");
+    	Note nt;
+    	long dela = DELAY;
+    	if (this.def.mode == 0) 
+    		dela = DDELAY;
+    	int n, z, it, st;
+    	double frq;
+    	// Tonal Values:
+    	double start = 0.0;	// Notenstart
+    	double dauer = 0;	// Tondauer
+    	int max_amplitude = getLoundness(this.def.max_amp); // Border values
+    	int min_amplitude = getLoundness(this.def.min_amp);
+    	int amplitude = max_amplitude;	// actual value
+    	int stimmen = 0;
+    	//int trigger = 3;
+    	double bal = this.balance;
+    	int generator, envelope = 0;
 	String kompo = home+File.separator+GetEnviroment.KOMPOSITION;
 	
 	try {
@@ -468,6 +547,8 @@ public class Project2 {
 		addLog("Loop depth="+def.loopDepth+" repeat="+def.loopRepeat+" permutation="+def.permutation);
 	if (def.useSpeed)
 		addLog("Speed minTempo="+def.minTempo+" maxTemp="+def.maxTempo+" step="+def.speedStep);
+	if (def.doMelody)
+		addLog("Do Melody ");
 	//----------- Test:
 	//this.rndStatic = new int[this.notes.size()];
 	OneNote freq;
@@ -479,7 +560,11 @@ public class Project2 {
 	this.shadow = new RandomTable(this.qd, this.Verbosity, 
 		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
 		     this.def.impact, this.prs);
-		     
+	
+	/*this.melodyTable = new RandomTable(this.qd, this.Verbosity, 
+		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
+		     this.def.impact, this.prs);
+	*/
 	rt = new RandomTable(this.qd, this.Verbosity, 
 			     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
 			     this.def.impact, this.prs);
@@ -497,13 +582,13 @@ public class Project2 {
 		this.shadow.seed = (int)sFreq.freq;
 		addLog("Shadow Seed ="+shadow.seed+" Hz");
 	}
+	
 	// Veraendere die Tabelle:
 	// freq, um wieviel nach oben, welche Frequenz-differenz zu beachten ist
 	rt.writeNEntrys(freq, this.def.degression, this.def.diff_freq );
 	if (shadow != null)
 		shadow.writeNEntrys(sFreq, this.def.degression, this.def.diff_freq );
-	//this.ce.gc.setTable(rt);	// Anzeigen !
-	//sil.displayRT(rt);
+	
 	debugOut("This is our seed :"+freq+" Hz", 5);
 	debugOut("################### Start of new Komposition: (Oszi) ###################", 55);
 	debugOut("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight, 55);
@@ -516,6 +601,7 @@ public class Project2 {
 	int speedModifier = 60; // neutral !
 	boolean speedDir = true; // up
 	boolean requestToInitLoopCopy = false;
+	int transpositionNote = 0;
 	// Now iterate:
 	for (it = 0; it < this.def.iterations; it++) {
 	    long time = System.currentTimeMillis();
@@ -525,6 +611,7 @@ public class Project2 {
 	    rt.iteration = it;// needed for the display 
 	    if (shadow != null)
 	    	shadow.iteration = it;
+	    
 	    makeNRandomFrequencys(rt, this.def.population, 
 				  this.def.min_freq, this.def.max_freq); // create Population
 	    // Now weight array for each random frequency:
@@ -534,21 +621,19 @@ public class Project2 {
 				  this.def.min_freq, this.def.max_freq); 
 	    	makeWeight(this.def.population, shadow);// Judge them
 	    }
-	    /*for (z = 0; z < this.def.population; z++) 
-		debugOut("makeWeight: index="+z+" freq="+this.freq[z]+" weight="+this.weight[z], 55);// log
-	    */
+	   
+	   
 	    // now sort it;
 	    QSort q = new QSort(); // ( index = max equals the highest weight)
 	    q.sort(rt.weight, rt.freq);
 	    if (shadow != null)
 	    	q.sort(shadow.weight, shadow.freq);
+	    
 	    if (this.Verbosity >= 6 ) {
 	    	for (z = 0; z < this.def.population; z++) 
 	    		debugOut("Sorted: index="+z+" freq="+rt.freq[z]+" weight="+rt.weight[z], 6);
 	    }
-	    /*for (z = 0; z < this.def.population; z++) 
-		debugOut("Sorted: index="+z+" freq="+this.freq[z]+" weight="+this.weight[z], 55);// log
-	    */
+	   
 	    //--------------------------------------------------------------------
 	    // Next select randomly the fittest (the last ones in the array are the fittest !):
 	    int is = (int) ((double) this.def.fittest * java.lang.Math.random());
@@ -562,6 +647,7 @@ public class Project2 {
 	    	f_cnt++;
 	    else 
 	    	f_cnt = 0; // reset hit counter
+	    
 	    boolean addToLoop = false;
 	    if (rt.stateCnt <= 0) {
 	    	// update the loop
@@ -587,12 +673,14 @@ public class Project2 {
 	    			ssel.addElement(1);
 	    		if (def.useLoop )
 	    			ssel.addElement(2);
+	    		if (def.useTrans )
+	    			ssel.addElement(3);
 	    		if (ssel.size() <= 0)
 	    			rt.mode = 0;
-	    		else {
+	    		else { // select one of the effects randomly
 	    			int sIndex = (int) (Math.random() * ssel.size()); 
 	    			rt.mode = (ssel.elementAt(sIndex)).intValue();
-	    			System.out.println("Trigger State machine! selected="+rt.mode);
+	    			System.out.println("Trigger State machine! selected mode="+rt.mode);
 	    		}
 	    		//------------
 	    		
@@ -607,15 +695,25 @@ public class Project2 {
 	 	    		requestToInitLoopCopy = true;
 	 	    		loopCounter = def.loopRepeat;
 	 	    	}
+	 	    	else if (rt.mode == 3) {
+	 	    		// transposition
+	 	    		int area = Math.abs(def.transP_min) + def.transP_max;
+	 	    		int tsel= (int) (Math.random() * area + 0.5); 
+	 	    		int diff = tsel + def.transP_min;
+	 	    		System.out.println("-> Trigger Trans-diff="+diff);
+	 	    		transpositionNote += diff;
+	 	    	}
 	    	} catch (Exception ex) {}
  	    	f_cnt = 0;
  	    	if (rt.mode == 1)
  	    		addLog("#### Trigger Cascade count="+def.cascadeCount+" direction="+(rt.up?"up":"down"));
  	    	else if (rt.mode == 2)
  	    		addLog("#### Trigger Loop effect depth="+loop.size()+" repeat="+loopCounter);
+ 	    	else if (rt.mode == 2)
+ 	    		addLog("#### Trigger Transposition effect trans-index="+transpositionNote);
 	    }
 	    else if (rt.stateCnt > 0) { // State Machine active !
-	    	if (rt.mode == 1) {
+	    	if (rt.mode == 1) { //cascade
 	    		int no = rt.trigger_index.midiIndex;
 	    		if (rt.up) {
 	    			// select the next freq.
@@ -671,6 +769,7 @@ public class Project2 {
 	    		}
 	    	}
 	    }
+	   
 	    //----------------------------------------------
 	    //System.out.println("Selected Index ="+is+" f_cnt="+f_cnt);
 	    addLog("Frequenz selected f="+freq);
@@ -680,10 +779,16 @@ public class Project2 {
 	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq );
 	    sil.displayRT(rt);
 	    rt.getMaxx();
+	    addImageS(rt, start);
+	   // addImage(rt, start);
+	    int m_amplitude = 0;
+	    int m_Tension = 0;
+	    double m_bal = 0;
 	    //-------------------------------------------------------------------
 	  //--------------------------------------------------------------------
 	    // Next select randomly the fittest (the last ones in the array are the fittest !):
-	    int sz = (this.def.population -1 ) - (int) ((double) this.def.fittest * java.lang.Math.random());
+	    is = (int) ((double) this.def.fittest * java.lang.Math.random());
+	    int sz = (this.def.population -1 ) - is;
 	   // --------- Nun ist ein Individuum selektiert ! ----------------
 	    OneNote sfreq = null;
 	    if (shadow != null) {
@@ -693,7 +798,20 @@ public class Project2 {
 		    shadow.writeNEntrys( sfreq, this.def.degression, this.def.diff_freq );
 		   // sil.displayRT(rt);
 		    shadow.getMaxx();
+		    m_Tension = (int) getKleiner(melody.max, rt.max, this.def.min_tempo, this.def.max_tempo);
+		    m_amplitude = getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
+				     max_amplitude, this.def.amplify_amp);
+		    if (this.def.stereo) 
+		    	m_bal = getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
+		   
 	    }
+	    
+	    debugOut("Resulting amplitude ="+amplitude, 5);
+	    if (this.def.stereo) bal = getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
+	   
+	    
+	    //----------------------------------------------
+	    
 	    double tempo = 0, pDauer = 0;
 	    OneNote ndVoice = null;
 	    //-------------------------------------------------------------------
@@ -715,10 +833,14 @@ public class Project2 {
 		    if (dauer < this.def.min_tempo || dauer > this.def.max_tempo) {
 		    	debugOut("Project2: tempo out of range ="+dauer, 4);
 		    }
+		    /*
 		    if (this.def.duration_step_index > 0) {
 		    	dauer = getDurationFromTable(dauer);
 		    }
+		    */
 		    tempo = dauer;
+		    if (tempo < this.def.min_tempo)
+		    	tempo = this.def.min_tempo;
 		    if (def.useSpeed && is == 0)  {// the fittest !
 		    	if (speedDir) { // up
 		    		speedModifier += def.speedStep;
@@ -774,6 +896,25 @@ public class Project2 {
 		    // Create the Note : 
 		    nt = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
 		    nt.note = freq;
+		    boolean transOK = true;
+		    if (def.useTrans) {
+		    	// modify the selected note by transposition effect:
+		    	//transpositionNote
+		    	transOK = false;
+		    	int om = nt.note.midiIndex;
+		    	OneNote tn = doTransposition(nt.note, transpositionNote);
+		    	if (tn != null) {
+		    		try {
+		    			nt.note = tn.clone();
+		    			transOK = true;
+		    			
+		    		} catch (Exception ex) {}
+		    	}
+		    	if (transOK) 
+		    		System.out.println("Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+nt.note.midiIndex);
+		    	else 
+		    		System.out.println("Transposition: Note ignored. Reason: Outside freq.- bounds!");
+		    }
 		    nt.pDauer = freq.pedal?pDauer:0;
 		    
 		    // ------- Nun prüfe, ob noch Stimmen dazukommen ? --------------------------
@@ -813,12 +954,19 @@ public class Project2 {
 			    	}
 		    	} catch (Exception ex){}
 		    }
-		    addToKomposition(nt);
+		    if (transOK)
+		    	addToKomposition(nt);
 		    dauer = nt.dauer;
 	    }
 	    else {
-	    	addToKomposition(loopNote);
 	    	try {
+	    		if (!doBug) {
+	    			Note ln = loopNote.clone();
+	    			ln.start = start;
+	    			addToKomposition(ln);
+	    		}
+	    		else 
+	    			addToKomposition(loopNote);
 		    	stimmen = loopNote.voices;
 		    	pDauer = loopNote.pDauer;
 		    	dauer = loopNote.dauer;
@@ -893,8 +1041,27 @@ public class Project2 {
 				 ntn.channel = st;
 				 ntn.note = freq.clone();
 				 ntn.note.pedal = false;
+				 boolean transOK = false;
+				 if (def.useTrans) {
+				    	// modify the selected note by transposition effect:
+				    	//transpositionNote
+				    	transOK = false;
+				    	int om = ntn.note.midiIndex;
+				    	OneNote tn = doTransposition(ntn.note, transpositionNote);
+				    	if (tn != null) {
+				    		try {
+				    			ntn.note = tn.clone();
+				    			transOK = true;
+				    			
+				    		} catch (Exception ex) {}
+				    	}
+				    	if (transOK) 
+				    		System.out.println("Voice "+st+" Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+ntn.note.midiIndex);
+				    	else 
+				    		System.out.println("Voice "+st+" Transposition: Note ignored. Reason: Outside freq.- bounds!");
+				    }
 				 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
-				 if (amplitude != 0) {
+				 if (amplitude != 0 && transOK) {
 					 addLog((st+1)+". Stimme : dauer="+f.format(tempo)+" "+ntn.note);
 					 addToKomposition(ntn);
 					 //komposition.addElement(ntn);
@@ -922,27 +1089,350 @@ public class Project2 {
 		}
 		catch (InterruptedException e) {}
 	    }
+	} // end of iterations loop
+	// flush
+	if (this.cIndex > 0 & false) {
+		rt.writeTable(this.dos, icache, cIndex);
 	}
-	// show statistic of random:
-	/*for (n = 0; n < this.notes.size(); n++) {
-	    double f = ((Double) this.notes.elementAt(n)).doubleValue();
-	    System.out.println("rndStatic["+n+"]="+this.rndStatic[n]+"="+f);
+	if (this.cache != null && this.cache.size() > 0) {
+		for (int n1 = 0; n1 < cache.size(); n1++)
+			this.imageIt.println(cache.elementAt(n1));
+		this.cache = new Vector<String>();
+	}
+	/*if (def.doMelody && melodyTone != null & false) {
+		melodyTone.tempo = 0; //start - melodyTone.start;
+		melodyTone.dauer = start - melodyTone.start;
+		addToKomposition(melodyTone);
 	}
 	*/
-	/*GetEnviroment gsp= new GetEnviroment(null); // root is the grapholasnt toplevel dir
-	gsp.getPathes();
-	String Home = gsp.getHome();
-	*/
-	//String logf = home+File.separator+GetEnviroment.KOMPOSITIONLOG;
-	//new Utils().save(logf,  "ASCII", this.log);
+	if (this.skompo != null)
+		this.skompo.close();
+	// Komposition is now saved.
+	if (this.imageIt != null)
+		this.imageIt.close();
+	
+	if (this.dos != null) {
+		try {
+			this.dos.close();
+		}catch (Exception ex) {}
+	}
+	Vector<Note> ret = sortKomposition(kompo);
+	if (def.doMelody) {
+		ret = addMelody(ret, melodyChannel, f);
+		Collections.sort(ret, new Comparator<Note>() {
+			public int compare(Note o1, Note o2){
+				return o1.compareTo(o2);
+			}
+		});
+	}
+	if (this.def.duration_step_index > 0) 
+		ret = quantisize(ret);
 	if (this.logw != null) {
 		this.logw.close();
 	}
-	if (this.skompo != null)
-		this.skompo.close();
-	return kompo;
+	return ret;
+	
     }
-
+    
+    private OneNote doTransposition(OneNote nt, int transpositionNote) {
+    	
+    	if (transpositionNote != 0) {
+    		OneNote no = null;
+    		try  {
+    			no = nt.clone();
+    		} catch (Exception ex) {
+    			no = null;
+    		}
+    		if (no != null) {
+    			int old = nt.midiIndex;
+    			int n = old + transpositionNote;
+    			no.setMidiNr(n);
+    			if (no.freq >= def.min_freq && no.freq <= def.max_freq) {
+    				try {
+    					nt = no.clone();
+    				} catch (Exception ex) {
+    	    			no = null;
+    	    		}
+    			}
+    			else
+    				nt = null; // outside bounds, so ignore this note!
+    		}
+    	}
+    	return nt;
+    }
+    
+    /**
+     * Align all note-start times to match the quantisation
+     * @param in
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked"})
+	private Vector<Note> quantisize(Vector<Note> in) {
+    	Vector<Vector> interval = getInterval(in, true); // A vector of vectors for each interval 
+    	
+    	// now convert the intervalls back to one Note Vector:
+    	Vector<Note> result = new Vector<Note>();
+    	for (int n = 0; n < interval.size(); n++) {
+    		Vector<Note> iv = (Vector) interval.elementAt(n);
+    		result.addAll(iv);
+    	}
+    	
+    	return result;
+    }
+    /**
+     * Examine the Main Komposition and add a Melody to it
+     * @param in
+     * @param channel
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	private Vector<Note> addMelody(Vector<Note> in, int channel, DecimalFormat f) {
+    	addLog("#-#-#-#-#-#-#- MELODY Iteration #-#-#-#-#-#-#");
+    	/*
+    	for (int n = 0; n < in.size(); n++) {
+    		Note nt = in.elementAt(n);
+    		System.out.println(nt.start+" "+nt.note);
+    	}*/
+    	int max_amplitude = getLoundness(this.def.max_amp); // Border values
+    	int min_amplitude = getLoundness(this.def.min_amp);
+    	int generator = 0;
+    	int envelope = 0;
+    	Melody melody = new Melody();
+    	//int melodyChannel = def.voiceMax; // (7) first melody channel (after maxVoices) 
+    	Note melodyTone = null;
+    	this.shadow = new RandomTable(this.qd, this.Verbosity, 
+   		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
+   		     this.def.impact, this.prs);
+    	OneNote sFreq = null;
+    	if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
+    		sFreq = makeRandomFrequency(this.def.min_freq, this.def.max_freq);
+    	}
+    	else 
+    		sFreq = new OneNote(this.def.seed, 0, 0);
+    	this.shadow.seed = (int)sFreq.freq;
+    	shadow.writeNEntrys(sFreq, this.def.degression, this.def.diff_freq );
+    	double start = 0;
+    	//-------------
+    	Vector<Vector> interval = getInterval(in, false); // A vector of vectors for each interval 
+    	//printInvteral(interval);
+    	Vector<Note> all = null;
+    	int it = 0;
+    	for (it = 0; it < interval.size(); it++) { // loop over all intervals
+    		all = interval.elementAt(it);
+    		Note first = all.firstElement();
+    		start = first.start;
+    		shadow.iteration = it;
+        	makeNRandomFrequencys(shadow, this.def.population, 
+        			this.def.min_freq, this.def.max_freq); 
+        	makeWeight(this.def.population, shadow);// Judge them
+        	QSort q = new QSort(); // ( index = max equals the highest weight)
+        	q.sort(shadow.weight, shadow.freq);
+        	OneNote sfreq = null;
+        	int is = (int) ((double) this.def.fittest * java.lang.Math.random());
+    	    int sz = (this.def.population -1 ) - is;
+        	sfreq = shadow.freq[sz];
+        	//addLog("Shadow Index that will be selected:"+sz+" f="+sfreq);
+        	shadow.writeNEntrys( sfreq, this.def.degression, this.def.diff_freq );
+        	// sil.displayRT(rt);
+        	shadow.getMaxx();
+        	double m_bal = 0;
+        	// fehlerhaft! int m_Tension = (int) getKleiner(melody.max, rt.max, this.def.min_tempo, this.def.max_tempo);
+        	double val = shadow.readEntry((int)sfreq.freq);
+        	// ??? int m_Tension = (int) getKleiner(val, shadow.max, 0.0, melody.max);
+        	//double dauer = getKleiner(val, shadow.max, this.def.min_tempo, this.def.max_tempo);	
+        	// aus der frequenz wird eine Tondauer, und daraus jetzt eine spannung [0-melody.max]//double v = getKleiner(dauer, shadow.max, this.def.min_tempo, this.def.max_tempo);
+        	//double dt = dauer - this.def.min_tempo;
+        	//double dbereich = this.def.max_tempo - this.def.min_tempo;
+        	
+        	/*
+        	 * Spannung aus der Fitness nicht mehr aus der Dauer!
+        	 */
+        	double dte = getKleiner(val, shadow.max, 0.0, melody.max);	
+        	int m_Tension = (int) (dte + 0.5);
+        	//int m_Tension = (int) (dt * melody.max / dbereich +0.5);
+        	//int m_Tension = (int) (1.5 * dt * melody.max / dbereich +0.5);
+        	if ( m_Tension > melody.max )
+        		m_Tension = (int) melody.max;
+        	
+        	System.out.println("m_tension="+m_Tension);
+        	int m_amplitude = getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
+        			max_amplitude, this.def.amplify_amp);
+        	if (this.def.stereo) 
+        		m_bal = getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
+ 
+        	
+        	// ################################################ //
+        	//-------- Melody state machine:----------------
+        	if (melodyTone == null) { // start the first melody note !
+        		sfreq.getMidiNote(); // find the note from the frequency
+		    	OneNote next = melody.findMelodyNote(first.note.noteIndex, 5, m_Tension);
+		    	//OneNote next = melody.findNextMelodyNote(freq.noteIndex, 5, 0);
+		    	melodyTone = new Note(start, 0.0, 0.0, m_bal, next.freq, generator, m_amplitude, envelope, false);
+		    	melodyTone.channel = channel;
+		    	try{
+		    		melodyTone.note = next.clone(); 
+		    	}catch (Exception ex) {}
+		    }
+		    
+		    if (is < def.m_range && shadow.stateCnt == 0) 
+		    	shadow.f_cnt++;
+		    else 
+		    	shadow.f_cnt = 0; // reset hit counter
+		    
+		    if (shadow.f_cnt >= def.m_trigger) { // Trigger the state machine, execute it at the next interval
+		    	try{
+		    		// change the melody !
+		    		// first add the last MelodyNote to the komposition
+		    		melodyTone.tempo = 0; //start - melodyTone.start;
+		    		start = first.start; // neu bugfix wegen langer Tondauer!
+		    		melodyTone.dauer = start - melodyTone.start - 0.1; // start
+		    		System.out.println("Melody-Dauer(1) aus start="+start+" melodyTone.start="+melodyTone.start+" -> "+melodyTone.dauer);
+		    		
+		    		melodyTone.misc = 222; // test
+		    		all.addElement(melodyTone.clone());
+		    		//addLog("Add melody: tone start="+f.format(melodyTone.start)+" dauer="+f.format(melodyTone.dauer)+" note="+melodyTone.note);
+		    		//Hauptnote:
+		    		int melody_octave = melodyTone.note.Octave;
+		    		//int haupt_note = first.note.noteIndex;
+		    		// Hauptnote besimmt welche möglichen Melodienoten passen,
+		    		first.note.setMidiNr(first.note.midiIndex); // Bugfix: Noteindex was always 0 (C)!
+		    		OneNote next = melody.findMelodyNote(first.note.noteIndex, melody_octave, m_Tension);
+		    		//OneNote next = melody.findNextMelodyNote(haupt_note, melody_octave, melodyTone.note.noteIndex);
+		    		// new Melody not:
+		    		melodyTone = new Note(start, 0.0, 0.0, m_bal, next.freq, generator, 70, envelope, false);
+			    	melodyTone.channel = channel;
+			    	melodyTone.note = next.clone();
+			    	addLog("#### Trigger Melody: note from "+first.note.noteIndex+","+first.note.note+";"+first.note.Octave+" tension="+m_Tension+" --> "+melodyTone.note.note+";"+melodyTone.note.Octave);
+		    	} catch (Exception ex) {
+		    		ex.printStackTrace();
+		    	}
+		    	
+		    	shadow.f_cnt = 0;
+	 	    	
+		    }
+		    interval.setElementAt(all,  it);
+		    //##############################################
+	    } // end of for loop.
+    	if (melodyTone != null) {
+    		melodyTone.tempo = 0; //start - melodyTone.start;
+    		melodyTone.dauer = start - melodyTone.start;
+    		System.out.println("Melody-Dauer(2) aus start="+start+" melodyTone.start="+melodyTone.start+" -> "+melodyTone.dauer);
+    		if (melodyTone.dauer > this.def.max_tempo)
+    			melodyTone.dauer = this.def.max_tempo;
+    		melodyTone.misc = 222; // test
+    		all.addElement(melodyTone);
+    		interval.setElementAt(all,  interval.size() -1);
+    		//addToKomposition(melodyTone);
+    	}
+    	// now convert the intervalls back to one Note Vector:
+    	Vector<Note> result = new Vector<Note>();
+    	for (int n = 0; n < interval.size(); n++) {
+    		Vector<Note> iv = interval.elementAt(n);
+    		result.addAll(iv);
+    	}
+    	
+    	return result;
+    }
+    
+    @SuppressWarnings({ "rawtypes", "unused", "unchecked" })
+	private void printInvteral(Vector<Vector> interval) {
+    	System.out.println("sorted into intervals----");
+    	for (int n = 0; n < interval.size(); n++) {
+    		Vector<Note> iv = interval.elementAt(n);
+    		for (int q = 0; q < iv.size(); q++) {
+    			Note nt = iv.elementAt(q);
+    			System.out.println(nt.start+" "+nt.note);
+    		}
+    	}
+    }
+    /**
+     * 
+     * @param in
+     * @param quant
+     * @return
+     */
+    @SuppressWarnings("rawtypes")
+	public Vector<Vector> getInterval(Vector<Note> in, boolean quant) {
+    	double start = 0.0;
+    	int index = 0;
+    	Vector<Vector> mi = new Vector<Vector>();
+    	double oneQuant = 0.0; 
+    	if (this.def.duration_step_index > 0) {
+	    	oneQuant = this.def.duration_step_index / 4.0;//this.durations[this.def.duration_step_index]; //getDurationFromTable(dauer);
+	    }
+    	while(index < in.size()) {
+    		Note main = in.elementAt(index);
+    		Vector<Note> intervall = new Vector<Note>();
+    		//System.out.println(index+" Add first element at"+main.start+" "+main.note);
+    		if (quant) 
+				main.start = start;
+    		intervall.addElement(main);
+    		// find the next time-start (beginn of the next interval)
+    		index += 1;
+    		
+    		if (index < in.size()) {
+	    		Note nextN = in.elementAt(index);
+	    		double limit = start;
+	    		if (quant)
+	    			limit = start + oneQuant - 0.01;
+	    		boolean add = nextN.start <= limit;
+	    		while(index < in.size() && add) {
+	    			//System.out.println(index+" Interval="+mi.size()+" Add next element at "+nextN.start+" "+nextN.note);
+	    			if (quant) {
+	    				nextN.start = start;
+	    				//System.out.println("Quantisation: change start to"+start);
+	    			}
+	    			intervall.addElement(nextN);
+	    			index += 1;
+	    			if (index < in.size()) {
+	    				nextN = in.elementAt(index);
+	    				add = nextN.start <= limit;
+	    			}
+	    			else 
+	    				break;
+	    			//System.out.println("interval start="+start+" actual ="+nextN.start);
+	    		}
+	    		mi.addElement(intervall);
+	    		if (!quant)
+	    			start = nextN.start;
+	    		else {
+	    			start += oneQuant;
+	    			//System.out.println("New Intervall start="+start);
+	    		}
+	    		//System.out.println("Do Next Interval start ="+start+ " at index="+index);
+    		}
+    		else 
+    			break; // end of loop
+    	}
+    	
+    	return mi;
+    }
+    
+    private Vector<Note> sortKomposition(String kompo) {
+    	Vector<Note> res = null;
+    	try {
+			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(kompo)));
+			BufferedReader br = new BufferedReader(isr);
+			res = new Vector<Note>();
+			String res0;
+		    while((res0 = br.readLine()) != null) {
+		    	Note nt = Note.getFromString(res0);
+		    	res.addElement(nt);
+		    }
+		    br.close();	// close the Buffered Reader
+    	} catch (java.io.IOException e) {
+    		System.out.println("CEditor.playKomposition(): catched "+e);
+    		return null;
+    	}
+    	// Now we have the komposition as Vector
+    	Collections.sort(res, new Comparator<Note>() {
+ 		   public int compare(Note o1, Note o2){
+ 			  return o1.compareTo(o2);
+ 		   }
+ 		});
+    	return res;
+    }
+    
     public void flowControl() {
 		if (qd != null) {
 		    if (qd.halt ) {
@@ -1254,7 +1744,7 @@ public class Project2 {
 			this.notes = sel;
 		}
 		if (this.def.duration_step_index > 0) {
-		    double step = this.def.duration_step_index / 16.0;
+		    double step = this.def.duration_step_index / 4.0;
 		    this.durations = createDurationTable(def.min_tempo, def.max_tempo, step);
 		}
 		return generateSound(home);
@@ -1266,20 +1756,20 @@ public class Project2 {
      * @param parm ein Übergabeparameter, kann auch leer sein (vom Textfeld)
      * @return Vector with .sco lines
      */
-    @SuppressWarnings({ "rawtypes", "unused", "unchecked" })
-	public Vector generateSound(String home) {
+    @SuppressWarnings({ "unused"})
+	public Vector<String> generateSound(String home) {
 		Note nt;
 		String tmp;
-		Vector result = new Vector();
-		String kompo = doKomposition(home);	// Evolution
-		this.kompo = null;
+		this.komposition = doKomposition(home);	// Evolution
+		Vector<String> result = new Vector<String>();
+		//this.kompo = null;
 		//ce.mi1_5.setEnabled(true);
 		// ----------------------------------------------------------
 		//String tst;
 		//double dd;
 		// so macht man dann aus einem Note - Eintrag eine sco-line :
 		// loop through the komposition save file:
-		try {
+		/*try {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(kompo)));
 			BufferedReader br = new BufferedReader(isr);
 			Vector res = new Vector();
@@ -1293,7 +1783,11 @@ public class Project2 {
 		    System.out.println("Utils.readTextFile(): catched "+e);
 		    return null;
 		}
-		this.kompo = kompo;
+		*/
+		for (int n = 0; n < this.komposition.size(); n++) {
+			result.addElement(digestNote(this.komposition.elementAt(n)));
+		}
+		//this.kompo = kompo;
 		return result;
 		
     }

@@ -37,6 +37,7 @@ public class Defaults {
     public String lastPath = null;
     String min_amp, max_amp;	// pp, p, mp, mf, f, ff 
     public final int voiceMax = 7;
+    public final int melodyChannels = 1;
     double amplify_amp;
     double min_tempo, max_tempo;
     int duration_step_index = 0;	// 0 = free
@@ -60,15 +61,16 @@ public class Defaults {
     int range, trigger, cascadeCount, stepUp, stepDown;
     int loopDepth, loopRepeat;
     int minTempo, maxTempo, speedStep;
-    boolean useLoop, useSpeed, useCascade, permutation;
-    
+    boolean useLoop, useSpeed, useCascade, permutation, doLoopBug, doMelody, useTrans;
+    int m_range, m_trigger;
+    int transP_min, transP_max, minOct, maxOct;
 /**
  * This Method loads the saved Default values from .motor.def
  * @param path which default file to use
  */
-public boolean loadDef(String path) {
+public boolean loadDef(String path, int build) {
 	System.out.println("Def path="+path);
-	this.text = getText();
+	this.text = getText(build);
     String res0, res1;
     File fdes;
     BufferedReader br = null;
@@ -78,9 +80,15 @@ public boolean loadDef(String path) {
     this.selectedNotes = new Vector<OneNote>();
     // set default, overwrite if possible
     this.channels = new Vector<Integer>();
-    for(int i = 0; i < voiceMax; i++) {
+    for(int i = 0; i < (voiceMax+melodyChannels); i++) {
     	this.channels.addElement(new Integer(10+i*3)); // Old default
     }
+    minOct = 0;
+    maxOct = 5;
+    transP_min = -3;
+    transP_max = 3;
+    m_range = 2;
+    m_trigger = 3;
     range = 3;
     trigger = 3;
     cascadeCount = 5;
@@ -175,6 +183,14 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("SEED")) this.seed = Converter.getInt(res1, 0);
 		    else if (res0.equals("range")) this.range = Converter.getInt(res1, 0);
 		    else if (res0.equals("trigger")) this.trigger = Converter.getInt(res1, 0);
+		    else if (res0.equals("m_range")) this.m_range = Converter.getInt(res1, 0);
+		    
+		    else if (res0.equals("transP_min")) this.transP_min = Converter.getInt(res1, -3);
+		    else if (res0.equals("transP_max")) this.transP_max = Converter.getInt(res1, 3);
+		    else if (res0.equals("minOct")) this.minOct = Converter.getInt(res1, 0);
+		    else if (res0.equals("maxOct")) this.maxOct = Converter.getInt(res1, 5);
+		    
+		    else if (res0.equals("m_trigger")) this.m_trigger = Converter.getInt(res1, 0);
 		    else if (res0.equals("cascadeCount")) this.cascadeCount = Converter.getInt(res1, 0);
 		    else if (res0.equals("stepUp")) this.stepUp = Converter.getInt(res1, 0);
 		    else if (res0.equals("stepDown")) this.stepDown = Converter.getInt(res1, 0);
@@ -201,9 +217,13 @@ public boolean loadDef(String path) {
 		    else if (res0.equals("DIFFFREQ")) this.diff_freq = Converter.getInt(res1, 250); 
 		    else if (res0.equals("TONAL")) this.tonal = Converter.checkState(res1);
 		    else if (res0.equals("useSpeed")) this.useSpeed = Converter.checkState(res1);
+		    else if (res0.equals("useTrans")) this.useTrans = Converter.checkState(res1);
+		    
 		    else if (res0.equals("useCascade")) this.useCascade = Converter.checkState(res1);
 		    else if (res0.equals("permutation")) this.permutation = Converter.checkState(res1);
+		    else if (res0.equals("doLoopBug")) this.doLoopBug = Converter.checkState(res1);
 		    else if (res0.equals("useLoop")) this.useLoop = Converter.checkState(res1);
+		    else if (res0.equals("doMelody")) this.doMelody = Converter.checkState(res1);
 		    else if (res0.equals("akkord")) this.akkord = Converter.checkState(res1);
 		    else if (res0.equals("pedal")) this.pedal = Converter.checkState(res1);
 		    else if (res0.equalsIgnoreCase("duration_step_index")) this.duration_step_index =
@@ -276,8 +296,11 @@ public boolean loadDef(String path) {
 	
 	return false;
     }
+    while(channels.size() < (melodyChannels + this.voiceMax)) {
+    	channels.addElement(new Integer(0));
+    }
     //System.out.println("Default.load() (2) : amplify_amp = "+this.amplify_amp);
-    this.text = getText();
+    this.text = getText(build);
     return true;
 }// end of method
 
@@ -371,7 +394,7 @@ public boolean saveDef(String path, String user) {
 		}
 	}
 	if (this.channels != null) {
-		for (int q = 0; q < this.voiceMax; q++) {
+		for (int q = 0; q < (this.voiceMax+melodyChannels); q++) {
 			Integer I = this.channels.elementAt(q);
 			prs.println("CHANNEL="+ I.intValue()+" # channel Instrument");
 		}
@@ -379,9 +402,13 @@ public boolean saveDef(String path, String user) {
 	prs.println("range="+this.range+"	# increase trigger count if the number of the selected freq. is below this");
 	prs.println("trigger="+this.trigger+"	# start state machine if range was n-time hit");
 	prs.println("useSpeed="+this.useSpeed+"	# If true, use the speed-state-machine");
+	prs.println("useTrans="+this.useTrans+"	# If true, use the Transposition-state-machine");
+	
 	prs.println("useCascade="+this.useCascade+"	# If true, use the cascade-state-machine");
 	prs.println("permutation="+this.permutation+"	# If true, vary the loop, else not");
+	prs.println("doLoopBug="+this.doLoopBug+"	# If true, do buggy loops");
 	prs.println("useLoop="+this.useLoop+"	# If true, use the loop-state-machine");
+	prs.println("doMelody="+this.doMelody+"	# If true, use the melody option");
 	prs.println("cascadeCount="+this.cascadeCount+"	# Number of steps to do the cascade");
 	prs.println("stepUp="+this.stepUp+"	# Notes to go up");
 	prs.println("stepDown="+this.stepDown+"	# Notes to go down");
@@ -390,6 +417,13 @@ public boolean saveDef(String path, String user) {
 	prs.println("minSTempo="+this.minTempo+"	# Minimal tempo change");
 	prs.println("maxSTempo="+this.maxTempo+"	# Maximal tempo change");
 	prs.println("speedStep="+this.speedStep+"	# How much to chan ge the speed");
+	prs.println("m_range="+this.m_range+"	# melody: increase trigger count if the number of the selected freq. is below this");
+	prs.println("m_trigger="+this.m_trigger+"	# melody: start state machine if range was n-time hit");
+	prs.println("transP_min="+this.transP_min+"	# Transposition effect - number of notes");
+	prs.println("transP_max="+this.transP_max+"	# Transposition effect + number of notes");
+	prs.println("minOct="+this.minOct+"	# Transposition effect minimal Octave");
+	prs.println("maxOct="+this.maxOct+"	# Transposition effect + maximal Octave");
+	
 	prs.close();
 
     }
@@ -410,9 +444,9 @@ public Vector<OneNote> clipNotes(Vector<OneNote> source) {
 	}
 	return res;
 }
-public String[] getText() {
+public String[] getText(int b) {
 	String[] t = new String[maxText];
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" build "+b+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2013)";
     t[1] = "Alarmbox"; 
     t[10] = "Do you really want to quit ?";
     t[11] = "File";
@@ -529,17 +563,24 @@ public String[] getText() {
     t[122] = "How much the speed will be changed per trigger event";
     t[123] = "Permutation";
     t[124] = "If selected the loop will vary in speed, amplitude etc. but not in frequency";
-    
+    t[125] = "Do Loop Bug";
+    t[126] = "Do Melody";
+    t[127] = "Melody";
+    t[128] = "Transposition";
+    t[129] = "Minus Notes";
+    t[130] = "Plus Notes";
+    t[131] = "Min. Octave";
+    t[132] = "Max. Octave";
 //t[38] = "";
 //t[36] = "";
     if (this.lang == 1)
-    	t = getGermanText();
+    	t = getGermanText(b);
    
     return t;
 }
-public String[] getGermanText() {
+public String[] getGermanText(int b) {
 	String[] t = new String[maxText];
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
+    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" build "+b+" © Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
     t[1] = "Alarmbox"; 
     t[10] = "Wollen Sie das Programm wirklich beenden ?";
     t[11] = "Datei";
@@ -656,16 +697,24 @@ public String[] getGermanText() {
     t[122] = "Um wieviel die Geschwindigkeit pro Treffer geändert wird";
     t[123] = "Permutation";
     t[124] = "Wenn gewählt variiert in der Schleife die Geschwindigkeit, Amplitude etc., nicht aber die Frequenz";
+    t[125] = "Benutze Schleifenfehler";
+    t[126] = "Melodieeffekt";
+    t[127] = "Melodie";
+    t[128] = "Transposition";
+    t[129] = "Minus Noten";
+    t[130] = "Plus Noten";
+    t[131] = "Min. Octave";
+    t[132] = "Max. Octave";
     return t;
 }
 public int getInstrumentForChannel(int c) {
-	if (c < this.voiceMax) 
+	if (c < (this.voiceMax+melodyChannels)) 
 		return this.channels.elementAt(c).intValue();
 	else return c;
 }
 
 public void setInstrumentForChannel(int c, int i) {
-	if (c < this.voiceMax) 
+	if (c < (this.voiceMax+melodyChannels)) 
 		this.channels.setElementAt(new Integer(i), c);
 }
 

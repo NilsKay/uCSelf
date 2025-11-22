@@ -69,74 +69,74 @@ public Dimension getPreferredSize() {
 	    this.setTable(r, 1.0, 0);
 	}
     private FitnessTable getPolygon(RandomTable rt, double xscale, double yscale, int height, boolean log) {
-	int[] xpoints, ypoints;
-	xpoints = new int[rt.size * 5];
-	ypoints = new int[rt.size * 5];	
-	double x = 0, dx;
-	int y = 0;
-	int oldY = y;
-	int numpoints = 0;
-	int freq, xp;
-	if (log) rt.debugOut("------> New Polygon----",55);
-	dx = (double) rt.step *  xscale;	
-	for (int n = 0; n < rt.size; n++) { // loop over all Frequencys
-	    // Ein n hat die Breite von step hz
-	    oldY = y;
-	    freq = n * rt.step;
-	    x = ((double) freq *  xscale +0.5);	// start of graph
-	    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
-	    if (log) rt.debugOut("n="+n+" x="+x+" y="+y+" dx="+dx+" oldY="+oldY+" x="+x,55);		
-	    if ( y != oldY) {
+		int[] xpoints, ypoints;
+		xpoints = new int[rt.size * 5];
+		ypoints = new int[rt.size * 5];	
+		double x = 0, dx;
+		int y = 0;
+		int oldY = y;
+		int numpoints = 0;
+		int freq, xp;
+		if (log) rt.debugOut("------> New Polygon----",55);
+		dx = (double) rt.step *  xscale;	
+		for (int n = 0; n < rt.size; n++) { // loop over all Frequencys
+		    // Ein n hat die Breite von step hz
+		    oldY = y;
+		    freq = n * rt.step;
+		    x = ((double) freq *  xscale +0.5);	// start of graph
+		    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
+		    if (log) rt.debugOut("n="+n+" x="+x+" y="+y+" dx="+dx+" oldY="+oldY+" x="+x,55);		
+		    if ( y != oldY) {
+			xp = (int) ( x + 0.5);
+			if (dx > 1.0) {
+			    xpoints[numpoints] = xp; // turning point up
+			    if (oldY <= 0 ) ypoints[numpoints] = 0;
+			    else ypoints[numpoints] = oldY;
+			    if (log) rt.debugOut("Point(b1) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
+			    numpoints += 1;
+	
+			    xpoints[numpoints] = xp; // turning point up
+			    if (y <= 0 ) ypoints[numpoints] = 0;
+			    else ypoints[numpoints] = y;
+			    if (log) rt.debugOut("Point(b2) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
+			    numpoints += 1;
+	
+			    x += dx;
+			    xpoints[numpoints] = xp; // turning point up	
+			    ypoints[numpoints] = ypoints[numpoints - 1];
+			    if (log) rt.debugOut("Point(b3) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
+			    numpoints += 1;
+			}
+			else {
+			    xpoints[numpoints] = xp; // turning point up
+			    if (oldY <= 0 ) ypoints[numpoints] = 0;
+			    else ypoints[numpoints] = oldY;
+			    if (log) rt.debugOut("Point(a1) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
+			    numpoints += 1;
+			    x += dx;
+			    xpoints[numpoints] = xp; // turning point up
+			    if (y <= 0 ) ypoints[numpoints] = 0;
+			    else ypoints[numpoints] = y;
+			    if (log) rt.debugOut("Point(b2) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
+			    numpoints += 1;
+	
+			}
+		    }
+		}
 		xp = (int) ( x + 0.5);
-		if (dx > 1.0) {
-		    xpoints[numpoints] = xp; // turning point up
-		    if (oldY <= 0 ) ypoints[numpoints] = 0;
-		    else ypoints[numpoints] = oldY;
-		    if (log) rt.debugOut("Point(b1) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
-		    numpoints += 1;
-
-		    xpoints[numpoints] = xp; // turning point up
-		    if (y <= 0 ) ypoints[numpoints] = 0;
-		    else ypoints[numpoints] = y;
-		    if (log) rt.debugOut("Point(b2) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
-		    numpoints += 1;
-
-		    x += dx;
-		    xpoints[numpoints] = xp; // turning point up	
-		    ypoints[numpoints] = ypoints[numpoints - 1];
-		    if (log) rt.debugOut("Point(b3) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
-		    numpoints += 1;
+		//System.out.println("last Point :x-max="+xp);
+		if (y != 0 | oldY != 0) {
+		    xpoints[numpoints] = xp; // last point
+		    ypoints[numpoints++] = 0;
 		}
-		else {
-		    xpoints[numpoints] = xp; // turning point up
-		    if (oldY <= 0 ) ypoints[numpoints] = 0;
-		    else ypoints[numpoints] = oldY;
-		    if (log) rt.debugOut("Point(a1) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
-		    numpoints += 1;
-		    x += dx;
-		    xpoints[numpoints] = xp; // turning point up
-		    if (y <= 0 ) ypoints[numpoints] = 0;
-		    else ypoints[numpoints] = y;
-		    if (log) rt.debugOut("Point(b2) n="+n+" "+xpoints[numpoints]+", "+ypoints[numpoints], 55);
-		    numpoints += 1;
-
+		// copy to:
+		int xps[] = new int[numpoints];
+		int yps[] = new int[numpoints];
+		for (int n = 0; n < numpoints; n++) {
+		    xps[n] = xpoints[n];
+		    yps[n] = ypoints[n];
 		}
-	    }
-	}
-	xp = (int) ( x + 0.5);
-	//System.out.println("last Point :x-max="+xp);
-	if (y != 0 | oldY != 0) {
-	    xpoints[numpoints] = xp; // last point
-	    ypoints[numpoints++] = 0;
-	}
-	// copy to:
-	int xps[] = new int[numpoints];
-	int yps[] = new int[numpoints];
-	for (int n = 0; n < numpoints; n++) {
-	    xps[n] = xpoints[n];
-	    yps[n] = ypoints[n];
-	}
-	return new FitnessTable(xps, yps, numpoints);
+		return new FitnessTable(xps, yps, numpoints);
     }
 
     public void oldMethod(Graphics2D off, RandomTable rt, double xscale, double yscale, int height) {
@@ -683,26 +683,26 @@ public void setTable(RandomTable r, double gamma, int mode) {
  */
 public void showNote(RandomTable r, int[] freq, int index) {
     if (this.offImage != null) {
-	Graphics g = this.getGraphics();
-	g.drawImage(offImage, 0, 0, this); // display buffered Image
-	int x, dy;
-	g.setColor(Color.blue);
-	for (int n= 0; n < freq.length; n++) {
-	    x = (int) ((double) (freq[n] - rt.start) * this.xscale);
-	    //System.out.println("Canvas setTable displays now one note ! freq="+freq+" x="+x);
-	    Point p;
-	    if (this.mode == 0) 
-		p = new Point(x, offsetY);
-	    else 
-		p = new FitnessTable().translatePoint(x, offsetY, cosB, sinB);
-	    dy = this.height - p.y;
-	    g.drawLine(p.x, dy , p.x, dy + 10);
-	    g.drawLine(p.x, dy , p.x - 2, dy + 3);
-	    g.drawLine(p.x, dy , p.x + 2, dy + 3);
-	}
-	g.setColor(Color.black);
-	g.setFont(norm);
-	g.drawString(Integer.toString(index), 1, 30); //draw the title
+		Graphics g = this.getGraphics();
+		g.drawImage(offImage, 0, 0, this); // display buffered Image
+		int x, dy;
+		g.setColor(Color.blue);
+		for (int n= 0; n < freq.length; n++) {
+		    x = (int) ((double) (freq[n] - rt.start) * this.xscale);
+		    //System.out.println("Canvas setTable displays now one note ! freq="+freq+" x="+x);
+		    Point p;
+		    if (this.mode == 0) 
+		    	p = new Point(x, offsetY);
+		    else 
+		    	p = new FitnessTable().translatePoint(x, offsetY, cosB, sinB);
+		    dy = this.height - p.y;
+		    g.drawLine(p.x, dy , p.x, dy + 10);
+		    g.drawLine(p.x, dy , p.x - 2, dy + 3);
+		    g.drawLine(p.x, dy , p.x + 2, dy + 3);
+		}
+		g.setColor(Color.black);
+		g.setFont(norm);
+		g.drawString(Integer.toString(index), 1, 30); //draw the title
     }
 }
 

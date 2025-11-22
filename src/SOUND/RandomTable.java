@@ -1,7 +1,12 @@
 package SOUND;
 
+import java.text.DecimalFormat;
 import java.util.*;
+import java.io.DataOutputStream;
 import java.io.PrintWriter;
+
+import Utils.Converter;
+import Utils.Utils;
 
 
 /**
@@ -36,6 +41,8 @@ public class RandomTable {
     int size;		// size of the table
     int iteration;	// the n. iteration step
     public int seed;
+    int f_cnt;
+    
     PrintWriter prs;
     
     OneNote freq[];		// first random Frequencys
@@ -199,7 +206,53 @@ public class RandomTable {
 		}
 		return true;
     }
-
+    
+    public String getTableAsString(double start) {
+    	DecimalFormat f = new DecimalFormat("#.###");
+    	String r = start+";";
+    	for (int n= 0; n < this.table.length; n++) {
+    		int i = (int)this.table[n].freq;
+    		//r+= f.format(this.table[n].freq);
+    		r += i;
+    		if (n < (this.table.length-1 ))
+    			r += ";";
+    	}
+    	return r;
+    }
+    
+    public void writeTable(DataOutputStream dos) {
+    	try {
+    		
+	    	for (int n= 0; n < this.table.length; n++) {
+	    		int i = (int)this.table[n].freq;
+	    		dos.writeInt(i);
+	    	}
+    	} catch (Exception ex) {}
+    	return;
+    }
+    
+    public void writeTable(DataOutputStream dos, int[] icache, int cIndex) {
+    	System.out.println("Now write the table");
+    	try {
+	    	for (int n= 0; n < cIndex; n++) {
+	    		int i = icache[n];
+	    		dos.writeInt(i);
+	    	}
+    	} catch (Exception ex) {}
+    	
+    }
+    
+    public void setTableFromString( String s) {
+    	s = s.replaceAll(",", ".");
+    	String[] t = new Utils().getSeparatedValues(s, ';');
+    	this.table = new OneNote[t.length -1];
+    	
+    	for (int n= 1; n < t.length; n++) {
+    		OneNote nt = new OneNote(Converter.getDouble(t[n], 0.0), 0, 0);
+    		this.table[n-1] = nt;
+    	}
+    	
+    }
     /**
      * Write a value into the table
      * @param freq the frequency to address the table

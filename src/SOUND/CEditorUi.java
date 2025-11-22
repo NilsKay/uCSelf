@@ -46,7 +46,7 @@ public class CEditorUi extends JPanel{
         CellConstraints cc = new CellConstraints();
         int row = 1;
         //--------------- First Row
-        builder.addSeparator(model.def.text[51],		cc.xyw (1,  row, 15));
+        builder.addSeparator(model.ce.def.text[51],		cc.xyw (1,  row, 15));
         row += 2;
         //---
         builder.add(model.la[model.MINFREQ],			cc.xy (1,  row));
@@ -101,7 +101,7 @@ public class CEditorUi extends JPanel{
         builder.add(model.bt[model.SELECT],				cc.xy (9,  row));
         row += 2;
         //---
-        builder.addSeparator(model.def.text[50],		cc.xyw (1,  row, 15));
+        builder.addSeparator(model.ce.def.text[50],		cc.xyw (1,  row, 15));
         row += 2;
         //---
         builder.add(model.la[model.POPULATION],			cc.xy (1,  row));
