@@ -1,5 +1,5 @@
-package Sound;
-import java.util.Vector;
+package SOUND;
+
 /**
  * This interface declares Methods used to handle Sound Events
  */

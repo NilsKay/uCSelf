@@ -1,7 +1,5 @@
 package Utils;
-import java.awt.*;
-import java.util.StringTokenizer;
-import java.lang.Math.*;
+
 /**
  * This class converts number values to and from given Units
  * It also return a Color Object, generated from a String
@@ -14,6 +12,16 @@ public class Converter {
  *  @param input this is the input String
  *  @param digits the Number of digits
  **/    
+
+@SuppressWarnings({ "null", "unused" })
+public static void doBreak() {
+    try {
+	String str=null;
+	int l = str.length();
+    } catch (Exception ex) {
+	ex.printStackTrace();
+    }
+}
 
 /**
  * Formatting of a double to a number of digits, where per default 3 digits
@@ -32,6 +40,7 @@ public static String formatDouble(double input, int digits) {
  *  @param digits the Number of digits to display
  *  @param post the Number of digits after the colon
  **/    
+@SuppressWarnings("unused")
 public static String formatDouble(double input, int digits, int post)
     {
 	int len;
@@ -84,6 +93,7 @@ public static String formatDouble(double input, int digits, int post)
  *  @param input this is the input value as int
  *  @param digits the Number of digits to display
  **/    
+@SuppressWarnings("unused")
 public static String formatInt(int input, int digits)
     {
 	int len;

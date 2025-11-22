@@ -1,11 +1,14 @@
-package Sound;
+package SOUND;
 
 import java.awt.*;
-import java.util.*;
 import java.applet.Applet;
 
 public class CeditApplet extends Applet implements Runnable {
-    int frameNumber = 1;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 97786545L;
+	int frameNumber = 1;
     String windowClass;
     String buttonText;
     String windowTitle;
@@ -79,7 +82,8 @@ public class CeditApplet extends Applet implements Runnable {
         }
     }
 
-    public synchronized void run() {
+    @SuppressWarnings({ "rawtypes", "deprecation" })
+	public synchronized void run() {
         Class windowClassObject = null;
         Class tmp = null;
         String name = null;
@@ -93,7 +97,7 @@ public class CeditApplet extends Applet implements Runnable {
             // The specified class isn't anywhere that we can find.
             label.setText("Can't create window: Couldn't find class "
                               + windowClass);
-            button.disable();
+            button.setEnabled(false);
             return;
         }
 	label.setText("A class is found.");
@@ -110,7 +114,7 @@ public class CeditApplet extends Applet implements Runnable {
             label.setText("Can't create window: "
                               + windowClass +
                           " isn't a Frame subclass.");
-            button.disable();
+            button.setEnabled(false);
             return;
         } else if (name.equals("java.awt.Frame")) { 
             //Everything's OK. Wait until we're asked to create a window.
@@ -133,7 +137,7 @@ public class CeditApplet extends Applet implements Runnable {
                 } catch (Exception e) {
                     label.setText(e.toString()+"\n1 Couldn't create instance of class "
                                   + windowClass);
-                    button.disable();
+                    button.setEnabled(false);
                     return;
                 }
                 /*if (frameNumber == 1) {
@@ -171,8 +175,10 @@ public class CeditApplet extends Applet implements Runnable {
     }
 }
 
+@SuppressWarnings("serial")
 class TestWindow extends Frame {
-    public TestWindow() {
+    @SuppressWarnings("deprecation")
+	public TestWindow() {
         resize(300, 300);
     }
 }

@@ -1,6 +1,13 @@
-package Sound;
+package SOUND;
 
+import java.text.DecimalFormat;
 import java.util.*;
+import java.io.DataOutputStream;
+import java.io.PrintWriter;
+
+import Utils.Converter;
+import Utils.Utils;
+
 
 /**
  * This class Object holds a table of weights for a frequency range
@@ -22,7 +29,10 @@ public class RandomTable {
     double min;
 
     /** This is the table */
-    double table[];
+    OneNote table[];
+    Vector<FitnessTable> history;
+    double addWeight[];
+    double impact;
     CDebug qd;
     int Verbosity;
     double max;		// the maximum value in the table (weight)
@@ -31,14 +41,27 @@ public class RandomTable {
     int size;		// size of the table
     int iteration;	// the n. iteration step
     public int seed;
+    int f_cnt;
+    
+    PrintWriter prs;
+    
+    OneNote freq[];		// first random Frequencys
+    double weight[]; 	// weight for these freqencys
+    
+    // State machine:
+    int stateCnt = 0; 	// 0 is turned off, > 0 active !
+    boolean up; 		// true is going up, false going down
+    int mode = 0;		// which state machine to use to use 0= off 1=up/down
+    OneNote trigger_index = null; // invalid 
+    
     public RandomTable() {
-	this(null, 1);
+    	this(null, 1);
     }
 /**
  * Constructs a default table with 0-20000 Hz, in steps of 20, preset with 1.0
  */
     public RandomTable(CDebug qd, int ver) {
-	this(qd, ver, 0, 20000, 20, 0.0);
+    	this(qd, ver, 0, 20000, 20, 0.0, 0.0, null);
     }
 /**
  * Create a Table indexed by frequencys. The content of the table is a weight (double)
@@ -47,87 +70,189 @@ public class RandomTable {
  * @param step the step - interval for the table (Hz)
  * @param def the default value for initial start
  */
-    public RandomTable(CDebug qd, int ver, int min, int max, int step, double def) {
-	this.qd = qd;
-	this.Verbosity = ver;
-	this.start = min;
-	this.stop = max;
-	this.step = step;
-	this.min = def;
-	this.size = getStep( (this.stop - this.start), this.step);  // Size of the table !
-	this.table = new double[this.size + 1];
-	debugOut("RandomTable.Constructor min="+min+"Hz max="+max+"Hz step="+step+"Hz table-size ="+size+" def="+def, 4); 
-	for ( int n = 0; n < this.size; n++) {
-	    table[n] = this.min;
-	}
+	public RandomTable(CDebug qd, int ver, int min, int max, int step, double def, double impact, PrintWriter prs) {
+		this.qd = qd;
+		this.prs = prs;
+		this.Verbosity = ver;
+		this.start = min;
+		this.stop = max;
+		this.step = step;
+		this.min = def;
+		this.impact = impact;
+		this.size = getStep( (this.stop - this.start), this.step);  // Size of the table !
+		this.table = new OneNote[this.size + 1];
+		this.addWeight = new double[this.size + 1];
+		this.history = new Vector<FitnessTable>(); 
+		this.mode = 0;
+		this.up = true;
+		this.stateCnt = 0;
+		
+		debugOut("RandomTable.Constructor min="+min+"Hz max="+max+"Hz step="+step+"Hz table-size ="+size+" def="+def, 4); 
+		for ( int n = 0; n < this.size +1; n++) {
+		    table[n] = new OneNote(this.min, 0, 0);
+		    addWeight[n] = impact;	// Vorbelegung des variablen degressionswertes
+		}
     }
     // This calculates the table-index from the given frequency 
     private int getStep( int freq, int step) {
-	//return (int) ((double) freq / (double) this.step + 0.5);
-	return (int) ((double) freq / (double) this.step);
+    	//return (int) ((double) freq / (double) this.step + 0.5);
+    	return (int) ((double) freq / (double) this.step);
     }
     // This calculates the table-index from the given frequency 
     private int getFreq( int index) {
-	return this.start + index * this.step;
+    	return this.start + index * this.step;
     }
     public void debugOut(String tmp, int v) {
-	if (v > this.Verbosity) return;
-	if (this.qd != null) this.qd.put(tmp);
-	else System.out.println(tmp);
+		if (v == 55 && this.prs != null)  // print !
+		    this.prs.println(tmp);
+		else {
+		    if (v > this.Verbosity) return;
+		    if (this.qd != null) this.qd.put(tmp);
+		    else System.out.println(tmp);
+		}
     }
     /**
      * Find the maximum weight in this table
      * @return maximum
      */
     public double getMaxx() {
-	double max = 0.0;
-	for (int n = 0; n < this.size; n++) {
-	    if (table[n] > max) {
-		max = table[n];
-		fittest_freq = start + n * this.step;
-	    }
-	}
-	debugOut("RandomTable.getMax: max="+max, 6);
-	this.max = max;
-	return max;
+		double max = 0.0;
+		for (int n = 0; n < this.size; n++) {
+		    if (table[n].freq > max) {
+			max = table[n].freq;
+			fittest_freq = start + n * this.step;
+		    }
+		}
+		debugOut("RandomTable.getMax: max="+max, 6);
+		this.max = max;
+		return max;
     }
 
     /**
      * Write a value for one frequency into the table and modify the neighbours too !
      * @param freq the center frequency to address the table
-     * @param val the value to be set at the center - frequency
+     * @param val the value to be set at the center - frequency (not anmore,
+     * Now the val comes from the addWeight - table
+     * @param degression a value that describes how much the center freq. add value should be changed
      * @param diff the difference frequency we have to respect (left and right of the center frequency)
      * @return true if sucessful 
      */
-    public boolean writeNEntrys( int freq, double val, int diff) {
-	debugOut("RandomTable.writeNEntrys() freq="+freq, 5);
-	int center = getStep( freq - this.start, this.step);	// the center index for this frequenz
-	debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 5);
-	
-	this.centerFreq = freq;
-	int steps = getStep( diff, this.step); // how many steps to go left and right
-	int index;
-	double f;
-	this.table[center] += val;	// set center value
-	debugOut("RandomTable.writeNEntrys() index of center="+center+" steps, left and right="+steps, 6);
-	for (int n = 1; n < steps; n++) {	// apply to neighbours
-	    index = center + n;
-	    // linear : 
-	    f = (double) (steps - n) * val / (double) steps; // function value, linear curve
-	    // Note: I do not use warp around for array index overflows !
-	    if (index < this.size) {
-		this.table[index] += f;
-		debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
-	    }
-	    index = center - n;
-	    if (index >= 0) {
-		this.table[index] += f;
-		debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
-	    }
-	}
-	return true;
+    @SuppressWarnings("unused")
+	public boolean writeNEntrys( OneNote nt, double degression, int diff) {
+		debugOut("RandomTable.writeNEntrys() freq="+nt.freq, 5);
+		int center = getStep( (int)nt.freq - this.start, this.step);	// the center index for this frequenz
+		if (center < 0)
+			center = 0;
+		debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 5);
+		//debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 55);
+		
+		this.centerFreq = (int)nt.freq;
+		int steps = getStep( diff, this.step); // how many steps to go left and right
+		int index;
+		double f;
+		//System.out.println("writeNEntrys() this.size="+this.size+" freq="+freq+" center="+center+" steps="+steps); 
+		//------------------
+		if (center < 0)
+			debugOut("To small !", 1); 
+		double val = this.addWeight[center]; // random Weight
+		//debugOut("RandomTable.writeNEntrys(1) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
+		this.table[center].freq += val;	// set center value using freq for weight...
+		// Hier kann man nun eine ganze menge beeinflussen:
+		// wenn nicht bei 0.0 for den rt-tabellenwert gestoppt wird, kann der
+		// sogar negativ werden und somit kommt dieser ton wohl niemals wieder.
+		// Man braucht also eine Abbruchbedingung für die degression ...
+		if (this.table[center].freq < 0.0) {
+		    this.table[center].freq = 0.0;
+		    this.addWeight[center] = this.impact;// random Weight
+		}
+		//------- Now correct the center weight value: -------
+		else 
+			this.addWeight[center] += degression;
+		//debugOut("RandomTable.writeNEntrys(2) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
+		debugOut("RandomTable.writeNEntrys() this.size="+this.size+" index of center="+center+" steps, left and right="+steps, 6);
+		for (int n = 1; n < steps; n++) {	// apply to neighbours
+		    index = center + n;
+		    // linear  auch neg ?: 
+		    f = (double) (steps - n) * val / (double) steps; // function value, linear curve
+		   
+		    // Note: I do not use warp around for array index overflows !
+		    String me = "";
+		    if (index < this.size) {
+				this.table[index].freq += f;
+				me = "table[index]="+this.table[index];
+				debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
+				//System.out.println("writeNEntrys() < index="+index);
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
+				    this.addWeight[index] = this.impact;//
+				}
+		    }
+		    // 2nd half
+		    index = center - n;
+		    //System.out.println("(b) n="+n+" index="+index+" f="+f);
+		    if (index >= 0) {
+				this.table[index].freq += f;
+				debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
+				//System.out.println("writeNEntrys() >= index="+index);
+				me = "table[index]="+this.table[index];
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
+				    this.addWeight[index] = this.impact;//
+				}
+		    }
+		   /* if (f < 0.0)
+		    	System.out.println("(a) n="+n+" index="+index+" f="+f+" "+me);
+		    	*/
+		}
+		return true;
     }
-
+    
+    public String getTableAsString(double start) {
+    	DecimalFormat f = new DecimalFormat("#.###");
+    	String r = start+";";
+    	for (int n= 0; n < this.table.length; n++) {
+    		int i = (int)this.table[n].freq;
+    		//r+= f.format(this.table[n].freq);
+    		r += i;
+    		if (n < (this.table.length-1 ))
+    			r += ";";
+    	}
+    	return r;
+    }
+    
+    public void writeTable(DataOutputStream dos) {
+    	try {
+    		
+	    	for (int n= 0; n < this.table.length; n++) {
+	    		int i = (int)this.table[n].freq;
+	    		dos.writeInt(i);
+	    	}
+    	} catch (Exception ex) {}
+    	return;
+    }
+    
+    public void writeTable(DataOutputStream dos, int[] icache, int cIndex) {
+    	System.out.println("Now write the table");
+    	try {
+	    	for (int n= 0; n < cIndex; n++) {
+	    		int i = icache[n];
+	    		dos.writeInt(i);
+	    	}
+    	} catch (Exception ex) {}
+    	
+    }
+    
+    public void setTableFromString( String s) {
+    	s = s.replaceAll(",", ".");
+    	String[] t = new Utils().getSeparatedValues(s, ';');
+    	this.table = new OneNote[t.length -1];
+    	
+    	for (int n= 1; n < t.length; n++) {
+    		OneNote nt = new OneNote(Converter.getDouble(t[n], 0.0), 0, 0);
+    		this.table[n-1] = nt;
+    	}
+    	
+    }
     /**
      * Write a value into the table
      * @param freq the frequency to address the table
@@ -135,15 +260,15 @@ public class RandomTable {
      * @return true if sucessful 
      */
     public boolean writeEntry(int freq, double val) {
-	int index;
-	try {
-	    index = getStep( freq - this.start, this.step);
-	    this.table[index] = val;
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    e.printStackTrace();
-	    return false;
-	}
-	return true;
+		int index;
+		try {
+		    index = getStep( freq - this.start, this.step);
+		    this.table[index].freq = val;
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    e.printStackTrace();
+		    return false;
+		}
+		return true;
     }
     /**
      * Read a value from the table
@@ -151,16 +276,19 @@ public class RandomTable {
      * @return the value , -1.0 if error
      */
     public double readEntry(int freq) {
-	int index;
-	double val;
-	try {
-	    index = getStep( freq - this.start, this.step);
-	    val = this.table[index];
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    e.printStackTrace();
-	    return -1.0;
-	}
-	return val;
+		int index;
+		double val = -1;
+		try {
+		    index = getStep( freq - this.start, this.step);
+		    //System.out.println("maxindex="+this.table.length+" freq="+freq+" index="+index);
+		   if (index >= 0)
+			   val = this.table[index].freq;
+		    //System.out.println("val="+val);
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    e.printStackTrace();
+		    return -1.0;
+		}
+		return val;
     }
     /**
      * Add a value to the table
@@ -172,12 +300,12 @@ public class RandomTable {
 	int index;
 	try {
 	    index = getStep( freq - this.start, this.step);
-	    this.table[index] += val;
+	    this.table[index].freq += val;
 	} catch (ArrayIndexOutOfBoundsException e) {
 	    e.printStackTrace();
 	    return -1.0;
 	}
-	return this.table[index];
+	return this.table[index].freq;
     }
     /**
      * Substract a value from the table
@@ -187,15 +315,15 @@ public class RandomTable {
      * @return the new value , -1.0 if error
      */
     public double subEntry(int freq, double val) {
-	int index;
-	try {
-	    index = getStep( freq - this.start, this.step);
-	    this.table[index] -= val;
-	    if (this.table[index] < this.min) this.table[index] = this.min;
-	} catch (ArrayIndexOutOfBoundsException e) {
-	    e.printStackTrace();
-	    return -1.0;
-	}
-	return this.table[index];
+		int index;
+		try {
+		    index = getStep( freq - this.start, this.step);
+		    this.table[index].freq -= val;
+		    if (this.table[index].freq < this.min) this.table[index].freq = this.min;
+		} catch (ArrayIndexOutOfBoundsException e) {
+		    e.printStackTrace();
+		    return -1.0;
+		}
+		return this.table[index].freq;
     }
 } // end of class

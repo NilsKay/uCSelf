@@ -1,4 +1,4 @@
-package Sound;
+package SOUND;
 
 
 public class MidiSpecs {

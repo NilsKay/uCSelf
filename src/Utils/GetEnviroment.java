@@ -9,11 +9,15 @@ import java.awt.event.MouseEvent;
  * @author 	Nils Kay
  */
 public class GetEnviroment {
-    public static String sVersionCode="Version V1.08 alpha1";
+    public static String sVersionCode="V 2.5";
     public final static Color DisplayBackColor = new Color(0xe0e0e0); // Display Background color
     public final static String SAVEFILE = "jcself.sav";	// here we store the user default settings
     public final static String TEMPLATEEXT = ".jct";	// 
-    
+    public final static String LOGFILE = "jcself.log"; // Log file for jcself
+    public final static String PLAYLOG = "play.log";
+    public final static String KOMPOSITIONLOG = "komposition.log";
+    public final static String KOMPOSITION = "komposition.tmp";
+    public final static String IMAGELOG = "imagelog.tmp";
     public final static String DEFAULTFOFORC = "DefaultFOF.orc";
     public final static String DEFAULTFOFSCO = "DefaultFOF.sco";
 
@@ -67,6 +71,7 @@ public GetEnviroment(String rootDir) {
     }
 }
 
+@SuppressWarnings("unused")
 public boolean getPathes(){
     String StartPath = System.getProperty("user.dir") + File.separator;
     //Check for v1.2x
