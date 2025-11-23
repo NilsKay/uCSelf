@@ -177,41 +177,30 @@ public class Soundscape {
 		//debugOut("RandomTable.writeNEntrys(2) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
 		debugOut("RandomTable.writeNEntrys() this.size="+this.size+" index of center="+center+" steps, left and right="+steps, 6);
 		for (int n = 1; n < steps; n++) {	// apply to neighbours
-		    index = center + n;
-		    // linear  auch neg ?: 
-		    f = (double) (steps - n) * val / (double) steps; // function value, linear curve
-		   
-		    // Note: I do not use warp around for array index overflows !
-		    refactor this, use Method
-		    String me = "";
-		    if (index < this.size) {
-				this.table[index].weight += f;
-				me = "table[index]="+this.table[index];
-				debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
-				//System.out.println("writeNEntrys() < index="+index);
-				if (this.table[index].weight < 0.0) {
-				    this.table[index].weight = 0.0;
-				    this.addWeight[index] = this.impact;//
-				}
-		    }
+			 String me = "";
+			index = center + n;
+			f = (double) (steps - n) * val / (double) steps; // function value, linear curve
+			me = addFootPrint(index,n,f);
 		    // 2nd half
 		    index = center - n;
-		    //System.out.println("(b) n="+n+" index="+index+" f="+f);
-		    if (index >= 0) {
-				this.table[index].weight += f;
-				debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
-				//System.out.println("writeNEntrys() >= index="+index);
-				me = "table[index]="+this.table[index];
-				if (this.table[index].weight < 0.0) {
-				    this.table[index].weight = 0.0;
-				    this.addWeight[index] = this.impact;//
-				}
-		    }
-		   /* if (f < 0.0)
-		    	System.out.println("(a) n="+n+" index="+index+" f="+f+" "+me);
-		    	*/
+		    me = addFootPrint(index,n,f);
 		}
 		return true;
+    }
+    
+    private String addFootPrint(int index, int n, double f) {
+    	// Note: I do not use warp around for array index overflows !
+    	String me = "";
+	    if (index < this.size) {
+			this.table[index].weight += f;
+			me = "table[index]="+this.table[index];
+			debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
+			if (this.table[index].weight < 0.0) {
+			    this.table[index].weight = 0.0;
+			    this.addWeight[index] = this.impact;//
+			}
+	    }
+	    return me;
     }
     
     @SuppressWarnings("unused")
