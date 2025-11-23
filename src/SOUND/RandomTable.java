@@ -14,7 +14,7 @@ import Utils.Utils;
  * @version 	$Id$
  * @author 	Nils Kay
  */
-public class Soundscape {
+public class RandomTable {
 
     /** The intervall between 2 frequency entrys in the table */
     int step;
@@ -31,7 +31,7 @@ public class Soundscape {
     /** This is the table */
     OneNote table[];
     Vector<FitnessTable> history;
-    private double addWeight[];
+    double addWeight[];
     double impact;
     CDebug qd;
     int Verbosity;
@@ -54,13 +54,13 @@ public class Soundscape {
     int mode = 0;		// which state machine to use to use 0= off 1=up/down
     OneNote trigger_index = null; // invalid 
     
-    public Soundscape() {
+    public RandomTable() {
     	this(null, 1);
     }
 /**
  * Constructs a default table with 0-20000 Hz, in steps of 20, preset with 1.0
  */
-    public Soundscape(CDebug qd, int ver) {
+    public RandomTable(CDebug qd, int ver) {
     	this(qd, ver, 0, 20000, 20, 0.0, 0.0, null);
     }
 /**
@@ -70,7 +70,7 @@ public class Soundscape {
  * @param step the step - interval for the table (Hz)
  * @param def the default value for initial start
  */
-	public Soundscape(CDebug qd, int ver, int min, int max, int step, double def, double impact, PrintWriter prs) {
+	public RandomTable(CDebug qd, int ver, int min, int max, int step, double def, double impact, PrintWriter prs) {
 		this.qd = qd;
 		this.prs = prs;
 		this.Verbosity = ver;
@@ -79,9 +79,8 @@ public class Soundscape {
 		this.step = step;
 		this.min = def;
 		this.impact = impact;
-		// quantisized frequency steps for the usable spectrum (min-max) freq
 		this.size = getStep( (this.stop - this.start), this.step);  // Size of the table !
-		this.table = new OneNote[this.size + 1]; // a OneNote entry for each freq-step
+		this.table = new OneNote[this.size + 1];
 		this.addWeight = new double[this.size + 1];
 		this.history = new Vector<FitnessTable>(); 
 		this.mode = 0;
@@ -119,8 +118,8 @@ public class Soundscape {
     public double getMaxx() {
 		double max = 0.0;
 		for (int n = 0; n < this.size; n++) {
-		    if (table[n].weight > max) {
-			max = table[n].weight;
+		    if (table[n].freq > max) {
+			max = table[n].freq;
 			fittest_freq = start + n * this.step;
 		    }
 		}
@@ -131,40 +130,39 @@ public class Soundscape {
 
     /**
      * Write a value for one frequency into the table and modify the neighbours too !
-     * Do an impact into the soundscape
      * @param freq the center frequency to address the table
      * @param val the value to be set at the center - frequency (not anmore,
      * Now the val comes from the addWeight - table
      * @param degression a value that describes how much the center freq. add value should be changed
-     * @param footPrint the difference frequency we have to respect (left and right of the center frequency) // footprint
+     * @param diff the difference frequency we have to respect (left and right of the center frequency)
      * @return true if sucessful 
      */
     @SuppressWarnings("unused")
-	public boolean writeNEntrys( OneNote seed, double degression, int footPrint) {
-		debugOut("RandomTable.writeNEntrys() freq="+seed.freq, 5);
-		int center = getStep( (int)seed.freq - this.start, this.step);	// the center index for this frequenz
+	public boolean writeNEntrys( OneNote nt, double degression, int diff) {
+		debugOut("RandomTable.writeNEntrys() freq="+nt.freq, 5);
+		int center = getStep( (int)nt.freq - this.start, this.step);	// the center index for this frequenz
 		if (center < 0)
 			center = 0;
 		debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 5);
 		//debugOut("RandomTable.writeNEntrys() that is rt-Index="+center+" equals f ="+getFreq(center), 55);
 		
-		this.centerFreq = (int)seed.freq;
-		int steps = getStep( footPrint, this.step); // how many steps to go left and right
+		this.centerFreq = (int)nt.freq;
+		int steps = getStep( diff, this.step); // how many steps to go left and right
 		int index;
 		double f;
 		//System.out.println("writeNEntrys() this.size="+this.size+" freq="+freq+" center="+center+" steps="+steps); 
 		//------------------
 		if (center < 0)
-			debugOut("Too small !", 1); 
+			debugOut("To small !", 1); 
 		double val = this.addWeight[center]; // random Weight
 		//debugOut("RandomTable.writeNEntrys(1) table[center]="+table[center]+" addWeight[center]="+addWeight[center], 55);
-		this.table[center].weight += val;	// set center value using freq for weight...
+		this.table[center].freq += val;	// set center value using freq for weight...
 		// Hier kann man nun eine ganze menge beeinflussen:
 		// wenn nicht bei 0.0 for den rt-tabellenwert gestoppt wird, kann der
 		// sogar negativ werden und somit kommt dieser ton wohl niemals wieder.
-		// Man braucht also eine Abbruchbedingung fï¿½r die degression ...
-		if (this.table[center].weight < 0.0) {
-		    this.table[center].weight = 0.0;
+		// Man braucht also eine Abbruchbedingung für die degression ...
+		if (this.table[center].freq < 0.0) {
+		    this.table[center].freq = 0.0;
 		    this.addWeight[center] = this.impact;// random Weight
 		}
 		//------- Now correct the center weight value: -------
@@ -180,12 +178,12 @@ public class Soundscape {
 		    // Note: I do not use warp around for array index overflows !
 		    String me = "";
 		    if (index < this.size) {
-				this.table[index].weight += f;
+				this.table[index].freq += f;
 				me = "table[index]="+this.table[index];
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center+"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() < index="+index);
-				if (this.table[index].weight < 0.0) {
-				    this.table[index].weight = 0.0;
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
@@ -193,12 +191,12 @@ public class Soundscape {
 		    index = center - n;
 		    //System.out.println("(b) n="+n+" index="+index+" f="+f);
 		    if (index >= 0) {
-				this.table[index].weight += f;
+				this.table[index].freq += f;
 				debugOut("RandomTable.writeNEntrys() write value="+f+" to center-"+n+" ="+index, 6);
 				//System.out.println("writeNEntrys() >= index="+index);
 				me = "table[index]="+this.table[index];
-				if (this.table[index].weight < 0.0) {
-				    this.table[index].weight = 0.0;
+				if (this.table[index].freq < 0.0) {
+				    this.table[index].freq = 0.0;
 				    this.addWeight[index] = this.impact;//
 				}
 		    }
@@ -275,8 +273,8 @@ public class Soundscape {
     }
     /**
      * Read a value from the table
-     * @param freq the frequency to address the table (index)
-     * @return the value of weight, -1.0 if error
+     * @param freq the frequency to address the table
+     * @return the value , -1.0 if error
      */
     public double readEntry(int freq) {
 		int index;
@@ -285,7 +283,7 @@ public class Soundscape {
 		    index = getStep( freq - this.start, this.step);
 		    //System.out.println("maxindex="+this.table.length+" freq="+freq+" index="+index);
 		   if (index >= 0)
-			   val = addWeight[index]; //error from OneNote introduction this.table[index].freq;
+			   val = this.table[index].freq;
 		    //System.out.println("val="+val);
 		} catch (ArrayIndexOutOfBoundsException e) {
 		    e.printStackTrace();

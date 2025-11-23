@@ -32,7 +32,7 @@ public class Project2 {
 
     public static final int[] loud = new int[] {
 	0      , 35   , 45  , 55 , 62  , 68  , 75 , 85  , 90 };
-     // bei fof ist 90 zu laut, bei 85 Schluï¿½ !
+     // bei fof ist 90 zu laut, bei 85 Schluß !
 
     public static int maxFOFLoudIndex = 8; // do not reach this index !
 
@@ -73,7 +73,7 @@ public class Project2 {
     public boolean halt = false;
     int anfOkt;
     double balance;
-    Soundscape rt, shadow;
+    RandomTable rt, shadow;
     Defaults def;
    // @SuppressWarnings("rawtypes")
     Vector<Note> komposition;	// this is our Komposition ! (elements of Note)
@@ -158,79 +158,79 @@ public class Project2 {
     }
 */
     @SuppressWarnings({ "rawtypes", "unchecked", "unused" })
-	public void createNoteTable(int mode, int min_freq, int max_freq) {
-		int maxOkt;
-		int n, m, q, freq;
-		double p, f;
-		this.notes = new Vector();
-		System.out.println("Tonal, createNotetable: mode="+mode);
-		switch (mode) {
-		case 0:
-		default:
-		   /* n = 0;
-		    maxOkt = 6;	// 6 Oktaven maximal
-		    debugOut(maxOkt+" Oktaven", 3);
-		    for (m = 0; m < maxOkt; m++) {
-				for (q = 0; q < 12; q++) {
-				    p = java.lang.Math.pow(2.0, ((double) n++ / 12.0));	// 2^(n/12)
-				    f = 220.0 * p;
-				    freq = (int) f;
-				    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
-						debugOut("Oktave="+m+" Note="+n+" p="+p+" f="+f+" freq="+freq, 6);
-						//this.notes.addElement(new Integer(freq));
-						this.notes.addElement(new OneNote(f, Project2.nts[q], m));
-						//System.out.println("Tonal,add f="+f);
-						// make this a double for non-integer frequencys
-						debugOut("Note "+((m-1)*12+n)+"="+f, 3); 
-				    }
-				}
-		    }
-		    */
-		    break;
-		case 1:
-		   /* maxOkt = 11;
-		    this.anfOkt = 2; // in wirklichkeit 4, da es keine 0. Oktave gibt ?
-		    n = 12 * anfOkt;
-		    debugOut("First Oktave="+anfOkt+" last Oktave ="+maxOkt, 3);
-		    for (m = anfOkt; m < maxOkt; m++) {
-				for (q = 0; q < 12; q++) { // 12 Tï¿½ne: a, a', b, c, c', d, d', e, f, f', g, g'
-				    f = getFreq(n++);
-				    freq = (int) f;
-				    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
-						debugOut("Oktave="+m+" Note="+n+" freq="+freq, 6);
-						this.notes.addElement(new OneNote(f, Project2.nts[q], m-1));
-						//System.out.println("Tonal,add f="+f);
-						debugOut("Note "+(n-1)+"="+freq, 3); 
-				    }
-				}
-		    }
-		    */
-			// All possible midi notes
-			OneNote start = new OneNote(min_freq, 0, 0);
-			start.getMidiNote();
+	public void createNoteTable(int mode) {
+	int maxOkt;
+	int n, m, q, freq;
+	double p, f;
+	this.notes = new Vector();
+	System.out.println("Tonal, createNotetable: mode="+mode);
+	switch (mode) {
+	case 0:
+	default:
+	   /* n = 0;
+	    maxOkt = 6;	// 6 Oktaven maximal
+	    debugOut(maxOkt+" Oktaven", 3);
+	    for (m = 0; m < maxOkt; m++) {
+			for (q = 0; q < 12; q++) {
+			    p = java.lang.Math.pow(2.0, ((double) n++ / 12.0));	// 2^(n/12)
+			    f = 220.0 * p;
+			    freq = (int) f;
+			    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
+					debugOut("Oktave="+m+" Note="+n+" p="+p+" f="+f+" freq="+freq, 6);
+					//this.notes.addElement(new Integer(freq));
+					this.notes.addElement(new OneNote(f, Project2.nts[q], m));
+					//System.out.println("Tonal,add f="+f);
+					// make this a double for non-integer frequencys
+					debugOut("Note "+((m-1)*12+n)+"="+f, 3); 
+			    }
+			}
+	    }
+	    */
+	    break;
+	case 1:
+	   /* maxOkt = 11;
+	    this.anfOkt = 2; // in wirklichkeit 4, da es keine 0. Oktave gibt ?
+	    n = 12 * anfOkt;
+	    debugOut("First Oktave="+anfOkt+" last Oktave ="+maxOkt, 3);
+	    for (m = anfOkt; m < maxOkt; m++) {
+			for (q = 0; q < 12; q++) { // 12 Töne: a, a', b, c, c', d, d', e, f, f', g, g'
+			    f = getFreq(n++);
+			    freq = (int) f;
+			    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
+					debugOut("Oktave="+m+" Note="+n+" freq="+freq, 6);
+					this.notes.addElement(new OneNote(f, Project2.nts[q], m-1));
+					//System.out.println("Tonal,add f="+f);
+					debugOut("Note "+(n-1)+"="+freq, 3); 
+			    }
+			}
+	    }
+	    */
+		// All possible midi notes
+		OneNote start = new OneNote(this.def.min_freq, 0, 0);
+		start.getMidiNote();
+		start.setMidiNr(start.midiIndex);
+		if (start.freq < this.def.min_freq) {
+			start.midiIndex++;
 			start.setMidiNr(start.midiIndex);
-			if (start.freq < min_freq) {
-				start.midiIndex++;
-				start.setMidiNr(start.midiIndex);
-			}
-			OneNote stop = new OneNote(max_freq, 0, 0);
-			stop.getMidiNote();
-			for (n = start.midiIndex; n <= stop.midiIndex; n++) {
-				if (n >=0 ) {
-					OneNote nt = new OneNote(0, 0, 0);
-					nt.setMidiNr(n);
-					this.notes.addElement(nt);
-					debugOut("Note "+nt, 3);
-				}
-			}
-		    break;
 		}
-		// debug:
-		for (n = 0; n < this.notes.size(); n++) {
-		    double d = (this.notes.elementAt(n)).freq;
-		    int idx = getNoteIndex(d);
-		    debugOut("Note "+idx+"="+d, 3); 
+		OneNote stop = new OneNote(this.def.max_freq, 0, 0);
+		stop.getMidiNote();
+		for (n = start.midiIndex; n <= stop.midiIndex; n++) {
+			if (n >=0 ) {
+				OneNote nt = new OneNote(0, 0, 0);
+				nt.setMidiNr(n);
+				this.notes.addElement(nt);
+				debugOut("Note "+nt, 3);
+			}
 		}
+	    break;
+	}
+	// debug:
+	for (n = 0; n < this.notes.size(); n++) {
+	    double d = (this.notes.elementAt(n)).freq;
+	    int idx = getNoteIndex(d);
+	    debugOut("Note "+idx+"="+d, 3); 
+	}
     }
 
     /**
@@ -459,7 +459,7 @@ public class Project2 {
      * @param rt
      * @param start
      */
-    private void addImageS(Soundscape rt, double start) {
+    private void addImageS(RandomTable rt, double start) {
     	
     	if (this.imageIt == null) {
     		this.cache = new Vector<String>();
@@ -570,15 +570,13 @@ public class Project2 {
 		addLog("Do Melody ");
 	//----------- Test:
 	//this.rndStatic = new int[this.notes.size()];
-	// init seed frequency
-	OneNote freq; // start Note
+	OneNote freq;
 	if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-	    freq = makeRandomFrequency(this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+	    freq = makeRandomFrequency(this.def.min_freq, this.def.max_freq);
 	}
 	else freq = new OneNote(this.def.seed, 0, 0);
 	
-	// init OneNote tables
-	this.shadow = new Soundscape(this.qd, this.Verbosity, 
+	this.shadow = new RandomTable(this.qd, this.Verbosity, 
 		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
 		     this.def.impact, this.prs);
 	
@@ -586,8 +584,7 @@ public class Project2 {
 		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
 		     this.def.impact, this.prs);
 	*/
-	// Soundscape
-	rt = new Soundscape(this.qd, this.Verbosity, 
+	rt = new RandomTable(this.qd, this.Verbosity, 
 			     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
 			     this.def.impact, this.prs);
 	rt.seed = (int)freq.freq;
@@ -595,10 +592,9 @@ public class Project2 {
 	
 	addLog("Seed ="+rt.seed+" Hz");
 	OneNote sFreq = null;
-	// -------- Initalise Tables -----------
 	if (shadow != null) {
 		if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-		    sFreq = makeRandomFrequency(this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+		    sFreq = makeRandomFrequency(this.def.min_freq, this.def.max_freq);
 		}
 		else 
 			sFreq = new OneNote(this.def.seed, 0, 0);
@@ -606,12 +602,12 @@ public class Project2 {
 		addLog("Shadow Seed ="+shadow.seed+" Hz");
 	}
 	
-	// Veraendere die Tabelle
+	// Veraendere die Tabelle:
 	// freq, um wieviel nach oben, welche Frequenz-differenz zu beachten ist
 	rt.writeNEntrys(freq, this.def.degression, this.def.diff_freq );
 	if (shadow != null)
 		shadow.writeNEntrys(sFreq, this.def.degression, this.def.diff_freq );
-	//-----------------------
+	
 	debugOut("This is our seed :"+freq+" Hz", 5);
 	debugOut("################### Start of new Komposition: (Oszi) ###################", 55);
 	debugOut("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight, 55);
@@ -625,7 +621,7 @@ public class Project2 {
 	boolean speedDir = true; // up
 	boolean requestToInitLoopCopy = false;
 	int transpositionNote = 0;
-	// Now iterate and create the komposition
+	// Now iterate:
 	for (it = 0; it < this.def.iterations; it++) {
 	    long time = System.currentTimeMillis();
 	    //debugOut("-------> New Iteration step:"+it, 55);
@@ -635,16 +631,17 @@ public class Project2 {
 	    if (shadow != null)
 	    	shadow.iteration = it;
 	    
-	    createPopulation(rt, this.def.population, 
-				  this.def.min_freq, this.def.max_freq,def.tonal, def.preferLowerNotes, def.useSelectNotes); // create new Population
+	    makeNRandomFrequencys(rt, this.def.population, 
+				  this.def.min_freq, this.def.max_freq); // create Population
 	    // Now weight array for each random frequency:
-	    makeWeight(this.def.population, rt, def.r_Weight);// Judge them
+	    makeWeight(this.def.population, rt);// Judge them
 	    if (shadow != null) {
-	    	createPopulation(shadow, this.def.population, 
-				  this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
-	    	makeWeight(this.def.population, shadow, def.r_Weight);// Judge them
+	    	makeNRandomFrequencys(shadow, this.def.population, 
+				  this.def.min_freq, this.def.max_freq); 
+	    	makeWeight(this.def.population, shadow);// Judge them
 	    }
-	  
+	   
+	   
 	    // now sort it;
 	    QSort q = new QSort(); // ( index = max equals the highest weight)
 	    q.sort(rt.weight, rt.freq);
@@ -797,7 +794,7 @@ public class Project2 {
 	    addLog("Frequenz selected f="+freq);
 	    debugOut("This is our new selection:"+freq+" Hz", 5);
 	    //debugOut("This is our new selection:"+freq+" Hz", 55);
-	    // Mark the new individual in the RT, now update Tables
+	    // Mark the new individual in the RT
 	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq );
 	    sil.displayRT(rt);
 	    rt.getMaxx();
@@ -939,8 +936,8 @@ public class Project2 {
 		    }
 		    nt.pDauer = freq.pedal?pDauer:0;
 		    
-		    // ------- Nun prï¿½fe, ob noch Stimmen dazukommen ? --------------------------
-		    //stimmen = 2; // nur fï¿½r Test
+		    // ------- Nun prüfe, ob noch Stimmen dazukommen ? --------------------------
+		    //stimmen = 2; // nur für Test
 		    boolean doOct = this.def.akkord;
 		    
 		    stimmen = getVoices(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
@@ -1222,12 +1219,12 @@ public class Project2 {
     	Melody melody = new Melody();
     	//int melodyChannel = def.voiceMax; // (7) first melody channel (after maxVoices) 
     	Note melodyTone = null;
-    	this.shadow = new Soundscape(this.qd, this.Verbosity, 
+    	this.shadow = new RandomTable(this.qd, this.Verbosity, 
    		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
    		     this.def.impact, this.prs);
     	OneNote sFreq = null;
     	if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-    		sFreq = makeRandomFrequency(this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+    		sFreq = makeRandomFrequency(this.def.min_freq, this.def.max_freq);
     	}
     	else 
     		sFreq = new OneNote(this.def.seed, 0, 0);
@@ -1244,9 +1241,9 @@ public class Project2 {
     		Note first = all.firstElement();
     		start = first.start;
     		shadow.iteration = it;
-        	createPopulation(shadow, this.def.population, 
-        			this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
-        	makeWeight(this.def.population, shadow, def.r_Weight);// Judge them
+        	makeNRandomFrequencys(shadow, this.def.population, 
+        			this.def.min_freq, this.def.max_freq); 
+        	makeWeight(this.def.population, shadow);// Judge them
         	QSort q = new QSort(); // ( index = max equals the highest weight)
         	q.sort(shadow.weight, shadow.freq);
         	OneNote sfreq = null;
@@ -1324,7 +1321,7 @@ public class Project2 {
 		    		//Hauptnote:
 		    		int melody_octave = melodyTone.note.Octave;
 		    		//int haupt_note = first.note.noteIndex;
-		    		// Hauptnote besimmt welche mï¿½glichen Melodienoten passen,
+		    		// Hauptnote besimmt welche möglichen Melodienoten passen,
 		    		first.note.setMidiNr(first.note.midiIndex); // Bugfix: Noteindex was always 0 (C)!
 		    		OneNote next = melody.findMelodyNote(first.note.noteIndex, melody_octave, m_Tension);
 		    		//OneNote next = melody.findNextMelodyNote(haupt_note, melody_octave, melodyTone.note.noteIndex);
@@ -1419,7 +1416,7 @@ public class Project2 {
     		if (end > oldend) {
     			//Valid note
     			try {
-	    			double tmp = m_start - old.getEndTime(); // um diesen Betrag muï¿½ die vorherige note verlï¿½ngert werden!
+	    			double tmp = m_start - old.getEndTime(); // um diesen Betrag muß die vorherige note verlängert werden!
 	    			if (tmp > 0.0)
 	    				old.dauer += tmp;
 	    			else {
@@ -1723,12 +1720,12 @@ public class Project2 {
 		debugOut("getVoices(): fittest="+fittest+" freq="+freq+" diff="+diff, 3);
 		double max = (double) (stop -start); // Wertebereich [freq]
 		double anzStimmen = (double) (this.def.max_voice - this.def.min_voice);	// [Stimmen]
-		// je grï¿½ï¿½er diff, desto mehr stimmen (weiter weg)
+		// je größer diff, desto mehr stimmen (weiter weg)
 		double v = anzStimmen * java.lang.Math.pow( diff / max, this.def.gamma);
-		// je kleiner diff, desto mehr stimmen (nï¿½her dran)
+		// je kleiner diff, desto mehr stimmen (näher dran)
 		double v1 = anzStimmen * java.lang.Math.pow( (max - diff) / max, this.def.gamma);
 		//double v = diff * anzStimmen / max; // je weiter weg, desto mehr Stimmen
-		//double v1 = (max - diff) * anzStimmen / max; // je nï¿½her, desto mehr Stimmen
+		//double v1 = (max - diff) * anzStimmen / max; // je näher, desto mehr Stimmen
 		int val = this.def.min_voice + java.lang.Math.abs((int) (v - v1));
 		//System.out.println("getVoices(): diff="+diff+" anzStimmen="+anzStimmen);
 		debugOut("v="+v+" v1="+v1+" val="+val, 3);
@@ -1763,19 +1760,19 @@ public class Project2 {
 		    else if (val <= tbl[n]) return tbl[n];
 		}
 		return tbl[n-1]; // max
-    }
+	    }
 	
-    public void makeWeight(int n, Soundscape rt, double r_Weight) {
+    public void makeWeight(int n, RandomTable rt) {
 		int i;
 		double t;
-		rt.weight = new double[rt.freq.length];
+		rt.weight = new double[n];
 		// first get the weight from the RandomTable:
 		debugOut("makeWeight() Get the weight for the new random frequencys:", 6);
-		for (i = 0; i < rt.freq.length; i++) {
-		    rt.weight[i] = t = rt.readEntry((int)rt.freq[i].freq); // read individuum from soundscape
+		for (i = 0; i < n; i++) {
+		    rt.weight[i] = t = rt.readEntry((int)rt.freq[i].freq);
 		    // randomize this weight:
 		    // 1. : this.weight[i] = this.weight[i] * r_Weight * java.lang.Math.random();
-		    rt.weight[i] -= r_Weight * java.lang.Math.random();
+		    rt.weight[i] = rt.weight[i] - this.def.r_Weight * java.lang.Math.random();
 		    debugOut("makeWeight() weight for frequenz ="+rt.freq[i]+" Hz ="+t+" randomized="+rt.weight[i], 6);
 		    //debugOut("makeWeight() weight for frequenz ="+this.freq[i]+" Hz ="+t+" randomized="+this.weight[i]+" index="+i, 55);
 		}
@@ -1861,14 +1858,14 @@ public class Project2 {
 		return f;
     }
 
-    public OneNote makeRandomFrequency(int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
+    public OneNote makeRandomFrequency(int min, int max) {
 		double f = 0.0;
 		double diff = (double) (max - min);
 		f = min + (int) (diff  * java.lang.Math.random());
 		OneNote nf = new OneNote(f, 0, 0);
 		
-		if (tonal) {
-		    if (!preferLowerNotes) { // 
+		if (this.def.tonal) {
+		    if (!this.def.preferLowerNotes) { // 
 		    	nf = getExactFreq((int) f);
 		    }
 		    else { // prefer lower notes !, so we choose the next lower freq of our frequency
@@ -1876,24 +1873,17 @@ public class Project2 {
 		    	nf = getChromaticFrequency();
 		    }
 		}
-		else if (useSelectNotes) {
+		else if (this.def.useSelectNotes) {
 			nf = getExactFreq((int) f);
 		}
 		return nf;
     }
 
-    /**
-     * Enter new population into soundscape (With footprint)
-     * @param rt
-     * @param population
-     * @param min
-     * @param max
-     */
-    public void createPopulation(Soundscape rt, int population, int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
-    	rt.freq = new OneNote[population];
+    public void makeNRandomFrequencys(RandomTable rt, int n, int min, int max) {
+    	rt.freq = new OneNote[n];
     	double maxf = 0;
-    	for (int i = 0; i < population; i++) {
-    		rt.freq[i] = makeRandomFrequency(min, max+1, tonal, preferLowerNotes, useSelectNotes);
+    	for (int i = 0; i < n; i++) {
+    		rt.freq[i] = makeRandomFrequency(min, max+1);
     		if (rt.freq[i].freq > maxf )
     			maxf = rt.freq[i].freq;
     	}	
@@ -1920,7 +1910,7 @@ public class Project2 {
 		this.def = def;
 		this.balance = 0.5;	// symetrical default
 		
-		if (this.def.tonal) createNoteTable(this.note_mode, this.def.min_freq, this.def.max_freq);
+		if (this.def.tonal) createNoteTable(this.note_mode);
 		
 		if (def.useSelectNotes) {
 			
@@ -1964,8 +1954,8 @@ public class Project2 {
     String kompo;
     /**
      * Hier nun das Herz der Methode: wie baut man eine Ton-Abfolge.
-     * Das Ergebnis ist ein Vector mit den .sco Zeilen fï¿½r die Tï¿½ne.
-     * @param parm ein ï¿½bergabeparameter, kann auch leer sein (vom Textfeld)
+     * Das Ergebnis ist ein Vector mit den .sco Zeilen für die Töne.
+     * @param parm ein Übergabeparameter, kann auch leer sein (vom Textfeld)
      * @return Vector with .sco lines
      */
     @SuppressWarnings({ "unused"})

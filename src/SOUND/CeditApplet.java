@@ -1,4 +1,5 @@
 package SOUND;
+
 import java.awt.*;
 import java.applet.Applet;
 

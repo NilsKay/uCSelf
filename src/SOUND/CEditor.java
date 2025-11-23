@@ -571,7 +571,7 @@ public void relocate() {
 		if (sco_lines != null) {
 		    // Nun noch das EOF markieren:
 		    sco_lines.addElement("e");
-		    // schlieï¿½lich muï¿½ der Vector in die Datei geschrieben werden 
+		    // schließlich muß der Vector in die Datei geschrieben werden 
 		    if (!new ScoAccess().saveSco(CustomPath+sFile, this.User, sco_lines)) {
 				String txt[] = new String[2];
 				txt[0] = this.def.text[16]+CustomPath+sFile;
@@ -624,7 +624,7 @@ public void relocate() {
 		// Dieser Vector (sco_lines) speichert alle Zeilen, die in die .sco datei geschrieben werden sollen
 		// Nun ist der Headder der neuen sco Datei fertig
 		// ------------------------------------------------------------
-		// Als nï¿½chstes addieren wir mal ein paar Zeilen mit Tï¿½nen zum Vector
+		// Als nächstes addieren wir mal ein paar Zeilen mit Tönen zum Vector
 		// Der Vector ton speichert die Zeilen mit den Toenen
 		this.gc.offImage = null;
 		this.gc.mach();
@@ -921,7 +921,7 @@ public void actionPerformed(ActionEvent e) {
     
     Vector<MidiNote> mNotes;
     /**
-     * 31.1.13: Idee von Peter: vor dem start der Melodie Note eine Verzï¿½gerung einbauen
+     * 31.1.13: Idee von Peter: vor dem start der Melodie Note eine Verzögerung einbauen
      * (nur ohne quantisierung...)
      */
     @SuppressWarnings({ "rawtypes", "unused" })
@@ -1159,7 +1159,7 @@ public void actionPerformed(ActionEvent e) {
 		mid.saveMidiFile(new File(midf));
     }
   
-    public void displayRT(Soundscape rt) {
+    public void displayRT(RandomTable rt) {
     	if (this.gc != null) gc.setTable(rt, this.def.gamma, this.def.mode);
     }
 
@@ -1199,7 +1199,7 @@ public void focusLost(FocusEvent e) {
 public void doSelectNotes() {
 	Project2 p = new Project2(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs);
 	p.def = def;
-	p.createNoteTable(p.note_mode, def.min_freq, def.max_freq); // respects the min-max freq.
+	p.createNoteTable(p.note_mode); // respects the min-max freq.
 	// filer die selectierten Noten aus der Quelle !
 	Vector<OneNote> source = new Vector<OneNote>();
 	for (int n = 0; n < p.notes.size(); n++) {
@@ -1569,7 +1569,7 @@ public void setToWait(Component Co, boolean w) {
 public void setLF() {
 	try {
 	    //UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName()); // java l&F
-	    //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // abhï¿½ngig vom OS
+	    //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); // abhängig vom OS
 	    UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");
 	    //UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel"); // java L&F
 	    //UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel"); // SUN
@@ -1605,7 +1605,7 @@ class MidiNote implements ActionListener {
 	/**
 	 * 
 	 * @param sleep [ms] Dauer des Tones
-	 * @param delay [ms] Verzï¿½gerung des Tones
+	 * @param delay [ms] Verzögerung des Tones
 	 */
 	public void startTimer(int sleep) {
 		

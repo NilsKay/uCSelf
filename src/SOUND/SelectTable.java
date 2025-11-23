@@ -1,4 +1,5 @@
 package SOUND;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;

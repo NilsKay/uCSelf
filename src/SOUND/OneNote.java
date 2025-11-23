@@ -1,10 +1,10 @@
 package SOUND;
+
 import java.text.DecimalFormat;
 
 public class OneNote implements Cloneable {
 	boolean pedal;
 	double freq;
-	double weight;
 	public String note;
 	public int Octave, noteIndex, midiIndex;
 	public int distance = 0;
@@ -38,7 +38,7 @@ public class OneNote implements Cloneable {
 	}
 	/**
 	 * 
-	 * @param n [0-11] der gewï¿½hlte Ton
+	 * @param n [0-11] der gewählte Ton
 	 */
 	public void setMidiFreqency() {
 		//double e = (n * this.Octave) * 440.0 / 32.0;

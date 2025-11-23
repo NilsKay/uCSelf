@@ -10,6 +10,6 @@ public interface SoundInfoListener {
  * @param res the Vector of received parameters, line by line 
  * @param broad if true, this is a broadcast !
  */
-public void displayRT(Soundscape rt);
+public void displayRT(RandomTable rt);
     
 } // end of the interface

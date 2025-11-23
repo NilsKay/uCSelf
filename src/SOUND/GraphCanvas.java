@@ -19,7 +19,7 @@ class GraphCanvas extends JPanel {
     Font norm;
     Point img_size;	// Imagesize
     Color bg;
-    Soundscape rt;
+    RandomTable rt;
     int height;
     double xscale;
     double alpha = Math.toRadians(20.0);
@@ -65,10 +65,10 @@ public Dimension getPreferredSize() {
 	/**
 	 * Malt den Graphen
 	 */
-	public void setTable(Soundscape r) {
+	public void setTable(RandomTable r) {
 	    this.setTable(r, 1.0, 0);
 	}
-    private FitnessTable getPolygon(Soundscape rt, double xscale, double yscale, int height, boolean log) {
+    private FitnessTable getPolygon(RandomTable rt, double xscale, double yscale, int height, boolean log) {
 		int[] xpoints, ypoints;
 		xpoints = new int[rt.size * 5];
 		ypoints = new int[rt.size * 5];	
@@ -84,7 +84,7 @@ public Dimension getPreferredSize() {
 		    oldY = y;
 		    freq = n * rt.step;
 		    x = ((double) freq *  xscale +0.5);	// start of graph
-		    y = (int) ( (rt.table[n].weight - 1.0) * yscale);
+		    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
 		    if (log) rt.debugOut("n="+n+" x="+x+" y="+y+" dx="+dx+" oldY="+oldY+" x="+x,55);		
 		    if ( y != oldY) {
 			xp = (int) ( x + 0.5);
@@ -139,7 +139,7 @@ public Dimension getPreferredSize() {
 		return new FitnessTable(xps, yps, numpoints);
     }
 
-    public void oldMethod(Graphics2D off, Soundscape rt, double xscale, double yscale, int height) {
+    public void oldMethod(Graphics2D off, RandomTable rt, double xscale, double yscale, int height) {
 	// ---------- Old Method ----------------
 	int freq, x, y;
 	int dx = (int) ((double) rt.step * xscale);
@@ -149,7 +149,7 @@ public Dimension getPreferredSize() {
 	    x = (int) ((double) freq *  xscale +0.5);	// start of graph
 	    dx = (int) ((double) ((freq + rt.step) *  xscale +0.5));	
 	    dx -= x;
-	    y = (int) ( (rt.table[n].weight - 1.0) * yscale);
+	    y = (int) ( (rt.table[n].freq - 1.0) * yscale);
 	    if( y > 0 && dx > 0) {
 		off.fillRect(x, this.height - y, dx, y);
 		rt.debugOut("GraphCanvas.setTable() index n="+n+" freq="+freq+" draw x="+x+" draw y="+y+" dx="+dx, 6);
@@ -162,7 +162,7 @@ public Dimension getPreferredSize() {
  * Malt den Graphen
  */
 @SuppressWarnings({ "unused" })
-public void setTable(Soundscape r, double gamma, int mode) {
+public void setTable(RandomTable r, double gamma, int mode) {
     this.rt = r;
     this.mode = mode;
     change = false;
@@ -253,7 +253,7 @@ public void setTable(Soundscape r, double gamma, int mode) {
 }
 
     @SuppressWarnings("unused")
-	private void do2D(Graphics2D off, Soundscape rt, FitnessTable fitness, int wid, int hei, int offsetY) {
+	private void do2D(Graphics2D off, RandomTable rt, FitnessTable fitness, int wid, int hei, int offsetY) {
 		int x, y;
 		GradientPaint redtowhite = new GradientPaint(0, 0, 
 							     new Color(160, 250, 100), 
@@ -681,7 +681,7 @@ public void setTable(Soundscape r, double gamma, int mode) {
  * @param r the RandomTable
  * @param freq an array of voices
  */
-public void showNote(Soundscape r, int[] freq, int index) {
+public void showNote(RandomTable r, int[] freq, int index) {
     if (this.offImage != null) {
 		Graphics g = this.getGraphics();
 		g.drawImage(offImage, 0, 0, this); // display buffered Image

@@ -48,8 +48,8 @@ public class Melody {
 	 * @return
 	 */
 	public OneNote findNextMelodyNote(int noteIndex, int octave, int actualNote) {
-		// Hauptnote bestimmt welche mï¿½glichen Melodienoten passen,
-		// von denen wird die nï¿½chste frequenz zur aktuell gespielten genommen
+		// Hauptnote bestimmt welche möglichen Melodienoten passen,
+		// von denen wird die nächste frequenz zur aktuell gespielten genommen
 		OneNote[] possible = this.melody.elementAt(noteIndex);
 		int foundIndex = 0;
 		int diff = 148668383;
@@ -73,7 +73,7 @@ public class Melody {
 	 * @return
 	 */
 	public OneNote findMelodyNote(int noteIndex, int octave, int tension) {
-		// Hauptnote bestimmt welche mï¿½glichen Melodienoten passen,
+		// Hauptnote bestimmt welche möglichen Melodienoten passen,
 		System.out.println("Hier!");
 		OneNote[] possible = this.melody.elementAt(noteIndex);
 		OneNote res = new OneNote(0, possible[tension].noteIndex, octave);
@@ -103,62 +103,62 @@ public class Melody {
 }
 /*1)Hauptspur:
 c
-dann mï¿½glich:
+dann möglich:
 c, d#, e, g, g#, a
 
 2) Hauptspur:
 c#
-dann mï¿½glich:
+dann möglich:
 c#, e, f, g#, a, a#
 
 3) Hauptspur:
 d
-dann mï¿½glich:
+dann möglich:
 d, f, f#, a, a#, h
 
 4) Hauptspur:
 d#
-dann mï¿½glich:
+dann möglich:
 d#, f#, g, a#, h, c
 
 5) Hauptspur:
 e
-dann mï¿½glich:
+dann möglich:
 e, g, g#, h, c, c#
 
 6) Hauptspur:
 f
-dann mï¿½glich:
+dann möglich:
 f, g#, a, c, c#, d
 
 7) Hauptspur:
 f#
-dann mï¿½glich:
+dann möglich:
 f#, a, a#, c#, d, d#
 
 8) Hauptspur:
 g
-dann mï¿½glich:
+dann möglich:
 g, a#, h, d, d#, e
 
 9) Hauptspur:
 g#
-dann mï¿½glich:
+dann möglich:
 g#, h, c, d#, e, f
 
 10) Hauptspur:
 a
-dann mï¿½glich:
+dann möglich:
 a, c, c#, e, f, f#
 
 11) Hauptspur:
 a#
-dann mï¿½glich:
+dann möglich:
 a#, c#, d, f, f#, g
 
 12) Hauptspur:
 h
-dann mï¿½glich:
+dann möglich:
 h, d, d#, f#, g, g#
 */
 
