@@ -2,6 +2,9 @@ package SOUND;
 
 import java.text.DecimalFormat;
 import java.util.*;
+
+import com.sun.jdi.Method;
+
 import java.io.DataOutputStream;
 import java.io.PrintWriter;
 
@@ -45,8 +48,8 @@ public class Soundscape {
     
     PrintWriter prs;
     
-    OneNote freq[];		// first random Frequencys
-    double weight[]; 	// weight for these freqencys
+    public OneNote freq[];		// first random Frequencys, weight is a param in this class
+    //double weight[]; 	// weight for these freqencys deprecated!
     
     // State machine:
     int stateCnt = 0; 	// 0 is turned off, > 0 active !
@@ -69,6 +72,7 @@ public class Soundscape {
  * @param max the maximum frequenz (Hz)
  * @param step the step - interval for the table (Hz)
  * @param def the default value for initial start
+ * impact is random weight
  */
 	public Soundscape(CDebug qd, int ver, int min, int max, int step, double def, double impact, PrintWriter prs) {
 		this.qd = qd;
@@ -178,6 +182,7 @@ public class Soundscape {
 		    f = (double) (steps - n) * val / (double) steps; // function value, linear curve
 		   
 		    // Note: I do not use warp around for array index overflows !
+		    refactor this, use Method
 		    String me = "";
 		    if (index < this.size) {
 				this.table[index].weight += f;

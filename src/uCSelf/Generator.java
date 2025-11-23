@@ -1,5 +1,7 @@
 package uCSelf;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Vector;
 
 import javax.swing.JFrame;
@@ -24,10 +26,11 @@ public class Generator {
 		boolean useSelectNotes = false;
 		int seedFrequency = 440; // Hz
 		int step = 50;
+		int numberOfFittest = 10;
 		double weight = 20.0;
-		double impact = 15.0;
-		double degression = 15.0;
-		double randomWeight = 21.0;
+		double impact = 15.0; // random weight
+		double degression = 1.0;
+		int footPrint = 21;
 		int numberOfIndividuums = 20;
 		int iterations = 5;
 		int interval = 10;
@@ -39,34 +42,34 @@ public class Generator {
 			     min, max, interval, 0.0, 
 			     impact, null);
 		p2.createPopulation(rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
-		p2.makeWeight(numberOfIndividuums, rt, randomWeight);// change weight 
+		p2.makeWeight(numberOfIndividuums, rt, impact);// change weight 
 		
 		//rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // degression
 		//----
-		World world = new World(min, max, step, impact, tonal, randomWeight);
+		World world = new World(min, max, step, impact, tonal, impact);
 		world.presetWeight(weight); 
 		System.out.println("Soundscape created");
 		int diff = 100;
 		CreatePopulation pop = new  CreatePopulation(world);
 		// plant one Individuum (seed)
 		pop.writeNEntrys(seedFrequency, degression, diff);
-		
+		world.fittest = seedFrequency;
 		for (int n = 0; n < iterations; n++) {
 			pop.createPopulation(numberOfIndividuums, world.start, world.stop); // create new Population
 		    // Now weight array for each random frequency:
 		  // footprint? frequenzen immer 0, fittest?
 			world.makeWeight();// Judge them
-			
-			QSort q = new QSort(); // ( index = max equals the highest weight)
-		    q.sort(rt.weight, rt.freq);
+			Arrays.sort(rt.freq, Comparator.comparing(p -> p.weight));
+			//QSort q = new QSort(); // ( index = max equals the highest weight)
+		    //q.sort(rt.weight, rt.freq);
 		  //--------------------------------------------------------------------
 		    // Next select randomly the fittest (the last ones in the array are the fittest !):
-		    int is = (int) ((double) this.def.fittest * java.lang.Math.random());
-		    z = (this.def.population -1 ) - is;
-		    debugOut("Index that will be selected:"+z, 5);
+		    int is = (int) ((double) numberOfFittest * java.lang.Math.random());
+		    int z = (numberOfIndividuums -1 ) - is;
+		    //debugOut("Index that will be selected:"+z, 5);
 		    // --------- Nun ist ein Individuum selektiert ! ----------------
-		    freq = rt.freq[z];
-		    
+		    OneNote freq = rt.freq[z];
+		    rt.writeNEntrys( freq, degression, footPrint );
 		}
 		System.out.println("All done");
 	}

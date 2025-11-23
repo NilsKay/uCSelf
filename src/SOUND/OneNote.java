@@ -4,7 +4,7 @@ import java.text.DecimalFormat;
 public class OneNote implements Cloneable {
 	boolean pedal;
 	double freq;
-	double weight;
+	public double weight;
 	public String note;
 	public int Octave, noteIndex, midiIndex;
 	public int distance = 0;
@@ -24,7 +24,7 @@ public class OneNote implements Cloneable {
 		this.Octave = oct;
 		this.pedal = false;
 	}
-	
+
 	public boolean equals(OneNote n) {
 		return this.freq == n.freq;
 	}

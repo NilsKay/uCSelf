@@ -645,15 +645,17 @@ public class Project2 {
 	    	makeWeight(this.def.population, shadow, def.r_Weight);// Judge them
 	    }
 	  
-	    // now sort it;
-	    QSort q = new QSort(); // ( index = max equals the highest weight)
-	    q.sort(rt.weight, rt.freq);
+	    // now sort new population by weight;
+	    Arrays.sort(rt.freq, Comparator.comparing(p -> p.weight));
+	   // QSort q = new QSort(); // ( index = max equals the highest weight) sort population by weight, keep relation of weight and freq
+	   // q.sort(rt.weight, rt.freq);
 	    if (shadow != null)
-	    	q.sort(shadow.weight, shadow.freq);
+	    	Arrays.sort(shadow.freq, Comparator.comparing(p -> p.weight));
+	    	//q.sort(shadow.weight, shadow.freq);
 	    
 	    if (this.Verbosity >= 6 ) {
 	    	for (z = 0; z < this.def.population; z++) 
-	    		debugOut("Sorted: index="+z+" freq="+rt.freq[z]+" weight="+rt.weight[z], 6);
+	    		debugOut("Sorted: index="+z+" freq="+rt.freq[z]+" weight="+rt.freq[z].weight, 6);
 	    }
 	   
 	    //--------------------------------------------------------------------
@@ -798,7 +800,7 @@ public class Project2 {
 	    debugOut("This is our new selection:"+freq+" Hz", 5);
 	    //debugOut("This is our new selection:"+freq+" Hz", 55);
 	    // Mark the new individual in the RT, now update Tables
-	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq );
+	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // footprint
 	    sil.displayRT(rt);
 	    rt.getMaxx();
 	    addImageS(rt, start);
@@ -1248,7 +1250,8 @@ public class Project2 {
         			this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
         	makeWeight(this.def.population, shadow, def.r_Weight);// Judge them
         	QSort q = new QSort(); // ( index = max equals the highest weight)
-        	q.sort(shadow.weight, shadow.freq);
+        	Arrays.sort(shadow.freq, Comparator.comparing(p -> p.weight));
+        	//q.sort(shadow.weight, shadow.freq);
         	OneNote sfreq = null;
         	int is = (int) ((double) this.def.fittest * java.lang.Math.random());
     	    int sz = (this.def.population -1 ) - is;
@@ -1768,15 +1771,15 @@ public class Project2 {
     public void makeWeight(int n, Soundscape rt, double r_Weight) {
 		int i;
 		double t;
-		rt.weight = new double[rt.freq.length];
+		//rt.weight = new double[rt.freq.length];
 		// first get the weight from the RandomTable:
 		debugOut("makeWeight() Get the weight for the new random frequencys:", 6);
 		for (i = 0; i < rt.freq.length; i++) {
-		    rt.weight[i] = t = rt.readEntry((int)rt.freq[i].freq); // read individuum from soundscape
+		    rt.freq[i].weight = t = rt.readEntry((int)rt.freq[i].freq); // read individuum from soundscape
 		    // randomize this weight:
 		    // 1. : this.weight[i] = this.weight[i] * r_Weight * java.lang.Math.random();
-		    rt.weight[i] -= r_Weight * java.lang.Math.random();
-		    debugOut("makeWeight() weight for frequenz ="+rt.freq[i]+" Hz ="+t+" randomized="+rt.weight[i], 6);
+		    rt.freq[i ].weight -= r_Weight * java.lang.Math.random();
+		    debugOut("makeWeight() weight for frequenz ="+rt.freq[i]+" Hz ="+t+" randomized="+rt.freq[i].weight, 6);
 		    //debugOut("makeWeight() weight for frequenz ="+this.freq[i]+" Hz ="+t+" randomized="+this.weight[i]+" index="+i, 55);
 		}
     }

@@ -14,6 +14,7 @@ public class World {
 	public  int step;
 	public  double impact;
 	double randomWeight;
+	public int fittest; 
 	
 	public World(int min, int max, int step, double impact, boolean tonal, double randomWeight) {
 		this.start = min;
