@@ -8,6 +8,7 @@ import SOUND.OneNote;
 import SOUND.Project2;
 import SOUND.SoundInfoListener;
 import SOUND.Soundscape;
+import Utils.QSort;
 
 
 public class Generator {
@@ -55,6 +56,16 @@ public class Generator {
 		    // Now weight array for each random frequency:
 		  // footprint? frequenzen immer 0, fittest?
 			world.makeWeight();// Judge them
+			
+			QSort q = new QSort(); // ( index = max equals the highest weight)
+		    q.sort(rt.weight, rt.freq);
+		  //--------------------------------------------------------------------
+		    // Next select randomly the fittest (the last ones in the array are the fittest !):
+		    int is = (int) ((double) this.def.fittest * java.lang.Math.random());
+		    z = (this.def.population -1 ) - is;
+		    debugOut("Index that will be selected:"+z, 5);
+		    // --------- Nun ist ein Individuum selektiert ! ----------------
+		    freq = rt.freq[z];
 		    
 		}
 		System.out.println("All done");
