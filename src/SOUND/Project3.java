@@ -1,4 +1,4 @@
-package Sound;
+package SOUND;
 import java.util.*;
 import java.lang.Math;
 import Utils.QSort;

@@ -1,4 +1,4 @@
-package Sound;
+package SOUND;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;

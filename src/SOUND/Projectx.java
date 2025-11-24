@@ -1,4 +1,4 @@
-package Sound;
+package SOUND;
 import java.util.*;
 import java.lang.Math;
 /**
@@ -6,7 +6,7 @@ import java.lang.Math;
  * @version 	$Id$
  * @author 	Nils Kay
  */
-public class Project1 {
+public class Projectx { // Project1
     public final static String DO = "i1"; 
     public final int maxOkt = 6;	// 7 Oktaven maximal ?
     public final int KOMP1 = 0;	// Random
@@ -20,6 +20,7 @@ public class Project1 {
     Vector generators, envelopes;
     Vector notes;	// a vector that holds the tonal notes frequencys
     GraphCanvas gc;
+    CDebug qd;
     /**
      * Constructor des 1. Projektes:
      * Eine ganze musikalische Note errechnet sich so:
@@ -28,7 +29,7 @@ public class Project1 {
      * 0=A, 1=A#, B=2, C=3, C#=4, D=5, D#=6, E=7, F=8, F#=9, G=10, G#=11
      * Es gibt ca. 12 Oktaven ?
      */
-    public Project1() {
+    public Projectx() {
 	// Constructor
 	int n, m, q, freq;
 	double p;
@@ -248,7 +249,7 @@ public class Project1 {
 	System.out.println("KOMPOSITION: (Evolution)");
 	// Angangsbedingung:
 	int freq = min_freq + (int) ((double) (max_freq - min_freq) * java.lang.Math.random());
-	RandomTable rt = new RandomTable(min_freq, max_freq, step, 0.0);
+	RandomTable rt = new RandomTable(this.qd, 1, min_freq, max_freq, step, 0.0);
 	// Veraendere die Tabelle:
 	// freq, um wieviel nach oben, welche Frequenz-differenz zu beachten ist
 	rt.writeNEntrys( freq, 200.0, diff_freq );
@@ -306,7 +307,7 @@ public class Project1 {
 	// so macht man dann aus einen Note - Eintrag eine sco-line :
 	for(int n = 0; n < komposition.size(); n++) {
 	    nt = (Note) komposition.elementAt(n);
-	    tmp = Project1.DO+" "+nt.start+" "+nt.dauer;
+	    tmp = Projectx.DO+" "+nt.start+" "+nt.dauer;
 	    if (nt.freq > 0) tmp+= " "+nt.freq;
 	    if (nt.generator > 0) tmp+= " "+nt.generator;
 	    if (nt.amplitude > 0) tmp+= " "+nt.amplitude;

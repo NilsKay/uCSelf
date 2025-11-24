@@ -6,10 +6,11 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="C:/Users/ms/Workspace/JCSelfWs/uCSelf/lib/forms-1.1.0.jar">
+	<classpathentry kind="lib" path="C:/Develop/JCSelfWs/uCSelf/lib/forms-1.1.0.jar">
 		<attributes>
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="lib" path="C:/Develop/JCSelfWs/uCSelf/lib/looks-2.1.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
