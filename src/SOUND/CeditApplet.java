@@ -11,7 +11,7 @@ public class CeditApplet extends Applet implements Runnable {
     String windowClass;
     String buttonText;
     String windowTitle;
-    int requestedWidth = 0;
+    int requestedWidth = 0; 
     int requestedHeight = 0;
     Button button;
     Thread windowThread;
