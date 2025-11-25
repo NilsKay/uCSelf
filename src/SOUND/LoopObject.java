@@ -11,7 +11,7 @@ public class LoopObject {
 	private DecimalFormat f = new DecimalFormat("#.###");
 	public OneNote freq;
 	private Vector<Note> loop;
-	private double start;
+	public double start;
 	public int f_cnt; 
 	private Vector<Note> loopCopy;
 	private int loopCounter;

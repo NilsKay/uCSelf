@@ -537,7 +537,7 @@ public class Project2 {
     	int n, z, it, st;
     	
     	// Tonal Values:
-    	double start = 0.0;	// Notenstart
+    	
     	
     	
     	
@@ -685,7 +685,7 @@ public class Project2 {
 	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // footprint
 	    sil.displayRT(rt);
 	    rt.getMaxx();
-	    addImageS(rt, start);
+	    addImageS(rt, o.start);
 	   // addImage(rt, start);
 	    int m_amplitude = 0;
 	    int m_Tension = 0;
@@ -723,7 +723,7 @@ public class Project2 {
 	    o.addLoopProperties(rt, shadow, sFreq, notes, generator, envelope, skompo);
 	    if( o.ndVoice != null) {
 	    	// Akkorde !
-	    	Note nta = new Note(start, o.tempo, o.dauer, o.bal, o.ndVoice.freq, generator, o.amplitude, envelope, true);
+	    	Note nta = new Note(o.start, o.tempo, o.dauer, o.bal, o.ndVoice.freq, generator, o.amplitude, envelope, true);
 	    	nta.channel = 0; 	// first instrument
 	    	nta.voices = o.stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 	    	nta.pDauer = freq.pedal?o.pDauer:0;
@@ -771,7 +771,7 @@ public class Project2 {
 			     Converter.doBreak();
 			 }
 			 try {
-				 Note ntn = new Note(start, o.tempo, o.dauer, o.bal, o.frq, generator, o.amplitude, envelope, false);
+				 Note ntn = new Note(o.start, o.tempo, o.dauer, o.bal, o.frq, generator, o.amplitude, envelope, false);
 				 ntn.voices = o.stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 				 ntn.channel = st;
 				 ntn.note = freq.clone();
@@ -805,7 +805,7 @@ public class Project2 {
 				 ex.printStackTrace();
 			 }
 	    }
-	    start += o.tempo;
+	    o.start += o.tempo;
 	    if (this.halt) break;	// stop doing it
 	    flowControl();
 	    if (this.def.mode > 0 | true) {
