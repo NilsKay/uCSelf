@@ -185,18 +185,18 @@ public class LoopObject {
 		 // --------- Jetzt noch ein paar Properites dieser Frequenz : -----------
 	    if (loopNote == null) { // not loop, not permutation, add a new modified note
 	    	//addLog("Normal note, not loop");
-	    	amplitude = Project2.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
+	    	amplitude = ProjectTools.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
 					     max_amplitude, this.def.amplify_amp);	
 		    // amplitude = loud[0];
 		    debugOut.accept("Resulting amplitude ="+amplitude, 5);
-		    if (this.def.stereo) bal = Project2.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
+		    if (this.def.stereo) bal = ProjectTools.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
 		    debugOut.accept("Resulting balance: bal="+bal, 5);
 		    //addLog("Resulting amplitude ="+amplitude+" balance: bal="+bal);
 		    
 		    double val = rt.readEntry((int)freq.freq);
 		    
 		    //------ tempo : ---------------
-		    dauer = Project2.getKleiner(val, rt.max, this.def.min_tempo, this.def.max_tempo);	
+		    dauer = ProjectTools.getKleiner(val, rt.max, this.def.min_tempo, this.def.max_tempo);	
 		    if (dauer < this.def.min_tempo || dauer > this.def.max_tempo) {
 		    	debugOut.accept("Project2: tempo out of range ="+dauer, 4);
 		    }
@@ -240,7 +240,7 @@ public class LoopObject {
 		    	//freq.freq = 44.0;
 		    	//freq.getMidiNote();
 		    	double sval = shadow.readEntry((int)sFreq.freq);
-		    	pDauer = Project2.getKleiner(sval, shadow.max, this.def.min_tempo, this.def.max_tempo);
+		    	pDauer = ProjectTools.getKleiner(sval, shadow.max, this.def.min_tempo, this.def.max_tempo);
 		    	//System.out.println("dauer="+dauer+" pedal dauer="+pDauer);
 		    	//pDauer = 3.0; // test !
 		    	addLog.accept("Shadow: pDauer="+f.format(pDauer));
@@ -252,7 +252,7 @@ public class LoopObject {
 		    
 		    if (this.def.tonal) {
 		    	// get freq as double !
-		    	frq = Project2.getExactFreq((int)freq.freq, notes).freq;
+		    	frq = ProjectTools.getExactFreq((int)freq.freq, notes).freq;
 		    }
 		    //else System.out.println("Free: frq="+frq);
 		    //---- erzeuge eine neue Note mit den oben ermittelten Werten.--------------
@@ -292,11 +292,11 @@ public class LoopObject {
 		    
 
 		    if (doOct) {
-		    	double ten = Project2.getKleiner(val, rt.max, 0.0, 23.0);	
+		    	double ten = ProjectTools.getKleiner(val, rt.max, 0.0, 23.0);	
 		    	int tens = (int) (ten + 0.5);
 		    	if (tens >= 24)
 		    		tens = 23;
-		    	ndVoice = this.akk.get2ndVoice(Project2.getNoteFromString(freq.note), freq.Octave, tens);
+		    	ndVoice = this.akk.get2ndVoice(ProjectTools.getNoteFromString(freq.note), freq.Octave, tens);
 		    	if (ndVoice != null) {
 		    		ndVoice.distance = tens;
 		    		ndVoice.pedal = nt.note.pedal;
@@ -322,7 +322,7 @@ public class LoopObject {
 		    	} catch (Exception ex){}
 		    }
 		    if (transOK)
-		    	Project2.addToKomposition(nt, skompo);
+		    	ProjectTools.addToKomposition(nt, skompo);
 		    dauer = nt.dauer;
 	    }
 	    else {
@@ -330,10 +330,10 @@ public class LoopObject {
 	    		if (!def.doLoopBug) {
 	    			Note ln = loopNote.clone();
 	    			ln.start = start;
-	    			Project2.addToKomposition(ln, skompo);
+	    			ProjectTools.addToKomposition(ln, skompo);
 	    		}
 	    		else 
-	    			Project2.addToKomposition(loopNote, skompo);
+	    			ProjectTools.addToKomposition(loopNote, skompo);
 		    	stimmen = loopNote.voices;
 		    	pDauer = loopNote.pDauer;
 		    	dauer = loopNote.dauer;
@@ -366,7 +366,7 @@ public class LoopObject {
 		    		addLog.accept("Akkord active: "+nta.note);
 				 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
 		    		//komposition.addElement(nta);
-		    		Project2.addToKomposition(nta, skompo);
+		    		ProjectTools.addToKomposition(nta, skompo);
 		    	} catch(Exception ex) {
 		    		ex.printStackTrace();
 		    	}
@@ -386,19 +386,19 @@ public class LoopObject {
 				 // Mark the new individual in the RT
 				 //rt.writeNEntrys( freq, this.impact, this.def.diff_freq );
 				 //sil.displayRT(rt);
-				 if (Project2.checkDouble((int)freq.freq, sti)) amplitude = 0; // is double
+				 if (ProjectTools.checkDouble((int)freq.freq, sti)) amplitude = 0; // is double
 				 else { 
-				     amplitude = Project2.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
+				     amplitude = ProjectTools.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
 							      max_amplitude, this.def.amplify_amp);	
 				     sti.addElement(new Integer((int)freq.freq));
 				 }
 				 //debugOut("Resulting amplitude ="+amplitude, 5);
-				 if (this.def.stereo) bal = Project2.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
+				 if (this.def.stereo) bal = ProjectTools.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
 				 //debugOut("Resulting balance: bal="+bal, 5);
 				 frq = (double) freq.freq;
 				 if (this.def.tonal) {
 				     // get freq as double !
-				     frq = Project2.getExactFreq((int)freq.freq, notes).freq;
+				     frq = ProjectTools.getExactFreq((int)freq.freq, notes).freq;
 				 }
 				 if (tempo <= 0) {
 				     System.out.println("tempo (b)="+tempo);
@@ -432,7 +432,7 @@ public class LoopObject {
 					 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
 					 if (amplitude != 0 && transOK) {
 						 addLog.accept((st+1)+". Stimme : dauer="+f.format(tempo)+" "+ntn.note);
-						 Project2.addToKomposition(ntn, skompo);
+						 ProjectTools.addToKomposition(ntn, skompo);
 						 //komposition.addElement(ntn);
 					 }
 				 } catch (Exception ex) {

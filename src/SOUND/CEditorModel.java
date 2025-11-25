@@ -232,12 +232,12 @@ public class CEditorModel {
 	 @SuppressWarnings({ "rawtypes", "unchecked" })
 	 public Vector setLChoice(Defaults def) {
 		 int n;
-		 int max = Project2.Loudness.length;
+		 int max = ProjectTools.Loudness.length;
 		 Vector v = new Vector();
-		 if (ce.def.newFOF) max = Project2.maxFOFLoudIndex;
+		 if (ce.def.newFOF) max = ProjectTools.maxFOFLoudIndex;
 		 for(n = 0; n < max; n++) {
-			 v.addElement(Project2.Loudness[n]);
-			 if (ce.def.max_amp.equals(Project2.Loudness[n])) break;
+			 v.addElement(ProjectTools.Loudness[n]);
+			 if (ce.def.max_amp.equals(ProjectTools.Loudness[n])) break;
 		 }
 		 return v;
 	 }
@@ -247,11 +247,11 @@ public class CEditorModel {
 		 int n;
 		 boolean flag = false;
 		 Vector v = new Vector();
-		 int max = Project2.Loudness.length;
-		 if (ce.def.newFOF) max = Project2.maxFOFLoudIndex;
+		 int max = ProjectTools.Loudness.length;
+		 if (ce.def.newFOF) max = ProjectTools.maxFOFLoudIndex;
 		 for(n = 0; n < max; n++) {
-			 if (ce.def.min_amp.equals(Project2.Loudness[n])) flag = true;
-			 if (flag) v.addElement(Project2.Loudness[n]);
+			 if (ce.def.min_amp.equals(ProjectTools.Loudness[n])) flag = true;
+			 if (flag) v.addElement(ProjectTools.Loudness[n]);
 		 }
 		 return v;
 	 }

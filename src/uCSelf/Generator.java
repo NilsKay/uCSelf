@@ -9,6 +9,7 @@ import javax.swing.JFrame;
 
 import SOUND.OneNote;
 import SOUND.Project2;
+import SOUND.ProjectTools;
 import SOUND.SoundInfoListener;
 import SOUND.Soundscape;
 import Utils.QSort;
@@ -46,8 +47,8 @@ public class Generator {
 		Soundscape rt = new Soundscape(null, 1, 
 			     min, max, interval, 0.0, 
 			     impact, null);
-		Project2.createPopulation(notes, rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
-		Project2.makeWeight(numberOfIndividuums, rt, impact, Generator::debugOut);// change weight 
+		ProjectTools.createPopulation(notes, rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
+		ProjectTools.makeWeight(numberOfIndividuums, rt, impact, Generator::debugOut);// change weight 
 		
 		//rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // degression
 		//----

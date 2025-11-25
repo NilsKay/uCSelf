@@ -445,12 +445,12 @@ public void setMenubar() {
     @SuppressWarnings({ "rawtypes", "unchecked" })
 	public Vector setLChoice() {
 		int n;
-		int max = Project2.Loudness.length;
+		int max = ProjectTools.Loudness.length;
 		Vector v = new Vector();
-		if (this.def.newFOF) max = Project2.maxFOFLoudIndex;
+		if (this.def.newFOF) max = ProjectTools.maxFOFLoudIndex;
 		for(n = 0; n < max; n++) {
-		    v.addElement(Project2.Loudness[n]);
-		    if (def.max_amp.equals(Project2.Loudness[n])) break;
+		    v.addElement(ProjectTools.Loudness[n]);
+		    if (def.max_amp.equals(ProjectTools.Loudness[n])) break;
 		}
 		return v;
     }
@@ -460,11 +460,11 @@ public void setMenubar() {
 		int n;
 		boolean flag = false;
 		Vector v = new Vector();
-		int max = Project2.Loudness.length;
-		if (this.def.newFOF) max = Project2.maxFOFLoudIndex;
+		int max = ProjectTools.Loudness.length;
+		if (this.def.newFOF) max = ProjectTools.maxFOFLoudIndex;
 		for(n = 0; n < max; n++) {
-		    if (def.min_amp.equals(Project2.Loudness[n])) flag = true;
-		    if (flag) v.addElement(Project2.Loudness[n]);
+		    if (def.min_amp.equals(ProjectTools.Loudness[n])) flag = true;
+		    if (flag) v.addElement(ProjectTools.Loudness[n]);
 		}
 		return v;
     }
@@ -947,7 +947,7 @@ public void actionPerformed(ActionEvent e) {
 		flow = new Vector();
 		v = new Vector();
 		//-------- Combine the voices :
-		flow = this.pr2.getInterval(this.pr2.komposition, false, def.duration_step_index);
+		flow = ProjectTools.getInterval(this.pr2.komposition, false, def.duration_step_index);
 		
 		// Instruments:
 		for (int i = 0; i < mid.channels.length; i++) { // hier die Instrumente setzen (2 pro stimme wg.akkord ?)
@@ -1037,7 +1037,7 @@ public void actionPerformed(ActionEvent e) {
 				//addLog("midiNote="+midiNote);
 				MidiNote midN = new MidiNote(midiNote,
 						(int) ((nt.balance - 0.5) * 127.0 + 0.5) + 64, 
-						pr2.mapAplitude(nt.amplitude), channel, sl);
+						ProjectTools.mapAplitude(nt.amplitude), channel, sl);
 				//----------------- Timer ---
 				tTime = System.currentTimeMillis();  
 				if (midN.dauer > 0)  {

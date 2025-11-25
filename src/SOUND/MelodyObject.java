@@ -54,7 +54,7 @@ public class MelodyObject {
    		     this.def.impact, prs);
     	OneNote sFreq = null;
     	if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-    		sFreq = Project2.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+    		sFreq = ProjectTools.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
     	}
     	else 
     		sFreq = new OneNote(this.def.seed, 0, 0);
@@ -62,7 +62,7 @@ public class MelodyObject {
     	shadow.writeNEntrys(sFreq, this.def.degression, this.def.diff_freq );
     	double start = 0;
     	//-------------
-    	Vector<Vector> interval = Project2.getInterval(in, false, def.duration_step_index); // A vector of vectors for each interval 
+    	Vector<Vector> interval = ProjectTools.getInterval(in, false, def.duration_step_index); // A vector of vectors for each interval 
     	//printInvteral(interval);
     	Vector<Note> all = null; // all notes of one intervall!
     	int it = 0;
@@ -71,9 +71,9 @@ public class MelodyObject {
     		Note first = all.firstElement();
     		start = first.start;
     		shadow.iteration = it;
-    		Project2.createPopulation(notes, shadow, this.def.population, 
+    		ProjectTools.createPopulation(notes, shadow, this.def.population, 
         			this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
-    		Project2.makeWeight(this.def.population, shadow, def.r_Weight, debugOut);// Judge them
+    		ProjectTools.makeWeight(this.def.population, shadow, def.r_Weight, debugOut);// Judge them
         	QSort q = new QSort(); // ( index = max equals the highest weight)
         	Arrays.sort(shadow.freq, Comparator.comparing(p -> p.weight));
         	//q.sort(shadow.weight, shadow.freq);
@@ -97,7 +97,7 @@ public class MelodyObject {
         	/*
         	 * Spannung aus der Fitness nicht mehr aus der Dauer!
         	 */
-        	double dte = Project2.getKleiner(val, shadow.max, 0.0, melody.max);	
+        	double dte = ProjectTools.getKleiner(val, shadow.max, 0.0, melody.max);	
         	int m_Tension = (int) (dte + 0.5);
         	//int m_Tension = (int) (dt * melody.max / dbereich +0.5);
         	//int m_Tension = (int) (1.5 * dt * melody.max / dbereich +0.5);
@@ -105,10 +105,10 @@ public class MelodyObject {
         		m_Tension = (int) melody.max;
         	
         	//System.out.println("m_tension="+m_Tension);
-        	int m_amplitude = Project2.getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
+        	int m_amplitude = ProjectTools.getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
         			max_amplitude, this.def.amplify_amp);
         	if (this.def.stereo) 
-        		m_bal = Project2.getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
+        		m_bal = ProjectTools.getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
  
         	
         	// ################################################ //
@@ -160,7 +160,7 @@ public class MelodyObject {
 		    		int amplitude = m_amplitude; // war 70!
 		    		melodyTone = new Note(start, 0.0, 0.0, m_bal, next.freq, generator, amplitude, envelope, false);
 			    	melodyTone.channel = channel;
-			    	double ly =  Project2.getKleiner(val, shadow.max, 0.0, this.def.max_tempo) * 1000.0;
+			    	double ly =  ProjectTools.getKleiner(val, shadow.max, 0.0, this.def.max_tempo) * 1000.0;
 			    	melodyTone.delay = 0.0;
 			    	if (ly > 0 && this.def.doDelay)
 			    		melodyTone.delay = ly;

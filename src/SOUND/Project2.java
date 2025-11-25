@@ -38,14 +38,10 @@ public class Project2 {
     DataOutputStream dos;
     
     // Loudness:
-    public static final String[] Loudness = new String[] {
-	"pause", "ppp", "pp", "p", "mp", "mf", "f", "ff", "fff"};
-
-    public static final int[] loud = new int[] {
-    		0 , 35   , 45  , 55 , 62  , 68  , 75 , 85  , 90 };
+   
      // bei fof ist 90 zu laut, bei 85 Schluï¿½ !
 
-    public static int maxFOFLoudIndex = 8; // do not reach this index !
+    
 
     public static final double[] GAMMAT = new double[] {
 	0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0,
@@ -107,17 +103,6 @@ public class Project2 {
 		this.Verbosity = ver;
 		debugOut("Project2 : Constructor", 1);
 		
-    }
-    
-    public static int getNoteFromString(String s) {
-    	int res = 0;
-    	for (int n = 0; n < Project2.nts.length; n++) {
-    		if(s.equalsIgnoreCase(Project2.nts[n])) {
-    			res = n;
-    			break;
-    		}
-    	}
-    	return res;
     }
     
     /**
@@ -223,21 +208,6 @@ public class Project2 {
 		return notes;
     }
 
-    /**
-     * Calculate the frequency from the note-nr
-     * @param n the number of this note
-     * @return the frequency
-     */
-    private static double getFreq(int n) {
-    	double p = java.lang.Math.pow(2.0, ((double) n++ / 12.0));	// 2^(n/12)
-    	double f = 8.175798916 * p; 
-    	return f;
-    }
-    
-    private static double getFreq(int n, int o) {
-    	n += 12 * o;
-    	return getFreq(n);
-    }
     
     /**
      * Calculate the note-nr from the frequency
@@ -285,11 +255,7 @@ public class Project2 {
     }
     
     PrintWriter skompo = null;
-    
-    public static void addToKomposition(Note nt, PrintWriter skompo) {
-    	if (skompo != null)
-    		skompo.println(nt.saveAsString());
-    }
+   
     
     /**
      * Save the actual random table in a line
@@ -366,7 +332,7 @@ public class Project2 {
 		// init seed frequency
 		OneNote freq; // start Note
 		if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-		    freq = makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+		    freq = ProjectTools.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
 		}
 		else freq = new OneNote(this.def.seed, 0, 0);
 		
@@ -391,7 +357,7 @@ public class Project2 {
 		// -------- Initalise Tables -----------
 		if (shadow != null) {
 			if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-			    sFreq = makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+			    sFreq =  ProjectTools.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
 			}
 			else 
 				sFreq = new OneNote(this.def.seed, 0, 0);
@@ -410,8 +376,8 @@ public class Project2 {
 		debugOut("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight, 55);
 		addLog("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight);
 		flowControl();
-		int max_amplitude = getLoundness(this.def.max_amp); // Border values
-		int min_amplitude = getLoundness(this.def.min_amp);
+		int max_amplitude =  ProjectTools.getLoundness(this.def.max_amp, def.fof); // Border values
+		int min_amplitude =  ProjectTools.getLoundness(this.def.min_amp, def.fof);
 		
 		
 		LoopObject o = new LoopObject(def, this::debugOut, this::addLog);
@@ -430,14 +396,14 @@ public class Project2 {
 		    if (shadow != null)
 		    	shadow.iteration = it;
 		    
-		    createPopulation(notes, rt, this.def.population, 
+		    ProjectTools.createPopulation(notes, rt, this.def.population, 
 					  this.def.min_freq, this.def.max_freq,def.tonal, def.preferLowerNotes, def.useSelectNotes); // create new Population
 		    // Now weight array for each random frequency:
-		    makeWeight(this.def.population, rt, def.r_Weight, this::debugOut);// Judge them
+		    ProjectTools.makeWeight(this.def.population, rt, def.r_Weight, this::debugOut);// Judge them
 		    if (shadow != null) {
-		    	createPopulation(notes, shadow, this.def.population, 
+		    	 ProjectTools.createPopulation(notes, shadow, this.def.population, 
 					  this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
-		    	makeWeight(this.def.population, shadow, def.r_Weight, this::debugOut);// Judge them
+		    	 ProjectTools.makeWeight(this.def.population, shadow, def.r_Weight, this::debugOut);// Judge them
 		    }
 		  
 		    // now sort new population by weight;
@@ -495,16 +461,16 @@ public class Project2 {
 			    shadow.writeNEntrys( sfreq, this.def.degression, this.def.diff_freq );
 			   // sil.displayRT(rt);
 			    shadow.getMaxx();
-			    m_Tension = (int) getKleiner(melody.max, rt.max, this.def.min_tempo, this.def.max_tempo);
-			    m_amplitude = getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
+			    m_Tension = (int)  ProjectTools.getKleiner(melody.max, rt.max, this.def.min_tempo, this.def.max_tempo);
+			    m_amplitude =  ProjectTools.getAmplitude(shadow.readEntry((int)sfreq.freq), shadow.max, min_amplitude, 
 					     max_amplitude, this.def.amplify_amp);
 			    if (this.def.stereo) 
-			    	m_bal = getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
+			    	m_bal =  ProjectTools.getBal(shadow.fittest_freq, (int)sfreq.freq, shadow.start, shadow.stop);
 			   
 		    }
 		    
 		    debugOut("Resulting amplitude ="+o.amplitude, 5);
-		    if (this.def.stereo) o.bal = getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
+		    if (this.def.stereo) o.bal =  ProjectTools.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
 		   
 		    //-------------------------------------------------------------------
 		    o.addLoopProperties(rt, shadow, sFreq, notes, generator, envelope, skompo);
@@ -568,38 +534,13 @@ public class Project2 {
 			});
 		}
 		if (this.def.duration_step_index > 0) 
-			ret = quantisize(ret, def.duration_step_index);
+			ret = ProjectTools.quantisize(ret, def.duration_step_index);
 		if (this.logw != null) {
 			this.logw.close();
 		}
 		return ret;
 	
     }
-    
-    
-    
-    
-    
-    /**
-     * Align all note-start times to match the quantisation
-     * @param in
-     * @return
-     */
-    @SuppressWarnings({ "rawtypes", "unchecked"})
-	private static Vector<Note> quantisize(Vector<Note> in, int duration_step_index) {
-    	Vector<Vector> interval = getInterval(in, true, duration_step_index); // A vector of vectors for each interval 
-    	
-    	// now convert the intervalls back to one Note Vector:
-    	Vector<Note> result = new Vector<Note>();
-    	for (int n = 0; n < interval.size(); n++) {
-    		Vector<Note> iv = (Vector) interval.elementAt(n);
-    		result.addAll(iv);
-    	}
-    	
-    	return result;
-    }
-    
-    
     
     
     
@@ -619,6 +560,7 @@ public class Project2 {
     	t.save(path, "ASCII", vl);
     	
     }
+    
     @SuppressWarnings({ "unused", "unchecked" })
 	private Vector<Note> getDebug() {
     	Vector<Note> v = new Vector<Note>();
@@ -679,68 +621,7 @@ public class Project2 {
     		}
     	}
     }
-    /**
-     * 
-     * @param in
-     * @param quant
-     * @return
-     */
-    @SuppressWarnings("rawtypes")
-	public static Vector<Vector> getInterval(Vector<Note> in, boolean quant, int duration_step_index) {
-    	double start = 0.0;
-    	int index = 0;
-    	Vector<Vector> mi = new Vector<Vector>();
-    	double oneQuant = 0.0; 
-    	if (duration_step_index > 0) {
-	    	oneQuant = (double) Defaults.durations[duration_step_index] / 1000.0;//this.durations[this.def.duration_step_index]; //getDurationFromTable(dauer);
-	    }
-    	while(index < in.size()) {
-    		Note main = in.elementAt(index);
-    		Vector<Note> intervall = new Vector<Note>();
-    		//System.out.println(index+" Add first element at"+main.start+" "+main.note);
-    		if (quant) 
-				main.start = start;
-    		intervall.addElement(main);
-    		// find the next time-start (beginn of the next interval)
-    		index += 1;
-    		
-    		if (index < in.size()) {
-	    		Note nextN = in.elementAt(index);
-	    		double limit = start;
-	    		if (quant)
-	    			limit = start + oneQuant - 0.01;
-	    		boolean add = nextN.start <= limit;
-	    		while(index < in.size() && add) {
-	    			//System.out.println(index+" Interval="+mi.size()+" Add next element at "+nextN.start+" "+nextN.note);
-	    			if (quant) {
-	    				nextN.start = start;
-	    				//System.out.println("Quantisation: change start to"+start);
-	    			}
-	    			intervall.addElement(nextN);
-	    			index += 1;
-	    			if (index < in.size()) {
-	    				nextN = in.elementAt(index);
-	    				add = nextN.start <= limit;
-	    			}
-	    			else 
-	    				break;
-	    			//System.out.println("interval start="+start+" actual ="+nextN.start);
-	    		}
-	    		mi.addElement(intervall);
-	    		if (!quant)
-	    			start = nextN.start;
-	    		else {
-	    			start += oneQuant;
-	    			//System.out.println("New Intervall start="+start);
-	    		}
-	    		//System.out.println("Do Next Interval start ="+start+ " at index="+index);
-    		}
-    		else 
-    			break; // end of loop
-    	}
-    	
-    	return mi;
-    }
+    
     
     private Vector<Note> sortKomposition(String kompo) {
     	Vector<Note> res = null;
@@ -787,37 +668,7 @@ public class Project2 {
 		}
     }
 
-    /**
-     * Check if this freq is a double
-     * @param freq the frequency to be tested
-     * @param sti the vector with the used frequencys
-     * @return true if it is a double
-     */
-    @SuppressWarnings("rawtypes")
-	public static boolean checkDouble(int freq, Vector sti) {
-		int n, v;
-		for (n = 0; n < sti.size(); n++) {
-		    v = ((Integer) sti.elementAt(n)).intValue();
-		    if (v == freq) return true;
-		}
-		return false;
-    }
-
-    /**
-     * The fitter an individual is, the smaller the resulting value is, within the 
-     * Bandwitdth that we provide:
-     * @return the calculated double value
-     */
-    public static double getKleiner(double w, double Wmax, double Amin, double Amax) {
-    	if (Wmax == 0.0) return Amin;
-    	//Utils.Converter.doBreak();
-    	double v = (Amin + ((Amax - Amin) * (Wmax - w) / Wmax));
-    	if (v < 0.0) {
-    		//System.out.println("dauer="+v);
-    		v = Amin;
-    	}
-    	return v;
-    }
+    
     /**
      * The fitter an individual is, the smaller the resulting value is, within the 
      * Bandwitdth that we provide:
@@ -835,59 +686,6 @@ public class Project2 {
     	return (Amin + ((Amax - Amin) * (1 - (Wmax - w) / Wmax)));
     }
 
-
-    /*public double getDauer(double weight, double Wmax, double min, double max) {
-	return (min + ((max - min) * (Wmax - weight) / Wmax));
-	}*/
-    public static double getBal(int fittest, int freq, int start, int stop) {
-    	return (0.5 * ( 1 + (double) (freq - fittest) / (double) ( stop - start)));
-	
-    }
-   
-    
-   public static int getAmplitude(double weight, double Wmax, int Amin, int Amax, double amplifier) {
-	//	debugOut("getAmplitude: weight="+Converter.formatDouble(weight, 8)+" Wmax="+Converter.formatDouble(Wmax, 8)+" Amin="+Amin+" Amax="+Amax+" amplifier="+Converter.formatDouble(amplifier, 8), 6);//6
-		double ampval;	// weight 
-		ampval = weight * amplifier;// the weight from the table for this freq * amplifier
-		// loudness
-		int amplitude = Amin + (int) ((Amax - Amin) * (1 - (Wmax - ampval) / Wmax));
-		//debugOut("amplitude = "+amplitude, 6); // 6
-		// Now map this amplitude to or loud-table
-		int val;
-		val = getValFromTable(loud, amplitude);
-		//System.out.println("Amin="+Amin+" Amax="+Amax+" ampval="+ampval+" amplitude="+amplitude+" val="+val);
-		return val; // default
-    }
-   
-    /**
-     * @return the tbl value from the given val
-     */
-    private static int getValFromTable(int[] tbl, int val) {
-		int n, diff, pos;
-		for (n = 1; n < tbl.length; n++) {
-		    diff = tbl[n] - tbl[n-1];
-		    pos = tbl[n-1] + diff/2;	
-		    if ( val < pos ) return tbl[n-1];
-		    else if (val <= tbl[n]) return tbl[n];
-		}
-		return tbl[n-1]; // max
-    }
-	
-    public static void makeWeight(int n, Soundscape rt, double r_Weight, BiConsumer<String, Integer> debugOut) {
-		int i;
-		double t;
-		//rt.weight = new double[rt.freq.length];
-		// first get the weight from the RandomTable:
-		debugOut.accept("makeWeight() Get the weight for the new random frequencys:", 6);
-		for (i = 0; i < rt.freq.length; i++) {
-		    rt.freq[i].weight = t = rt.readEntry((int)rt.freq[i].freq); // read individuum from soundscape
-		    // randomize this weight:
-		    // 1. : this.weight[i] = this.weight[i] * r_Weight * java.lang.Math.random();
-		    rt.freq[i ].weight -= r_Weight * java.lang.Math.random();
-		    debugOut.accept("makeWeight() weight for frequenz ="+rt.freq[i]+" Hz ="+t+" randomized="+rt.freq[i].weight, 6);
-		    //debugOut("makeWeight() weight for frequenz ="+this.freq[i]+" Hz ="+t+" randomized="+this.weight[i]+" index="+i, 55);
-		}
-    }
     /**
      * Find out which border is closer to the given value:
      * v is somewhere inbetween left and right !
@@ -901,12 +699,6 @@ public class Project2 {
     	return ( i > diff)?right:left;
     }
 
-    private static OneNote getClosestMatch(double v, OneNote left, OneNote right) {
-    	double diff = (right.freq - left.freq) / 2.0; // half distance between left and right
-    	double i = v - left.freq;
-    	return ( i > diff)?right:left;
-    }
-    
     public int getChromaticFromSeed(int seed) {
 		int v,n;
 		for (n = 0; n < this.notes.size(); n++) {
@@ -918,7 +710,7 @@ public class Project2 {
 		return v; // max maximum possible
     }
 
-    public double getExactFreqOld(int freq) {
+    private double getExactFreqOld(int freq) {
     	double right;
 		double f = (double) freq;
 		int n;
@@ -935,96 +727,8 @@ public class Project2 {
 		//System.out.println("getExactFreq() in="+freq+" out="+left);
 		return left; // max maximum possible
     }
-    
-    public static OneNote getExactFreq(int freq, Vector<OneNote> notes) {
-    	OneNote right;
-		double f = (double) freq;
-		int n;
-		OneNote left = notes.elementAt(0); // first element
-		for (n = 1; n < notes.size(); n++) {
-		    // right border:
-		    right = notes.elementAt(n); 
-		    if (right.freq > freq) {
-		    	left = getClosestMatch(f, left, right);
-		    	break;
-		    }
-		    left = right; // next left border
-		}
-		//System.out.println("getExactFreq() in="+freq+" out="+left);
-		return left; // max maximum possible
-    }
-
-    /**
-     * Get a random freq. from the note-table. This table starts with our min.-freq
-     * and ends with the max.-freq.
-     * the indecees are equally distributed, checked 2nd of July 2003 nik
-     * @return a random freq.
-     */
-    public static OneNote getChromaticFrequency(Vector<OneNote> notes) {
-		int index = (int) ((double) (notes.size()) * java.lang.Math.random()); // index
-		//System.out.println("getChromaticFrequency() from max="+this.notes.size()+" r_index="+index);
-		OneNote f = notes.elementAt(index);
-		//this.rndStatic[index]++;
-		//System.out.println("getChromaticFrequency() min="+this.def.min_freq+" max="+this.def.max_freq+" rnd="+f);
-		return f;
-    }
-
-    public static OneNote makeRandomFrequency(Vector<OneNote> notes, int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
-		double f = 0.0;
-		double diff = (double) (max - min);
-		f = min + (int) (diff  * java.lang.Math.random());
-		OneNote nf = new OneNote(f, 0, 0);
-		
-		if (tonal) {
-		    if (!preferLowerNotes) { // 
-		    	nf = getExactFreq((int) f, notes);
-		    }
-		    else { // prefer lower notes !, so we choose the next lower freq of our frequency
-		    	// 
-		    	nf = getChromaticFrequency(notes);
-		    }
-		}
-		else if (useSelectNotes) {
-			nf = getExactFreq((int) f, notes);
-		}
-		return nf;
-    }
-
-    /**
-     * Enter new population into soundscape (With footprint)
-     * @param rt
-     * @param population
-     * @param min
-     * @param max
-     */
-    public static void createPopulation(Vector<OneNote> notes, Soundscape rt, int population, int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
-    	rt.freq = new OneNote[population];
-    	double maxf = 0;
-    	for (int i = 0; i < population; i++) {
-    		rt.freq[i] = makeRandomFrequency(notes, min, max+1, tonal, preferLowerNotes, useSelectNotes);
-    		if (rt.freq[i].freq > maxf )
-    			maxf = rt.freq[i].freq;
-    	}	
-    	//System.out.println("makeNRandomFrequencys Max="+maxf);
-    }
-
-/**
- * Translate the Loudness-code (f, ff etc.) into an amplitude value
- */
-    public int getLoundness(String code) {
-		int n;
-		int max = loud.length;
-		if (this.def.fof) max = maxFOFLoudIndex;
-		for (n = 0; n < max; n++) {
-		    //System.out.println("Loudness["+n+"]="+Loudness[n]+"code="+code);
-		    if (code.equals(Loudness[n])) return loud[n];
-		}
-		// default
-		return loud[n]; //MAX
-    }
-
-    @SuppressWarnings("rawtypes")
-	public Vector doProject(Defaults def, String home) {	
+   
+	public Vector<String> doProject(Defaults def, String home) {	
 		this.def = def;
 		this.balance = 0.5;	// symetrical default
 		
@@ -1070,10 +774,11 @@ public class Project2 {
 		return generateSound(home);
     }
     String kompo;
+    
     /**
      * Hier nun das Herz der Methode: wie baut man eine Ton-Abfolge.
-     * Das Ergebnis ist ein Vector mit den .sco Zeilen fï¿½r die Tï¿½ne.
-     * @param parm ein ï¿½bergabeparameter, kann auch leer sein (vom Textfeld)
+     * Das Ergebnis ist ein Vector mit den .sco Zeilen für die Töne.
+     * @param parm ein Übergabeparameter, kann auch leer sein (vom Textfeld)
      * @return Vector with .sco lines
      */
     @SuppressWarnings({ "unused"})
@@ -1084,45 +789,14 @@ public class Project2 {
 		Vector<String> result = new Vector<String>();
 		
 		for (int n = 0; n < this.komposition.size(); n++) {
-			result.addElement(digestNote(this.komposition.elementAt(n)));
+			result.addElement(ProjectTools.digestNote(this.komposition.elementAt(n), def.fof, def.delay, this::debugOut));
 		}
 		//this.kompo = kompo;
 		return result;
 		
     }
-    private String digestNote(Note nt) {
-    	double st = nt.start + (nt.delay / 1000.0);
-    	String tmp  = Project2.DO+"\t"+Converter.formatDouble(st, 12,6)+"\t";
-    	if (nt.misc == 222)
-    		tmp  = Project2.DOMELODY+"\t"+Converter.formatDouble(st, 12,6)+"\t";
-    	double dau = nt.dauer;
-    	if (nt.note.pedal)
-    		dau = nt.pDauer;
-    	if (def.delay > 0)
-    		dau += def.delay / 1000.0;
-    	tmp += Converter.formatDouble(dau, 12, 6);
-    	if (nt.freq > 0) tmp += "\t"+Converter.formatDouble(nt.freq, 10);
-    	if (nt.generator > 0) tmp += "\t"+nt.generator;
-    	if (nt.amplitude >= 0) tmp += "\t"+nt.amplitude;
-    	if (nt.envelope > 0 ) tmp += "\t"+nt.envelope;
-    	if (nt.balance > 0 ) tmp += "\t"+Converter.formatDouble(nt.balance, 6, 4);// auch formatieren
-    	// Anzahl Stimmen bei fof
-    	if (this.def.fof ) tmp += "\t\t"+nt.voices;
-    	//debugOut("dauer="+nt.dauer+" dd="+dd, 55);
-    	//debugOut(nt.toString(), 55);
-    	//debugOut(tmp, 55);
-    	debugOut("add line:"+tmp, 6);
-    	return tmp;
-    }
+   
     
-    @SuppressWarnings("static-access")
-	public int mapAplitude(int a) {
-    	int max = this.loud[loud.length-1]; // max. c-sound ampl.
-    	int res = ( a * 127 / max);
-    	//System.out.println("mapAmplitude() a="+a+" res="+res);
-    	
-    	return res; // midi has 127 as max. amplitude val.
-    }
 	
 }// end of class
 

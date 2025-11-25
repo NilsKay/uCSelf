@@ -4,6 +4,7 @@ import java.util.Vector;
 
 import SOUND.OneNote;
 import SOUND.Project2;
+import SOUND.ProjectTools;
 
 @SuppressWarnings("serial")
 /**
@@ -33,7 +34,7 @@ public class Akkord extends Vector<OneNote> {
 		String z = s.substring(s.length() -1, s.length());
 		String n = s.substring(0, s.length() -1);
 		int oc = Converter.getInt(z, 0);
-		int nt = Project2.getNoteFromString(n);
+		int nt = ProjectTools.getNoteFromString(n);
 		OneNote no = new OneNote(0, nt, oc);
 		return no;
 	}

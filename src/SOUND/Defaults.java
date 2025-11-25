@@ -127,8 +127,8 @@ public boolean loadDef(String path, int build) {
     fof = false;
     newFOF = false;
     impact = 200;
-    min_amp = Project2.Loudness[0];
-    max_amp = Project2.Loudness[Project2.Loudness.length - 1];
+    min_amp = ProjectTools.Loudness[0];
+    max_amp = ProjectTools.Loudness[ProjectTools.Loudness.length - 1];
     amplify_amp = 1.0;
     min_tempo = 0.5;
     max_tempo = 1.0;
