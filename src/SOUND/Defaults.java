@@ -25,24 +25,24 @@ public class Defaults {
 	int maxText = 140;
 	String text[] = new String[maxText];
     // ---------- All the variables from the ui-mask :
-    int max_freq, min_freq, lang;
-    int population, fittest;
-    int interval, iterations, diff_freq, delay;
-    double length, r_Weight, degression;
-    double impact;
-    boolean tonal, stereo, preferLowerNotes, useSelectNotes = false, akkord, pedal;
-    boolean fof;	// To switch between Input panels
-    boolean newFOF;	// To modify just the Oszi to behave like FOF
+	public int max_freq, min_freq, lang;
+	public int population, fittest;
+	public int interval, iterations, diff_freq, delay;
+	public double length, r_Weight, degression;
+	public double impact;
+	public boolean tonal, stereo, preferLowerNotes, useSelectNotes = false, akkord, pedal;
+	public boolean fof;	// To switch between Input panels
+	public boolean newFOF;	// To modify just the Oszi to behave like FOF
     // Other vars, also saved as Properties:
     public String lastPath = null;
-    String min_amp, max_amp;	// pp, p, mp, mf, f, ff 
+    public String min_amp, max_amp;	// pp, p, mp, mf, f, ff 
     public final int voiceMax = 7;
     public final int melodyChannels = 1;
-    double amplify_amp;
-    double min_tempo, max_tempo;
+    public double amplify_amp;
+    public double min_tempo, max_tempo;
     public int duration_step_index = 0;	// 0 = free
-    int min_voice = 1, max_voice=1;
-    int seed, mode;
+    public int min_voice = 1, max_voice=1;
+    public int seed, mode;
     // Project3 values:
     double vibrato1_ampl_min, vibrato1_ampl_max;
     double vibrato1_speed_min, vibrato1_speed_max;
@@ -58,12 +58,12 @@ public class Defaults {
     Vector<OneNote> selectedNotes;
     Vector<Integer> channels; 
     //--- State machine ----------
-    int range, trigger, cascadeCount, stepUp, stepDown;
-    int loopDepth, loopRepeat;
-    int minTempo, maxTempo, speedStep;
-    boolean useLoop, useSpeed, useCascade, permutation, doLoopBug, doMelody, useTrans, doDelay;
-    int m_range, m_trigger;
-    int transP_min, transP_max, minOct, maxOct;
+    public int range, trigger, cascadeCount, stepUp, stepDown;
+    public int loopDepth, loopRepeat;
+    public int minTempo, maxTempo, speedStep;
+    public boolean useLoop, useSpeed, useCascade, permutation, doLoopBug, doMelody, useTrans, doDelay;
+    public int m_range, m_trigger;
+    public int transP_min, transP_max, minOct, maxOct;
     
     String[] durationTable = new String[]{
     	"free", "1/16", "1/8", "1/4", "1/2", "1", "2"

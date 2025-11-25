@@ -32,30 +32,30 @@ public class Soundscape {
     double min;
 
     /** This is the table */
-    OneNote table[];
-    Vector<FitnessTable> history;
+    public OneNote table[];
+    public  Vector<FitnessTable> history;
     private double addWeight[];
     double impact;
-    CDebug qd;
-    int Verbosity;
-    double max;		// the maximum value in the table (weight)
-    int fittest_freq = 0;	// The center frequency of the fittest individual
-    int centerFreq;	// the new center frequency
-    int size;		// size of the table
-    int iteration;	// the n. iteration step
+    public CDebug qd;
+    public int Verbosity;
+    public double max;		// the maximum value in the table (weight)
+    public int fittest_freq = 0;	// The center frequency of the fittest individual
+    public int centerFreq;	// the new center frequency
+    public int size;		// size of the table
+    public int iteration;	// the n. iteration step
     public int seed;
-    int f_cnt;
+    public int f_cnt;
     
-    PrintWriter prs;
+    public PrintWriter prs;
     
     public OneNote freq[];		// first random Frequencys, weight is a param in this class
     //double weight[]; 	// weight for these freqencys deprecated!
     
     // State machine:
-    int stateCnt = 0; 	// 0 is turned off, > 0 active !
-    boolean up; 		// true is going up, false going down
-    int mode = 0;		// which state machine to use to use 0= off 1=up/down
-    OneNote trigger_index = null; // invalid 
+    public int stateCnt = 0; 	// 0 is turned off, > 0 active !
+    public boolean up; 		// true is going up, false going down
+    public int mode = 0;		// which state machine to use to use 0= off 1=up/down
+    public OneNote trigger_index = null; // invalid 
     
     public Soundscape() {
     	this(null, 1);

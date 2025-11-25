@@ -1,12 +1,19 @@
 package SOUND;
-
+import java.text.DecimalFormat;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import SOUND.Defaults;
+import SOUND.Note;
+import SOUND.OneNote;
+import SOUND.Project2;
+import SOUND.Soundscape;
+import Utils.Akkorde;
 import Utils.Converter;
 
 public class LoopObject {
+	DecimalFormat f = new DecimalFormat("#.###");
 	OneNote freq;
 	Vector<Note> loop;
 	double start;
@@ -16,16 +23,28 @@ public class LoopObject {
 	boolean requestToInitLoopCopy; 
 	int transpositionNote;
 	int it;
-	Soundscape rt;
+	Soundscape rt, shadow;
 	Defaults def;
 	int amplitude;
 	int max_amplitude; // Border values
 	int min_amplitude;
-	
+	Note loopNote  = null; 
+	double bal;
+	double dauer = 0;	// Tondauer
+	double tempo = 0, pDauer = 0;
+	OneNote ndVoice = null;
+	boolean speedDir = true; // up
+	int speedModifier = 60; // neutral !
+	int is = 0;
+	double frq;
 	BiConsumer<String, Integer> debugOut;
 	Consumer<String> addLog;
+	int stimmen = 0;
+	Akkorde akk;
+	boolean addToLoop = false;
 	
 	public LoopObject(Soundscape rt, Defaults def, BiConsumer<String, Integer> debugOut, Consumer<String> addLog) {
+		this.akk = new Akkorde();
 		this.debugOut = debugOut;
 		this.addLog = addLog;
 		this.rt = rt;
@@ -41,9 +60,11 @@ public class LoopObject {
 		this.it = 0;
 	}
 	
-	public void addLoop() {
-   	 boolean addToLoop = false;
-   	 if (rt.stateCnt <= 0) {
+	public void addLoop(Soundscape rt, Soundscape shadow, OneNote sFreq) {
+		this.rt = rt;
+		this.shadow = shadow;
+		this.addToLoop = false;
+		if (rt.stateCnt <= 0) {
 	    	// update the loop
 	    	Note tn = new Note(this.start, 0, 0, 0, 0, 0, 0, 0, false);
 		    tn.note = freq;
@@ -165,16 +186,19 @@ public class LoopObject {
 	    }
 	}
 	
-	public void addLoopProperties() {
+	public void addLoopProperties(Soundscape rt, Soundscape shadow, OneNote sFreq, Vector<OneNote> notes, int generator, int envelope) {
+		this.rt = rt;
+		this.shadow = shadow;
+		
 		 // --------- Jetzt noch ein paar Properites dieser Frequenz : -----------
-	    if ( == null) { // not loop, not permutation, add a new modified note
+	    if (loopNote == null) { // not loop, not permutation, add a new modified note
 	    	//addLog("Normal note, not loop");
 	    	amplitude = Project2.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
 					     max_amplitude, this.def.amplify_amp);	
 		    // amplitude = loud[0];
-		    debugOut("Resulting amplitude ="+amplitude, 5);
+		    debugOut.accept("Resulting amplitude ="+amplitude, 5);
 		    if (this.def.stereo) bal = Project2.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
-		    debugOut("Resulting balance: bal="+bal, 5);
+		    debugOut.accept("Resulting balance: bal="+bal, 5);
 		    //addLog("Resulting amplitude ="+amplitude+" balance: bal="+bal);
 		    
 		    double val = rt.readEntry((int)freq.freq);
@@ -182,7 +206,7 @@ public class LoopObject {
 		    //------ tempo : ---------------
 		    dauer = Project2.getKleiner(val, rt.max, this.def.min_tempo, this.def.max_tempo);	
 		    if (dauer < this.def.min_tempo || dauer > this.def.max_tempo) {
-		    	debugOut("Project2: tempo out of range ="+dauer, 4);
+		    	debugOut.accept("Project2: tempo out of range ="+dauer, 4);
 		    }
 		    /*
 		    if (this.def.duration_step_index > 0) {
@@ -223,8 +247,8 @@ public class LoopObject {
 		    if (pedal) {
 		    	//freq.freq = 44.0;
 		    	//freq.getMidiNote();
-		    	double sval = shadow.readEntry((int)sfreq.freq);
-		    	pDauer = getKleiner(sval, shadow.max, this.def.min_tempo, this.def.max_tempo);
+		    	double sval = shadow.readEntry((int)sFreq.freq);
+		    	pDauer = Project2.getKleiner(sval, shadow.max, this.def.min_tempo, this.def.max_tempo);
 		    	//System.out.println("dauer="+dauer+" pedal dauer="+pDauer);
 		    	//pDauer = 3.0; // test !
 		    	addLog.accept("Shadow: pDauer="+f.format(pDauer));
@@ -236,7 +260,7 @@ public class LoopObject {
 		    
 		    if (this.def.tonal) {
 		    	// get freq as double !
-		    	frq = getExactFreq((int)freq.freq).freq;
+		    	frq = Project2.getExactFreq((int)freq.freq, notes).freq;
 		    }
 		    //else System.out.println("Free: frq="+frq);
 		    //---- erzeuge eine neue Note mit den oben ermittelten Werten.--------------
@@ -245,7 +269,7 @@ public class LoopObject {
 		    	Converter.doBreak();
 		    }
 		    // Create the Note : 
-		    nt = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
+		    Note nt = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
 		    nt.note = freq;
 		    boolean transOK = true;
 		    if (def.useTrans) {
@@ -253,7 +277,7 @@ public class LoopObject {
 		    	//transpositionNote
 		    	transOK = false;
 		    	int om = nt.note.midiIndex;
-		    	OneNote tn = doTransposition(nt.note, o.transpositionNote);
+		    	OneNote tn = doTransposition(nt.note, transpositionNote, def.min_freq, def.max_freq);
 		    	if (tn != null) {
 		    		try {
 		    			nt.note = tn.clone();
@@ -262,25 +286,25 @@ public class LoopObject {
 		    		} catch (Exception ex) {}
 		    	}
 		    	if (transOK) 
-		    		System.out.println("Transposition: diff="+o.transpositionNote+" change midiIndex "+om+" to "+nt.note.midiIndex);
+		    		System.out.println("Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+nt.note.midiIndex);
 		    	else 
 		    		System.out.println("Transposition: Note ignored. Reason: Outside freq.- bounds!");
 		    }
 		    nt.pDauer = freq.pedal?pDauer:0;
 		    
-		    // ------- Nun prï¿½fe, ob noch Stimmen dazukommen ? --------------------------
-		    //stimmen = 2; // nur fï¿½r Test
+		    // ------- Nun prüfe, ob noch Stimmen dazukommen ? --------------------------
+		    //stimmen = 2; // nur für Test
 		    boolean doOct = this.def.akkord;
 		    
 		    stimmen = getVoices(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
 		    
 
 		    if (doOct) {
-		    	double ten = getKleiner(val, rt.max, 0.0, 23.0);	
+		    	double ten = Project2.getKleiner(val, rt.max, 0.0, 23.0);	
 		    	int tens = (int) (ten + 0.5);
 		    	if (tens >= 24)
 		    		tens = 23;
-		    	ndVoice = this.akk.get2ndVoice(getNoteFromString(freq.note), freq.Octave, tens);
+		    	ndVoice = this.akk.get2ndVoice(Project2.getNoteFromString(freq.note), freq.Octave, tens);
 		    	if (ndVoice != null) {
 		    		ndVoice.distance = tens;
 		    		ndVoice.pedal = nt.note.pedal;
@@ -292,16 +316,16 @@ public class LoopObject {
 		    nt.channel = 0; 	// first instrument
 		    nt.ndVoice = ndVoice;
 		    nt.misc = it;
-		    if (o.addToLoop) {
+		    if (addToLoop) {
 		    	// update the loop element :
 		    	try {
-			    	int last = o.loop.size() -1;
-			    	o.loop.setElementAt(nt.clone(), last);
+			    	int last = loop.size() -1;
+			    	loop.setElementAt(nt.clone(), last);
 			    	//addLog("Update last loop element size="+loop.size());
-			    	if (o.requestToInitLoopCopy ) {
-			    		o.loopCopy = new Vector<Note>();
-			    		o.loopCopy.addAll(o.loop);
-			    		o.requestToInitLoopCopy = false;
+			    	if (requestToInitLoopCopy ) {
+			    		loopCopy = new Vector<Note>();
+			    		loopCopy.addAll(loop);
+			    		requestToInitLoopCopy = false;
 			    	}
 		    	} catch (Exception ex){}
 		    }
@@ -337,4 +361,52 @@ public class LoopObject {
 	    	} catch (Exception ex){}
 	    }
 	}
+	 /**
+     * Find out, how many voices this should have
+     * Je fitter, desto 
+     * @param all freq
+     */ 
+    public int getVoices(int fittest, int freq, int start, int stop) {
+		double diff = java.lang.Math.abs(fittest-freq); // Abstand vom Fittesten [freq]
+		debugOut.accept("getVoices(): fittest="+fittest+" freq="+freq+" diff="+diff, 3);
+		double max = (double) (stop -start); // Wertebereich [freq]
+		double anzStimmen = (double) (this.def.max_voice - this.def.min_voice);	// [Stimmen]
+		// je grï¿½ï¿½er diff, desto mehr stimmen (weiter weg)
+		double v = anzStimmen * java.lang.Math.pow( diff / max, this.def.gamma);
+		// je kleiner diff, desto mehr stimmen (nï¿½her dran)
+		double v1 = anzStimmen * java.lang.Math.pow( (max - diff) / max, this.def.gamma);
+		//double v = diff * anzStimmen / max; // je weiter weg, desto mehr Stimmen
+		//double v1 = (max - diff) * anzStimmen / max; // je nï¿½her, desto mehr Stimmen
+		int val = this.def.min_voice + java.lang.Math.abs((int) (v - v1));
+		//System.out.println("getVoices(): diff="+diff+" anzStimmen="+anzStimmen);
+		debugOut.accept("v="+v+" v1="+v1+" val="+val, 3);
+		return val;
+    }
+    
+    public static OneNote doTransposition(OneNote nt, int transpositionNote, int min_freq, int max_freq) {
+    	
+    	if (transpositionNote != 0) {
+    		OneNote no = null;
+    		try  {
+    			no = nt.clone();
+    		} catch (Exception ex) {
+    			no = null;
+    		}
+    		if (no != null) {
+    			int old = nt.midiIndex;
+    			int n = old + transpositionNote;
+    			no.setMidiNr(n);
+    			if (no.freq >= min_freq && no.freq <= max_freq) {
+    				try {
+    					nt = no.clone();
+    				} catch (Exception ex) {
+    	    			no = null;
+    	    		}
+    			}
+    			else
+    				nt = null; // outside bounds, so ignore this note!
+    		}
+    	}
+    	return nt;
+    }
 }
