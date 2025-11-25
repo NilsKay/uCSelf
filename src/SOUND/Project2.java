@@ -431,7 +431,7 @@ public class Project2 {
     PrintWriter imageIt = null;
     DataOutputStream dos;
     
-    private void addLog(String t) {
+    public void addLog(String t) {
     	if (this.logw == null) {
     		
     		String log = home+File.separator+GetEnviroment.KOMPOSITIONLOG;
@@ -538,9 +538,8 @@ public class Project2 {
     	// Tonal Values:
     	double start = 0.0;	// Notenstart
     	double dauer = 0;	// Tondauer
-    	int max_amplitude = getLoundness(this.def.max_amp); // Border values
-    	int min_amplitude = getLoundness(this.def.min_amp);
-    	int amplitude = max_amplitude;	// actual value
+    	
+    	
     	int stimmen = 0;
     	//int trigger = 3;
     	double bal = this.balance;
@@ -617,14 +616,14 @@ public class Project2 {
 	debugOut("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight, 55);
 	addLog("min freq="+this.def.min_freq+" max_freq="+this.def.max_freq+" population="+this.def.population+" degression="+this.def.degression+" weight="+this.def.r_Weight);
 	flowControl();
-	int f_cnt = 0; // count how often the fittest was hit in one row !
-	Vector<Note> loop = new Vector<Note>();
-	Vector<Note> loopCopy = new Vector<Note>();
-	int loopCounter = 0;
+	int max_amplitude = getLoundness(this.def.max_amp); // Border values
+	int min_amplitude = getLoundness(this.def.min_amp);
+	LoopObject o = new LoopObject(rt, def, this::debugOut, this::addLog);
+	o.amplitude = max_amplitude;	// actual value
+	o.max_amplitude = max_amplitude;
+	o.min_amplitude = min_amplitude;
 	int speedModifier = 60; // neutral !
 	boolean speedDir = true; // up
-	boolean requestToInitLoopCopy = false;
-	int transpositionNote = 0;
 	// Now iterate and create the komposition
 	for (it = 0; it < this.def.iterations; it++) {
 	    long time = System.currentTimeMillis();
@@ -665,21 +664,21 @@ public class Project2 {
 	    debugOut("Index that will be selected:"+z, 5);
 	    // --------- Nun ist ein Individuum selektiert ! ----------------
 	    freq = rt.freq[z];
-	    
+	    o.freq = freq;
+	    o.it = it;
 	    // ------------------State Machine :------------------------------
 	    if (is < def.range && rt.stateCnt == 0) 
-	    	f_cnt++;
+	    	o.f_cnt++;
 	    else 
-	    	f_cnt = 0; // reset hit counter
-	    rückgabe werte, in class object packen addLoop(freq, loop, start, f_cnt, loopCopy, loopCounter, requestToInitLoopCopy, transpositionNote, it);
-	   s
+	    	o.f_cnt = 0; // reset hit counter
+	    o.addLoop();
 	    //----------------f_cnt------------------------------
 	    //System.out.println("Selected Index ="+is+" f_cnt="+f_cnt);
 	    addLog("Frequenz selected f="+freq);
 	    debugOut("This is our new selection:"+freq+" Hz", 5);
 	    //debugOut("This is our new selection:"+freq+" Hz", 55);
 	    // Mark the new individual in the RT, now update Tables
-	   doppelt?  rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // footprint
+	    rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // footprint
 	    sil.displayRT(rt);
 	    rt.getMaxx();
 	    addImageS(rt, start);
@@ -709,7 +708,7 @@ public class Project2 {
 		   
 	    }
 	    
-	    debugOut("Resulting amplitude ="+amplitude, 5);
+	    debugOut("Resulting amplitude ="+o.amplitude, 5);
 	    if (this.def.stereo) bal = getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
 	   
 	    
@@ -718,180 +717,10 @@ public class Project2 {
 	    double tempo = 0, pDauer = 0;
 	    OneNote ndVoice = null;
 	    //-------------------------------------------------------------------
-	    // --------- Jetzt noch ein paar Properites dieser Frequenz : -----------
-	    if (loopNote == null) { // not loop, not permutation, add a new modified note
-	    	//addLog("Normal note, not loop");
-	    	amplitude = getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
-					     max_amplitude, this.def.amplify_amp);	
-		    // amplitude = loud[0];
-		    debugOut("Resulting amplitude ="+amplitude, 5);
-		    if (this.def.stereo) bal = getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
-		    debugOut("Resulting balance: bal="+bal, 5);
-		    //addLog("Resulting amplitude ="+amplitude+" balance: bal="+bal);
-		    
-		    double val = rt.readEntry((int)freq.freq);
-		    
-		    //------ tempo : ---------------
-		    dauer = getKleiner(val, rt.max, this.def.min_tempo, this.def.max_tempo);	
-		    if (dauer < this.def.min_tempo || dauer > this.def.max_tempo) {
-		    	debugOut("Project2: tempo out of range ="+dauer, 4);
-		    }
-		    /*
-		    if (this.def.duration_step_index > 0) {
-		    	dauer = getDurationFromTable(dauer);
-		    }
-		    */
-		    tempo = dauer;
-		    if (tempo < this.def.min_tempo)
-		    	tempo = this.def.min_tempo;
-		    if (def.useSpeed && is == 0)  {// the fittest !
-		    	if (speedDir) { // up
-		    		speedModifier += def.speedStep;
-		    		if (speedModifier >= def.maxTempo) {
-		    			speedModifier = def.maxTempo;
-		    			speedDir = !speedDir;
-		    		}
-		    	}
-		    	else { // down
-		    		speedModifier -= def.speedStep;
-		    		if (speedModifier <= def.minTempo) {
-		    			speedModifier = def.minTempo;
-		    			speedDir = !speedDir;
-		    		}
-		    	}
-		    }
-		    if (def.useSpeed) { // modify the speed !
-		    	double factor = (double) speedModifier / 60.0; // e.g.: 30 = 0.5 120 = 2.0
-		    	tempo = tempo / factor;
-		    } // tempo changed, dauer stays !
-		    //------------------------------
-		    
-		    addLog("Resulting amplitude="+amplitude+" bal="+f.format(bal)+" tempo="+f.format(tempo)+" dauer="+f.format(dauer));
-		    if (def.useSpeed)
-		    	addLog("speedModifier="+speedModifier+" direction="+speedDir);
-		    //-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-#-##-##-#-
-		    pDauer = dauer;
-		    boolean pedal = shadow != null && def.pedal;
-		    if (pedal) {
-		    	//freq.freq = 44.0;
-		    	//freq.getMidiNote();
-		    	double sval = shadow.readEntry((int)sfreq.freq);
-		    	pDauer = getKleiner(sval, shadow.max, this.def.min_tempo, this.def.max_tempo);
-		    	//System.out.println("dauer="+dauer+" pedal dauer="+pDauer);
-		    	//pDauer = 3.0; // test !
-		    	addLog("Shadow: pDauer="+f.format(pDauer));
-		    	freq.pedal = true;
-		    }
-		    //---------------------------
-		    //System.out.println("(2)At iteration nr.:"+it+" dauer="+dauer);
-		    frq = (double) freq.freq;
-		    
-		    if (this.def.tonal) {
-		    	// get freq as double !
-		    	frq = getExactFreq((int)freq.freq).freq;
-		    }
-		    //else System.out.println("Free: frq="+frq);
-		    //---- erzeuge eine neue Note mit den oben ermittelten Werten.--------------
-		    if (tempo <= 0) {
-		    	System.out.println("Dauer (a)="+dauer);
-		    	Converter.doBreak();
-		    }
-		    // Create the Note : 
-		    nt = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
-		    nt.note = freq;
-		    boolean transOK = true;
-		    if (def.useTrans) {
-		    	// modify the selected note by transposition effect:
-		    	//transpositionNote
-		    	transOK = false;
-		    	int om = nt.note.midiIndex;
-		    	OneNote tn = doTransposition(nt.note, transpositionNote);
-		    	if (tn != null) {
-		    		try {
-		    			nt.note = tn.clone();
-		    			transOK = true;
-		    			
-		    		} catch (Exception ex) {}
-		    	}
-		    	if (transOK) 
-		    		System.out.println("Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+nt.note.midiIndex);
-		    	else 
-		    		System.out.println("Transposition: Note ignored. Reason: Outside freq.- bounds!");
-		    }
-		    nt.pDauer = freq.pedal?pDauer:0;
-		    
-		    // ------- Nun prï¿½fe, ob noch Stimmen dazukommen ? --------------------------
-		    //stimmen = 2; // nur fï¿½r Test
-		    boolean doOct = this.def.akkord;
-		    
-		    stimmen = getVoices(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
-		    
-
-		    if (doOct) {
-		    	double ten = getKleiner(val, rt.max, 0.0, 23.0);	
-		    	int tens = (int) (ten + 0.5);
-		    	if (tens >= 24)
-		    		tens = 23;
-		    	ndVoice = this.akk.get2ndVoice(getNoteFromString(freq.note), freq.Octave, tens);
-		    	if (ndVoice != null) {
-		    		ndVoice.distance = tens;
-		    		ndVoice.pedal = nt.note.pedal;
-		    	}
-		    	//stimmen = 1;
-		    }
-		  
-		    nt.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
-		    nt.channel = 0; 	// first instrument
-		    nt.ndVoice = ndVoice;
-		    nt.misc = it;
-		    if (addToLoop) {
-		    	// update the loop element :
-		    	try {
-			    	int last = loop.size() -1;
-			    	loop.setElementAt(nt.clone(), last);
-			    	//addLog("Update last loop element size="+loop.size());
-			    	if (requestToInitLoopCopy ) {
-			    		loopCopy = new Vector<Note>();
-			    		loopCopy.addAll(loop);
-			    		requestToInitLoopCopy = false;
-			    	}
-		    	} catch (Exception ex){}
-		    }
-		    if (transOK)
-		    	addToKomposition(nt);
-		    dauer = nt.dauer;
-	    }
-	    else {
-	    	try {
-	    		if (!doBug) {
-	    			Note ln = loopNote.clone();
-	    			ln.start = start;
-	    			addToKomposition(ln);
-	    		}
-	    		else 
-	    			addToKomposition(loopNote);
-		    	stimmen = loopNote.voices;
-		    	pDauer = loopNote.pDauer;
-		    	dauer = loopNote.dauer;
-		    	tempo = dauer;
-		    	if (def.useSpeed)
-		    		tempo = loopNote.tempo;
-		    	generator = loopNote.generator;
-		    	envelope = loopNote.envelope;
-		    	amplitude = loopNote.amplitude;
-		    	freq = loopNote.note.clone();
-		    	ndVoice = loopNote.ndVoice;
-		    	addLog("Use Loop old Index="+loopNote.misc+" Resulting amplitude="+amplitude+" bal="+f.format(bal)+" tempo="+f.format(tempo)+" dauer="+f.format(dauer));
-		    	
-		    	/*if (def.useSpeed)
-			    	addLog("speedModifier="+speedModifier+" direction="+speedDir);
-			    	*/
-	    	} catch (Exception ex){}
-	    }
-	    
+	    o.addLoopProperties();
 	    if( ndVoice != null) {
 	    	// Akkorde !
-	    	Note nta = new Note(start, tempo, dauer, bal, ndVoice.freq, generator, amplitude, envelope, true);
+	    	Note nta = new Note(start, tempo, dauer, bal, ndVoice.freq, generator, o.amplitude, envelope, true);
 	    	nta.channel = 0; 	// first instrument
 	    	nta.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 	    	nta.pDauer = freq.pedal?pDauer:0;
@@ -920,9 +749,9 @@ public class Project2 {
 			 // Mark the new individual in the RT
 			 //rt.writeNEntrys( freq, this.impact, this.def.diff_freq );
 			 //sil.displayRT(rt);
-			 if (checkDouble((int)freq.freq, sti)) amplitude = 0; // is double
+			 if (checkDouble((int)freq.freq, sti)) o.amplitude = 0; // is double
 			 else { 
-			     amplitude = getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
+			     o.amplitude = getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
 						      max_amplitude, this.def.amplify_amp);	
 			     sti.addElement(new Integer((int)freq.freq));
 			 }
@@ -932,14 +761,14 @@ public class Project2 {
 			 frq = (double) freq.freq;
 			 if (this.def.tonal) {
 			     // get freq as double !
-			     frq = getExactFreq((int)freq.freq).freq;
+			     frq = getExactFreq((int)freq.freq, this.notes).freq;
 			 }
 			 if (tempo <= 0) {
 			     System.out.println("tempo (b)="+tempo);
 			     Converter.doBreak();
 			 }
 			 try {
-				 Note ntn = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
+				 Note ntn = new Note(start, tempo, dauer, bal, frq, generator, o.amplitude, envelope, false);
 				 ntn.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 				 ntn.channel = st;
 				 ntn.note = freq.clone();
@@ -950,7 +779,7 @@ public class Project2 {
 				    	//transpositionNote
 				    	transOK = false;
 				    	int om = ntn.note.midiIndex;
-				    	OneNote tn = doTransposition(ntn.note, transpositionNote);
+				    	OneNote tn = doTransposition(ntn.note, o.transpositionNote);
 				    	if (tn != null) {
 				    		try {
 				    			ntn.note = tn.clone();
@@ -959,12 +788,12 @@ public class Project2 {
 				    		} catch (Exception ex) {}
 				    	}
 				    	if (transOK) 
-				    		System.out.println("Voice "+st+" Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+ntn.note.midiIndex);
+				    		System.out.println("Voice "+st+" Transposition: diff="+o.transpositionNote+" change midiIndex "+om+" to "+ntn.note.midiIndex);
 				    	else 
 				    		System.out.println("Voice "+st+" Transposition: Note ignored. Reason: Outside freq.- bounds!");
 				    }
 				 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
-				 if (amplitude != 0 && transOK) {
+				 if (o.amplitude != 0 && transOK) {
 					 addLog((st+1)+". Stimme : dauer="+f.format(tempo)+" "+ntn.note);
 					 addToKomposition(ntn);
 					 //komposition.addElement(ntn);
@@ -973,8 +802,6 @@ public class Project2 {
 				 ex.printStackTrace();
 			 }
 	    }
-	    
-	    
 	    start += tempo;
 	    if (this.halt) break;	// stop doing it
 	    flowControl();
@@ -1037,131 +864,7 @@ public class Project2 {
 	
     }
     
-    private void addLoop(OneNote freq, Vector<Note> loop, double start, int f_cnt, 
-    		Vector<Note> loopCopy, int loopCounter, boolean requestToInitLoopCopy, 
-    		int transpositionNote, int it) {
-    	 boolean addToLoop = false;
-    	 if (rt.stateCnt <= 0) {
- 	    	// update the loop
- 	    	Note tn = new Note(start, 0, 0, 0, 0, 0, 0, 0, false);
- 		    tn.note = freq;
- 	    	if (loop.size() < def.loopDepth)
- 	    		loop.addElement(tn);
- 	    	else { // cache
- 	    		loop.removeElementAt(0);
- 	    		loop.addElement(tn);
- 	    	}
- 	    	//addLog("Add Loop-element at it="+it+" size now "+loop.size());
- 	    	addToLoop = true;
- 	    }
- 	    
- 	    Note loopNote  = null; 
- 	    if (f_cnt >= def.trigger) { // Trigger the state machine, execute it at the next interval
- 	    	try{
- 	    		// Auswahl der State machine: INIT 
- 	    		Vector<Integer> ssel = new Vector<Integer>();
- 	    		
- 	    		if (def.useCascade )
- 	    			ssel.addElement(1);
- 	    		if (def.useLoop )
- 	    			ssel.addElement(2);
- 	    		if (def.useTrans )
- 	    			ssel.addElement(3);
- 	    		if (ssel.size() <= 0)
- 	    			rt.mode = 0;
- 	    		else { // select one of the effects randomly
- 	    			int sIndex = (int) (Math.random() * ssel.size()); 
- 	    			rt.mode = (ssel.elementAt(sIndex)).intValue();
- 	    			System.out.println("Trigger State machine! selected mode="+rt.mode);
- 	    		}
- 	    		//------------
- 	    		
- 	 	    	if (rt.mode == 1) { // cascade
- 	 	    		rt.trigger_index = freq.clone(); // start the state machine
- 	 	    		rt.trigger_index.getMidiNote();
- 	 	    		rt.stateCnt = def.cascadeCount;
- 	 	    		//rt.up = true;
- 	 	    	}
- 	 	    	else if (rt.mode == 2)  { // loop
- 	 	    		rt.stateCnt = loop.size();
- 	 	    		requestToInitLoopCopy = true;
- 	 	    		loopCounter = def.loopRepeat;
- 	 	    	}
- 	 	    	else if (rt.mode == 3) {
- 	 	    		// transposition
- 	 	    		int area = Math.abs(def.transP_min) + def.transP_max;
- 	 	    		int tsel= (int) (Math.random() * area + 0.5); 
- 	 	    		int diff = tsel + def.transP_min;
- 	 	    		System.out.println("-> Trigger Trans-diff="+diff);
- 	 	    		transpositionNote += diff;
- 	 	    	}
- 	    	} catch (Exception ex) {}
-  	    	f_cnt = 0;
-  	    	if (rt.mode == 1)
-  	    		addLog("#### Trigger Cascade count="+def.cascadeCount+" direction="+(rt.up?"up":"down"));
-  	    	else if (rt.mode == 2)
-  	    		addLog("#### Trigger Loop effect depth="+loop.size()+" repeat="+loopCounter);
-  	    	else if (rt.mode == 2)
-  	    		addLog("#### Trigger Transposition effect trans-index="+transpositionNote);
- 	    }
- 	    else if (rt.stateCnt > 0) { // State Machine active !
- 	    	if (rt.mode == 1) { //cascade
- 	    		int no = rt.trigger_index.midiIndex;
- 	    		if (rt.up) {
- 	    			// select the next freq.
- 	    			no = no + def.stepUp;
- 	    			rt.trigger_index.setMidiNr(no); // set it
- 	    			if (no > 127 || rt.trigger_index.freq > def.max_freq)
- 	    				no = no - def.stepUp;
- 	    			System.out.println(it+" do up:"+rt.trigger_index);
- 	    		}
- 	    		else {
- 	    			// select next freq
- 	    			no = no - def.stepDown;
- 	    			rt.trigger_index.setMidiNr(no); // set it
- 	    			if (no < 12 || rt.trigger_index.freq < def.min_freq)
- 	    				no = no + def.stepDown;
- 	    			System.out.println(it+" do down:"+rt.trigger_index);
- 	    		}
- 	    		rt.trigger_index.setMidiNr(no); // set it
- 	    		try {
- 	    			freq = rt.trigger_index.clone();
- 	    			System.out.println("New step: "+freq);
- 	    		} catch(Exception ex) {}
- 	    		rt.stateCnt--; // count down
- 		    	if (rt.stateCnt <= 0) {
- 		    		rt.up = !rt.up; // change dir
- 		    		System.out.println("Dir changed to :"+rt.up);
- 		    	}
- 	    	}
- 	    	else if (rt.mode == 2) { // LOOP
- 	    		// busy doing loop
- 	    		try {
- 	    			Note tn = loopCopy.elementAt(0);
- 	    			freq = tn.note.clone(); // use the oldest element,
- 	    			if (!def.permutation)
- 	    				loopNote = tn.clone(); // use saved Value
- 	    			loopCopy.removeElementAt(0); // remove oldest element
- 	    			System.out.println("it="+it+" Insert loop note: "+freq+" loop size left:"+loopCopy.size());
- 	    			if (loopCopy.size() <= 0) {
- 	    				loopCounter--;
- 	    				if (loopCounter > 0) { // still busy, init again
- 	    					rt.stateCnt = loop.size();
- 	    	 	    		loopCopy = new Vector<Note>();
- 	    	 	    		loopCopy.addAll(loop);
- 	    	 	    		addLog("# Repeat loop nr="+loopCounter);
- 	    	 	    		System.out.println("Add new loop "+loopCopy.size());
- 	    				}
- 	    			}
- 	    			else {
- 	    				rt.stateCnt--; // count down
- 	    			}
- 	    		} catch (Exception ex) {
- 	    			rt.stateCnt = 0;
- 	    		}
- 	    	}
- 	    }
-    }
+    
     
     private OneNote doTransposition(OneNote nt, int transpositionNote) {
     	
@@ -1686,7 +1389,7 @@ public class Project2 {
      * Bandwitdth that we provide:
      * @return the calculated double value
      */
-    public double getKleiner(double w, double Wmax, double Amin, double Amax) {
+    public static double getKleiner(double w, double Wmax, double Amin, double Amax) {
     	if (Wmax == 0.0) return Amin;
     	//Utils.Converter.doBreak();
     	double v = (Amin + ((Amax - Amin) * (Wmax - w) / Wmax));
@@ -1717,7 +1420,7 @@ public class Project2 {
     /*public double getDauer(double weight, double Wmax, double min, double max) {
 	return (min + ((max - min) * (Wmax - weight) / Wmax));
 	}*/
-    public double getBal(int fittest, int freq, int start, int stop) {
+    public static double getBal(int fittest, int freq, int start, int stop) {
     	return (0.5 * ( 1 + (double) (freq - fittest) / (double) ( stop - start)));
 	
     }
@@ -1743,26 +1446,24 @@ public class Project2 {
 		return val;
     }
     
-    @SuppressWarnings("unused")
-	public int getAmplitude(double weight, double Wmax, int Amin, int Amax, double amplifier) {
-//	debugOut("getAmplitude: weight="+Converter.formatDouble(weight, 8)+" Wmax="+Converter.formatDouble(Wmax, 8)+" Amin="+Amin+" Amax="+Amax+" amplifier="+Converter.formatDouble(amplifier, 8), 6);//6
-	double ampval;	// weight 
-	ampval = weight * amplifier;// the weight from the table for this freq * amplifier
-	// loudness
-	int amplitude = Amin + (int) ((Amax - Amin) * (1 - (Wmax - ampval) / Wmax));
-	debugOut("amplitude = "+amplitude, 6); // 6
-	// Now map this amplitude to or loud-table
-	int n, val;
-	int max = loud.length;
-	if (this.def.fof) max = maxFOFLoudIndex;
-	val = getValFromTable(loud, amplitude);
-	//System.out.println("Amin="+Amin+" Amax="+Amax+" ampval="+ampval+" amplitude="+amplitude+" val="+val);
-	return val; // default
+   public static int getAmplitude(double weight, double Wmax, int Amin, int Amax, double amplifier) {
+	//	debugOut("getAmplitude: weight="+Converter.formatDouble(weight, 8)+" Wmax="+Converter.formatDouble(Wmax, 8)+" Amin="+Amin+" Amax="+Amax+" amplifier="+Converter.formatDouble(amplifier, 8), 6);//6
+		double ampval;	// weight 
+		ampval = weight * amplifier;// the weight from the table for this freq * amplifier
+		// loudness
+		int amplitude = Amin + (int) ((Amax - Amin) * (1 - (Wmax - ampval) / Wmax));
+		//debugOut("amplitude = "+amplitude, 6); // 6
+		// Now map this amplitude to or loud-table
+		int val;
+		val = getValFromTable(loud, amplitude);
+		//System.out.println("Amin="+Amin+" Amax="+Amax+" ampval="+ampval+" amplitude="+amplitude+" val="+val);
+		return val; // default
     }
+   
     /**
      * @return the tbl value from the given val
      */
-    private int getValFromTable(int[] tbl, int val) {
+    private static int getValFromTable(int[] tbl, int val) {
 		int n, diff, pos;
 		for (n = 1; n < tbl.length; n++) {
 		    diff = tbl[n] - tbl[n-1];
@@ -1801,7 +1502,7 @@ public class Project2 {
     	return ( i > diff)?right:left;
     }
 
-    private OneNote getClosestMatch(double v, OneNote left, OneNote right) {
+    private static OneNote getClosestMatch(double v, OneNote left, OneNote right) {
     	double diff = (right.freq - left.freq) / 2.0; // half distance between left and right
     	double i = v - left.freq;
     	return ( i > diff)?right:left;
@@ -1836,14 +1537,14 @@ public class Project2 {
 		return left; // max maximum possible
     }
     
-    public OneNote getExactFreq(int freq) {
+    public static OneNote getExactFreq(int freq, Vector<OneNote> notes) {
     	OneNote right;
 		double f = (double) freq;
 		int n;
-		OneNote left = this.notes.elementAt(0); // first element
-		for (n = 1; n < this.notes.size(); n++) {
+		OneNote left = notes.elementAt(0); // first element
+		for (n = 1; n < notes.size(); n++) {
 		    // right border:
-		    right = this.notes.elementAt(n); 
+		    right = notes.elementAt(n); 
 		    if (right.freq > freq) {
 		    	left = getClosestMatch(f, left, right);
 		    	break;
@@ -1877,7 +1578,7 @@ public class Project2 {
 		
 		if (tonal) {
 		    if (!preferLowerNotes) { // 
-		    	nf = getExactFreq((int) f);
+		    	nf = getExactFreq((int) f, this.notes);
 		    }
 		    else { // prefer lower notes !, so we choose the next lower freq of our frequency
 		    	// 
@@ -1885,7 +1586,7 @@ public class Project2 {
 		    }
 		}
 		else if (useSelectNotes) {
-			nf = getExactFreq((int) f);
+			nf = getExactFreq((int) f, this.notes);
 		}
 		return nf;
     }
