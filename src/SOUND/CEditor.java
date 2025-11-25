@@ -602,7 +602,7 @@ public void relocate() {
 		}
 		if (sco_lines == null) {
 		    sco_lines = new Vector();	
-		    sco_lines = pr2.getOrc(this.def.newFOF, this.def);
+		    sco_lines = ScoGenerator.getOrc(this.def.newFOF, this.def);
 		}
 		if (!new ScoAccess().saveSco(CustomPath+oFile, this.User, sco_lines)) {
 		    String txt[] = new String[2];
@@ -619,7 +619,7 @@ public void relocate() {
 		}
 		if (sco_lines == null) {
 		    sco_lines = new Vector();	
-		    sco_lines = pr2.getHeader(this.def.newFOF);	// Hier holen wir uns den Anfang der sco Datei
+		    sco_lines = ScoGenerator.getHeader(this.def.newFOF);	// Hier holen wir uns den Anfang der sco Datei
 		}
 		// Dieser Vector (sco_lines) speichert alle Zeilen, die in die .sco datei geschrieben werden sollen
 		// Nun ist der Headder der neuen sco Datei fertig
@@ -947,7 +947,7 @@ public void actionPerformed(ActionEvent e) {
 		flow = new Vector();
 		v = new Vector();
 		//-------- Combine the voices :
-		flow = this.pr2.getInterval(this.pr2.komposition, false);
+		flow = this.pr2.getInterval(this.pr2.komposition, false, def.duration_step_index);
 		
 		// Instruments:
 		for (int i = 0; i < mid.channels.length; i++) { // hier die Instrumente setzen (2 pro stimme wg.akkord ?)

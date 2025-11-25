@@ -3,6 +3,7 @@ package uCSelf;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Vector;
+import java.util.function.BiConsumer;
 
 import javax.swing.JFrame;
 
@@ -19,6 +20,10 @@ public class Generator {
 	};
 	
 	World world;
+	
+	public static void debugOut(String s, int i) {
+		
+	}
 	
 	public static void test() {
 		boolean tonal = true;
@@ -37,12 +42,12 @@ public class Generator {
 		int min = 20;
 		int max = 2000;
 		Project2 p2 = new Project2(null, null);
-		p2.createNoteTable(1, min, max);
+		Vector<OneNote> notes = p2.createNoteTable(1, min, max);
 		Soundscape rt = new Soundscape(null, 1, 
 			     min, max, interval, 0.0, 
 			     impact, null);
-		p2.createPopulation(rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
-		p2.makeWeight(numberOfIndividuums, rt, impact);// change weight 
+		Project2.createPopulation(notes, rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
+		Project2.makeWeight(numberOfIndividuums, rt, impact, Generator::debugOut);// change weight 
 		
 		//rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // degression
 		//----

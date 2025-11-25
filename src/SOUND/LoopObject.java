@@ -18,7 +18,6 @@ public class LoopObject {
 	private boolean requestToInitLoopCopy; 
 	public int transpositionNote;
 	public int it;
-	private Soundscape rt, shadow;
 	private Defaults def;
 	public int amplitude;
 	public int max_amplitude; // Border values
@@ -39,11 +38,10 @@ public class LoopObject {
 	private boolean addToLoop = false;
 	
 	
-	public LoopObject(Soundscape rt, Defaults def, BiConsumer<String, Integer> debugOut, Consumer<String> addLog) {
+	public LoopObject(Defaults def, BiConsumer<String, Integer> debugOut, Consumer<String> addLog) {
 		this.akk = new Akkorde();
 		this.debugOut = debugOut;
 		this.addLog = addLog;
-		this.rt = rt;
 		this.def = def;
 		this.freq = null;
 		this.loop = new Vector<Note>();
@@ -57,8 +55,7 @@ public class LoopObject {
 	}
 	
 	public void addLoop(Soundscape rt, Soundscape shadow, OneNote sFreq) {
-		this.rt = rt;
-		this.shadow = shadow;
+		
 		this.addToLoop = false;
 		if (rt.stateCnt <= 0) {
 	    	// update the loop
@@ -184,8 +181,6 @@ public class LoopObject {
 	
 	public void addLoopProperties(Soundscape rt, Soundscape shadow, 
 			OneNote sFreq, Vector<OneNote> notes, int generator, int envelope, PrintWriter skompo) {
-		this.rt = rt;
-		this.shadow = shadow;
 		
 		 // --------- Jetzt noch ein paar Properites dieser Frequenz : -----------
 	    if (loopNote == null) { // not loop, not permutation, add a new modified note
@@ -357,6 +352,93 @@ public class LoopObject {
 			    	*/
 	    	} catch (Exception ex){}
 	    }
+	}
+	
+	public void doAkkordeUndStimmen(Soundscape rt,  Vector<OneNote> notes, int generator, int envelope, PrintWriter skompo) {
+		 if( ndVoice != null) {
+		    	// Akkorde !
+		    	Note nta = new Note(start, tempo, dauer, bal, ndVoice.freq, generator, amplitude, envelope, true);
+		    	nta.channel = 0; 	// first instrument
+		    	nta.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
+		    	nta.pDauer = freq.pedal?pDauer:0;
+		    	try {
+		    		nta.note = ndVoice.clone();
+		    		addLog.accept("Akkord active: "+nta.note);
+				 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
+		    		//komposition.addElement(nta);
+		    		Project2.addToKomposition(nta, skompo);
+		    	} catch(Exception ex) {
+		    		ex.printStackTrace();
+		    	}
+		    }
+		    debugOut.accept("Dies wird "+(stimmen)+" stimmig.", 3);
+		    Vector sti = new Vector();
+		    sti.addElement(new Integer((int)freq.freq));
+		    // Now see if there are more than 1 voice(s)
+		    for (int st = 1; st < stimmen; st++) { // noch eine Stimme dazu:
+		    	int z = (this.def.population -1 ) - 
+		    			(int) ((double) this.def.fittest * java.lang.Math.random());
+		    	//debugOut("Index that will be selected:"+z, 5);
+		    	// --------- Nun ist ein Individuum selektiert ! ----------------
+		    	freq = rt.freq[z];
+				 //freq = this.def.max_freq; // test
+				 //debugOut("This is our new selection:"+freq+" Hz", 5);
+				 // Mark the new individual in the RT
+				 //rt.writeNEntrys( freq, this.impact, this.def.diff_freq );
+				 //sil.displayRT(rt);
+				 if (Project2.checkDouble((int)freq.freq, sti)) amplitude = 0; // is double
+				 else { 
+				     amplitude = Project2.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
+							      max_amplitude, this.def.amplify_amp);	
+				     sti.addElement(new Integer((int)freq.freq));
+				 }
+				 //debugOut("Resulting amplitude ="+amplitude, 5);
+				 if (this.def.stereo) bal = Project2.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);
+				 //debugOut("Resulting balance: bal="+bal, 5);
+				 frq = (double) freq.freq;
+				 if (this.def.tonal) {
+				     // get freq as double !
+				     frq = Project2.getExactFreq((int)freq.freq, notes).freq;
+				 }
+				 if (tempo <= 0) {
+				     System.out.println("tempo (b)="+tempo);
+				     Converter.doBreak();
+				 }
+				 try {
+					 Note ntn = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
+					 ntn.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
+					 ntn.channel = st;
+					 ntn.note = freq.clone();
+					 ntn.note.pedal = false;
+					 boolean transOK = false;
+					 if (def.useTrans) {
+					    	// modify the selected note by transposition effect:
+					    	//transpositionNote
+					    	transOK = false;
+					    	int om = ntn.note.midiIndex;
+					    	OneNote tn = LoopObject.doTransposition(ntn.note, transpositionNote, def.min_freq, def.max_freq);
+					    	if (tn != null) {
+					    		try {
+					    			ntn.note = tn.clone();
+					    			transOK = true;
+					    			
+					    		} catch (Exception ex) {}
+					    	}
+					    	if (transOK) 
+					    		System.out.println("Voice "+st+" Transposition: diff="+transpositionNote+" change midiIndex "+om+" to "+ntn.note.midiIndex);
+					    	else 
+					    		System.out.println("Voice "+st+" Transposition: Note ignored. Reason: Outside freq.- bounds!");
+					    }
+					 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
+					 if (amplitude != 0 && transOK) {
+						 addLog.accept((st+1)+". Stimme : dauer="+f.format(tempo)+" "+ntn.note);
+						 Project2.addToKomposition(ntn, skompo);
+						 //komposition.addElement(ntn);
+					 }
+				 } catch (Exception ex) {
+					 ex.printStackTrace();
+				 }
+		    }
 	}
 	 /**
      * Find out, how many voices this should have

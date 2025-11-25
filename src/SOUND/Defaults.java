@@ -68,7 +68,7 @@ public class Defaults {
     String[] durationTable = new String[]{
     	"free", "1/16", "1/8", "1/4", "1/2", "1", "2"
     };
-    int[] durations = new int[] {
+    public static int[] durations = new int[] {
     	-1, 250, 500, 1000, 2000, 4000, 8000	
     };
 /**
