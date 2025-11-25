@@ -450,9 +450,9 @@ public class Project2 {
     
     PrintWriter skompo = null;
     
-    private void addToKomposition(Note nt) {
-    	if (this.skompo != null)
-    		this.skompo.println(nt.saveAsString());
+    public static void addToKomposition(Note nt, PrintWriter skompo) {
+    	if (skompo != null)
+    		skompo.println(nt.saveAsString());
     }
     
     /**
@@ -521,7 +521,7 @@ public class Project2 {
     @SuppressWarnings({ "rawtypes", "unused", "unchecked" })
 	public Vector<Note> doKomposition(String home) { // Evolution
     	this.home = home;
-    	boolean doBug = def.doLoopBug;
+    	//boolean doBug = def.doLoopBug;
     	Melody melody = new Melody();
     	int melodyChannel = def.voiceMax; // (7) first melody channel (after maxVoices) 
     	//System.out.println("min_dur="+this.def.min_tempo);
@@ -720,7 +720,7 @@ public class Project2 {
 	    
 	   
 	    //-------------------------------------------------------------------
-	    o.addLoopProperties(rt, shadow, sFreq, notes, generator, envelope);
+	    o.addLoopProperties(rt, shadow, sFreq, notes, generator, envelope, skompo);
 	    if( o.ndVoice != null) {
 	    	// Akkorde !
 	    	Note nta = new Note(start, o.tempo, o.dauer, o.bal, o.ndVoice.freq, generator, o.amplitude, envelope, true);
@@ -732,7 +732,7 @@ public class Project2 {
 	    		addLog("Akkord active: "+nta.note);
 			 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
 	    		//komposition.addElement(nta);
-	    		addToKomposition(nta);
+	    		addToKomposition(nta, skompo);
 	    	} catch(Exception ex) {
 	    		ex.printStackTrace();
 	    	}
@@ -798,7 +798,7 @@ public class Project2 {
 				 // ------- addiere diesen neuen Noteneintrag zur Komposition -----------
 				 if (o.amplitude != 0 && transOK) {
 					 addLog((st+1)+". Stimme : dauer="+f.format(o.tempo)+" "+ntn.note);
-					 addToKomposition(ntn);
+					 addToKomposition(ntn, skompo);
 					 //komposition.addElement(ntn);
 				 }
 			 } catch (Exception ex) {

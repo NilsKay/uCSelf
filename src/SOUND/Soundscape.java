@@ -180,16 +180,20 @@ public class Soundscape {
 			 String me = "";
 			index = center + n;
 			f = (double) (steps - n) * val / (double) steps; // function value, linear curve
-			me = addFootPrint(index,n,f);
+			if (index >= 0)
+				me = addFootPrint(index, n, f);
 		    // 2nd half
 		    index = center - n;
-		    me = addFootPrint(index,n,f);
+		    if (index >= 0)
+		    	me = addFootPrint(index, n, f);
 		}
 		return true;
     }
     
     private String addFootPrint(int index, int n, double f) {
-    	// Note: I do not use warp around for array index overflows !
+    	// Note: I do not use warp around for array index overflows
+    	if (index < 0)
+    		index = 0;
     	String me = "";
 	    if (index < this.size) {
 			this.table[index].weight += f;

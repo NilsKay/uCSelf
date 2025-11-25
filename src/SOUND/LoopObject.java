@@ -1,47 +1,43 @@
 package SOUND;
+import java.io.PrintWriter;
 import java.text.DecimalFormat;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
-
-import SOUND.Defaults;
-import SOUND.Note;
-import SOUND.OneNote;
-import SOUND.Project2;
-import SOUND.Soundscape;
 import Utils.Akkorde;
 import Utils.Converter;
 
 public class LoopObject {
-	DecimalFormat f = new DecimalFormat("#.###");
-	OneNote freq;
-	Vector<Note> loop;
-	double start;
-	int f_cnt; 
-	Vector<Note> loopCopy;
-	int loopCounter;
-	boolean requestToInitLoopCopy; 
-	int transpositionNote;
-	int it;
-	Soundscape rt, shadow;
-	Defaults def;
-	int amplitude;
-	int max_amplitude; // Border values
-	int min_amplitude;
-	Note loopNote  = null; 
+	private DecimalFormat f = new DecimalFormat("#.###");
+	public OneNote freq;
+	private Vector<Note> loop;
+	private double start;
+	public int f_cnt; 
+	private Vector<Note> loopCopy;
+	private int loopCounter;
+	private boolean requestToInitLoopCopy; 
+	public int transpositionNote;
+	public int it;
+	private Soundscape rt, shadow;
+	private Defaults def;
+	public int amplitude;
+	public int max_amplitude; // Border values
+	public int min_amplitude;
+	private Note loopNote  = null; 
 	double bal;
 	double dauer = 0;	// Tondauer
 	double tempo = 0, pDauer = 0;
-	OneNote ndVoice = null;
-	boolean speedDir = true; // up
-	int speedModifier = 60; // neutral !
-	int is = 0;
-	double frq;
-	BiConsumer<String, Integer> debugOut;
-	Consumer<String> addLog;
-	int stimmen = 0;
-	Akkorde akk;
-	boolean addToLoop = false;
+	public OneNote ndVoice = null;
+	private boolean speedDir = true; // up
+	private int speedModifier = 60; // neutral !
+	public int is = 0;
+	public double frq;
+	private BiConsumer<String, Integer> debugOut;
+	private Consumer<String> addLog;
+	public int stimmen = 0;
+	private Akkorde akk;
+	private boolean addToLoop = false;
+	
 	
 	public LoopObject(Soundscape rt, Defaults def, BiConsumer<String, Integer> debugOut, Consumer<String> addLog) {
 		this.akk = new Akkorde();
@@ -186,7 +182,8 @@ public class LoopObject {
 	    }
 	}
 	
-	public void addLoopProperties(Soundscape rt, Soundscape shadow, OneNote sFreq, Vector<OneNote> notes, int generator, int envelope) {
+	public void addLoopProperties(Soundscape rt, Soundscape shadow, 
+			OneNote sFreq, Vector<OneNote> notes, int generator, int envelope, PrintWriter skompo) {
 		this.rt = rt;
 		this.shadow = shadow;
 		
@@ -330,18 +327,18 @@ public class LoopObject {
 		    	} catch (Exception ex){}
 		    }
 		    if (transOK)
-		    	addToKomposition(nt);
+		    	Project2.addToKomposition(nt, skompo);
 		    dauer = nt.dauer;
 	    }
 	    else {
 	    	try {
-	    		if (!doBug) {
+	    		if (!def.doLoopBug) {
 	    			Note ln = loopNote.clone();
 	    			ln.start = start;
-	    			addToKomposition(ln);
+	    			Project2.addToKomposition(ln, skompo);
 	    		}
 	    		else 
-	    			addToKomposition(loopNote);
+	    			Project2.addToKomposition(loopNote, skompo);
 		    	stimmen = loopNote.voices;
 		    	pDauer = loopNote.pDauer;
 		    	dauer = loopNote.dauer;
