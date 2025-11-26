@@ -105,32 +105,7 @@ public class Project2 {
 		
     }
     
-    /**
-     * Create the duration table
-     * @param min the min-duration
-     * @param max the maximum duration
-     * @param step the used interval e.g. 1/16=0.25 sec
-     * @return the duration table
-     */
-    private double[] createDurationTable(double min, double max, double step) {
-		double tmp = (max - min) / step;
-		int len = (int) (tmp + 0.5) + 1;
-		
-		//System.out.println("Min="+min+" max="+max+" Duration step="+step+" diff="+(max-min)+" len ="+len);
-		double start = min / step + 0.5;
-		start = (double) ((int) start) * step;
-		if( start <= 0.0 )
-		    start = step;
-		double[] res = new double[len];
-		res[0] = start;	// minimum duration for sure !
-		//System.out.println("Duration table [0]="+res[0]);
-		for (int n = 1; n < len; n++) {
-		    res[n] = res[n-1] + step;
-		    System.out.println("Duration table ["+n+"]="+Converter.formatDouble(res[n], 8));
-		}
-		return res;
-    }
-    
+   
     @SuppressWarnings({ "rawtypes", "unchecked", "unused" })
 	public Vector<OneNote> createNoteTable(int mode, int min_freq, int max_freq) {
 		int maxOkt;
@@ -138,67 +113,26 @@ public class Project2 {
 		double p, f;
 		this.notes = new Vector();
 		System.out.println("Tonal, createNotetable: mode="+mode);
-		switch (mode) {
-		case 0:
-		default:
-		   /* n = 0;
-		    maxOkt = 6;	// 6 Oktaven maximal
-		    debugOut(maxOkt+" Oktaven", 3);
-		    for (m = 0; m < maxOkt; m++) {
-				for (q = 0; q < 12; q++) {
-				    p = java.lang.Math.pow(2.0, ((double) n++ / 12.0));	// 2^(n/12)
-				    f = 220.0 * p;
-				    freq = (int) f;
-				    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
-						debugOut("Oktave="+m+" Note="+n+" p="+p+" f="+f+" freq="+freq, 6);
-						//this.notes.addElement(new Integer(freq));
-						this.notes.addElement(new OneNote(f, Project2.nts[q], m));
-						//System.out.println("Tonal,add f="+f);
-						// make this a double for non-integer frequencys
-						debugOut("Note "+((m-1)*12+n)+"="+f, 3); 
-				    }
-				}
-		    }
-		    */
-		    break;
-		case 1:
-		   /* maxOkt = 11;
-		    this.anfOkt = 2; // in wirklichkeit 4, da es keine 0. Oktave gibt ?
-		    n = 12 * anfOkt;
-		    debugOut("First Oktave="+anfOkt+" last Oktave ="+maxOkt, 3);
-		    for (m = anfOkt; m < maxOkt; m++) {
-				for (q = 0; q < 12; q++) { // 12 T�ne: a, a', b, c, c', d, d', e, f, f', g, g'
-				    f = getFreq(n++);
-				    freq = (int) f;
-				    if (freq >= this.def.min_freq && freq <= this.def.max_freq ) {
-						debugOut("Oktave="+m+" Note="+n+" freq="+freq, 6);
-						this.notes.addElement(new OneNote(f, Project2.nts[q], m-1));
-						//System.out.println("Tonal,add f="+f);
-						debugOut("Note "+(n-1)+"="+freq, 3); 
-				    }
-				}
-		    }
-		    */
-			// All possible midi notes
-			OneNote start = new OneNote(min_freq, 0, 0);
-			start.getMidiNote();
+		
+		// All possible midi notes
+		OneNote start = new OneNote(min_freq, 0, 0);
+		start.getMidiNote();
+		start.setMidiNr(start.midiIndex);
+		if (start.freq < min_freq) {
+			start.midiIndex++;
 			start.setMidiNr(start.midiIndex);
-			if (start.freq < min_freq) {
-				start.midiIndex++;
-				start.setMidiNr(start.midiIndex);
-			}
-			OneNote stop = new OneNote(max_freq, 0, 0);
-			stop.getMidiNote();
-			for (n = start.midiIndex; n <= stop.midiIndex; n++) {
-				if (n >=0 ) {
-					OneNote nt = new OneNote(0, 0, 0);
-					nt.setMidiNr(n);
-					this.notes.addElement(nt);
-					debugOut("Note "+nt, 3);
-				}
-			}
-		    break;
 		}
+		OneNote stop = new OneNote(max_freq, 0, 0);
+		stop.getMidiNote();
+		for (n = start.midiIndex; n <= stop.midiIndex; n++) {
+			if (n >=0 ) {
+				OneNote nt = new OneNote(0, 0, 0);
+				nt.setMidiNr(n);
+				this.notes.addElement(nt);
+				debugOut("Note "+nt, 3);
+			}
+		}
+		   
 		// debug:
 		for (n = 0; n < this.notes.size(); n++) {
 		    double d = (this.notes.elementAt(n)).freq;
@@ -542,9 +476,6 @@ public class Project2 {
 	
     }
     
-    
-    
-    
     @SuppressWarnings("unused")
 	private void printDebug(Vector<Note> v) {
     	System.out.println("debug---------------");
@@ -648,7 +579,7 @@ public class Project2 {
     	return res;
     }
     
-    public void flowControl() {
+    private void flowControl() {
 		if (qd != null) {
 		    if (qd.halt ) {
 			while(qd.halt) {
@@ -668,37 +599,6 @@ public class Project2 {
 		}
     }
 
-    
-    /**
-     * The fitter an individual is, the smaller the resulting value is, within the 
-     * Bandwitdth that we provide:
-     * @return the calculated int value
-     */
-    public int getIKleiner(double w, double Wmax, int Amin, int Amax) {
-    	return Amin + (int) (((double) (Amax - Amin) * (Wmax - w) / Wmax) + 0.5);
-    }
-    /**
-     * The fitter an individual is, the bigger the resulting value is, within the 
-     * Bandwitdth that we provide:
-     * @return the calculated double value
-     */
-    public double getGreater(double w, double Wmax, double Amin, double Amax) {
-    	return (Amin + ((Amax - Amin) * (1 - (Wmax - w) / Wmax)));
-    }
-
-    /**
-     * Find out which border is closer to the given value:
-     * v is somewhere inbetween left and right !
-     * @param v the value to examin
-     * @param left the left border
-     * @param right the right border.
-     */
-    private double getClosestMatch(double v, double left, double right) {
-    	double diff = (right - left) / 2.0; // half distance between left and right
-    	double i = v - left;
-    	return ( i > diff)?right:left;
-    }
-
     public int getChromaticFromSeed(int seed) {
 		int v,n;
 		for (n = 0; n < this.notes.size(); n++) {
@@ -708,24 +608,6 @@ public class Project2 {
 		v = (int) this.notes.elementAt(n).freq;
 		// Not in Table
 		return v; // max maximum possible
-    }
-
-    private double getExactFreqOld(int freq) {
-    	double right;
-		double f = (double) freq;
-		int n;
-		double left = this.notes.elementAt(0).freq; // first element
-		for (n = 1; n < this.notes.size(); n++) {
-		    // right border:
-		    right = this.notes.elementAt(n).freq; 
-		    if (right > freq) {
-		    	left = getClosestMatch(f, left, right);
-			break;
-		    }
-		    left = right; // next left border
-		}
-		//System.out.println("getExactFreq() in="+freq+" out="+left);
-		return left; // max maximum possible
     }
    
 	public Vector<String> doProject(Defaults def, String home) {	
