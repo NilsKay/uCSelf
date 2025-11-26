@@ -14,7 +14,6 @@ public class GetEnviroment {
 	public final static String 	CHARSET 		= "UTF-8";  		
 	public final static String  CHARSET_ASCII 	= "ASCII"; 			
 	
-    public static String sVersionCode="V 2.6";
     public final static Color DisplayBackColor = new Color(0xe0e0e0); // Display Background color
     public final static String SAVEFILE = "jcself.sav";	// here we store the user default settings
     public final static String TEMPLATEEXT = ".jct";	// 
@@ -36,7 +35,7 @@ public class GetEnviroment {
     String Platform;	// the platform we run on !
     int left_Button;
     int right_Button;
-    public int build;
+    private int build;
     private String systDir = "Utils";
     // --------- internal --------
 private boolean error;
@@ -63,18 +62,18 @@ public GetEnviroment(String rootDir) {
     this.Platform = System.getProperty("os.arch");
     this.Host = "Unknown";
     try {
-	InetAddress iadr = InetAddress.getLocalHost();
-	this.Host = iadr.getHostName();
-	this.Ip_address = iadr.getHostAddress();
+		InetAddress iadr = InetAddress.getLocalHost();
+		this.Host = iadr.getHostName();
+		this.Ip_address = iadr.getHostAddress();
     } catch (UnknownHostException ue) {}
-    this.build = getBuildNo();
+    //this.build = getBuildNo();
     if(Platform.startsWith("x86")) {
-	this.left_Button = MouseEvent.BUTTON1_MASK;
-	this.right_Button = MouseEvent.BUTTON3_MASK;
+    	this.left_Button = MouseEvent.BUTTON1_MASK;
+    	this.right_Button = MouseEvent.BUTTON3_MASK;
     }
     else { // on sun ?
-	this.left_Button = 0;
-	this.right_Button = 2;	// ???
+    	this.left_Button = 0;
+    	this.right_Button = 2;	// ???
     }
 }
 

@@ -168,7 +168,7 @@ public CEditor(String home, String user, String opt) {
     	this.User = user;
     	this.options = opt;
     }
-    this.build = gsp.build;
+    
     this.Host = gsp.getHost();
     if (this.CustomPath == null) this.CustomPath = this.Home;
     left_Button = gsp.getLeftButton();	//MouseEvent.BUTTON1_MASK;

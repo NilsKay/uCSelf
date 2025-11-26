@@ -458,7 +458,7 @@ public Vector<OneNote> clipNotes(Vector<OneNote> source) {
 }
 public String[] getText(int b) {
 	String[] t = new String[maxText];
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" build "+b+" � Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2013)";
+    t[0] = "JcSelf "+Version.VERSION+" Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2025)";
     t[1] = "Alarmbox"; 
     t[10] = "Do you really want to quit ?";
     t[11] = "File";
@@ -593,8 +593,7 @@ public String[] getText(int b) {
 }
 public String[] getGermanText(int b) {
 	String[] t = new String[maxText];
-    t[0] = "JcSelf "+GetEnviroment.sVersionCode+" build "+b+" � Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2011)";
-    t[1] = "Alarmbox"; 
+	t[0] = "JcSelf "+Version.VERSION+" Copyright by Nils Kay, Peter Heeren. All rights reserved (2000-2025)";t[1] = "Alarmbox"; 
     t[10] = "Wollen Sie das Programm wirklich beenden ?";
     t[11] = "Datei";
     t[12] = "Pfad ausw�hlen";
