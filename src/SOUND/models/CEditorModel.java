@@ -62,7 +62,7 @@ public class CEditorModel {
 	
 	public JLabel[] la, uni, cla;
 	public JTextField[] ptfs;
-	public JComboBox[] combo;
+	public JComboBox<String>[] combo;
 	public JButton bt[];
 	public JCheckBox cb[];
     
@@ -144,7 +144,7 @@ public class CEditorModel {
 	    cb[USESELECTION].setSelected(ce.def.useSelectNotes);
 	    
 		Vector elements = new Vector();
-		for(int n = 0; n < ce.def.durationTable.length; n++) 
+		for(int n = 0; n < Defaults.durationTable.length; n++) 
 			elements.addElement(Defaults.durationTable[n]);
 		getComboPanel(DURSTEPS, ce.def.text[71], elements);
 	    combo[DURSTEPS].setSelectedIndex(ce.def.duration_step_index);	
@@ -213,11 +213,10 @@ public class CEditorModel {
 		}
     }
 	
-	@SuppressWarnings("rawtypes")
-	public void getComboPanel(int index, String latext, Vector elements) {
+	public void getComboPanel(int index, String latext, Vector<String> elements) {
 		cla[index] = new JLabel(latext, JLabel.LEFT);
 		cla[index].setFont(this.subFont);
-		combo[index] = new JComboBox(elements);
+		combo[index] = new JComboBox<String>(elements);
 		combo[index].setFont(this.subFont);
     }
 	
@@ -237,7 +236,7 @@ public class CEditorModel {
 	 }
 	 
 	 @SuppressWarnings({ "rawtypes", "unchecked" })
-	 public Vector setLChoice(Defaults def) {
+	 public Vector<String> setLChoice(Defaults def) {
 		 int n;
 		 int max = ProjectTools.Loudness.length;
 		 Vector v = new Vector();
@@ -250,7 +249,7 @@ public class CEditorModel {
 	 }
 	 
 	 @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector setHChoice(Defaults def) {
+	public Vector<String> setHChoice(Defaults def) {
 		 int n;
 		 boolean flag = false;
 		 Vector v = new Vector();
@@ -263,7 +262,7 @@ public class CEditorModel {
 		 return v;
 	 }
 	 @SuppressWarnings({ "rawtypes", "unchecked" })
-	 public Vector setLVoice(Defaults def) {
+	 public Vector<String> setLVoice(Defaults def) {
 		 int n;
 		 Vector v = new Vector();
 		 for(n = 0; n < ce.def.max_voice; n++) {
@@ -273,7 +272,7 @@ public class CEditorModel {
 	 }
 	 
 	 @SuppressWarnings({ "rawtypes", "unchecked" })
-	 public Vector setHVoice(Defaults def) {
+	 public Vector<String> setHVoice(Defaults def) {
 		 int n;
 		 Vector v = new Vector();
 		 for(n = ce.def.min_voice; n <= ce.def.voiceMax; n++) {
@@ -281,7 +280,6 @@ public class CEditorModel {
 		 }
 		 return v;
 	 }
-	 @SuppressWarnings("rawtypes")
 	public void setActual(CEditor ce) {
 			String wert;
 			if (ce.def.lastPath != null) 
@@ -315,14 +313,14 @@ public class CEditorModel {
 			wert = Converter.formatDouble(this.ce.def.diff_freq, this.digits, this.post);
 			ptfs[FOOTPRINT].setText(wert);
 			if (combo[MINLOUD] != null) {
-			    Vector v = setLChoice(this.ce.def);
+			    Vector<String> v = setLChoice(this.ce.def);
 			    combo[MINLOUD].removeAllItems();
 			    for (int pi = 0; pi < v.size() ; pi++) 
 			    	combo[MINLOUD].addItem(v.elementAt(pi));
 			    combo[MINLOUD].setSelectedItem(ce.def.min_amp);
 			}
 			if (combo[MAXLOUD] != null) {
-			    Vector v = setHChoice(this.ce.def);
+			    Vector<String> v = setHChoice(this.ce.def);
 			    combo[MAXLOUD].removeAllItems();
 			    for (int pi = 0; pi < v.size() ; pi++) 
 			    	combo[MAXLOUD].addItem(v.elementAt(pi));
@@ -336,14 +334,14 @@ public class CEditorModel {
 			if (cb[DOAKKORD] != null) cb[DOAKKORD].setSelected(this.ce.def.akkord);
 			if (cb[DOSHADOW] != null) cb[DOSHADOW].setSelected(this.ce.def.pedal);
 			if (combo[MINVOICE] != null) {
-			    Vector v = setLVoice(this.ce.def);
+			    Vector<String> v = setLVoice(this.ce.def);
 			    combo[MINVOICE].removeAllItems();
 			    for (int pi = 0; pi < v.size() ; pi++) 
 			    	combo[MINVOICE].addItem(v.elementAt(pi));
 			    combo[MINVOICE].setSelectedItem(Integer.toString(ce.def.min_voice));
 			}
 			if (combo[MAXVOICE] != null) {
-			    Vector v = setHVoice(this.ce.def);
+			    Vector<String> v = setHVoice(this.ce.def);
 			    combo[MAXVOICE].removeAllItems();
 			    for (int pi = 0; pi < v.size() ; pi++) 
 			    	combo[MAXVOICE].addItem(v.elementAt(pi));

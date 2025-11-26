@@ -455,7 +455,7 @@ public void setMenubar() {
     }
     
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector setLChoice() {
+	public Vector<String> setLChoice() {
 		int n;
 		int max = ProjectTools.Loudness.length;
 		Vector v = new Vector();
@@ -468,7 +468,7 @@ public void setMenubar() {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector setHChoice() {
+	public Vector<String> setHChoice() {
 		int n;
 		boolean flag = false;
 		Vector v = new Vector();
@@ -482,7 +482,7 @@ public void setMenubar() {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector setLVoice() {
+	public Vector<String> setLVoice() {
 		int n;
 		Vector v = new Vector();
 		for(n = 0; n < def.max_voice; n++) {
@@ -492,13 +492,13 @@ public void setMenubar() {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector setHVoice() {
-	int n;
-	Vector v = new Vector();
-	for(n = def.min_voice; n <= def.voiceMax; n++) {
-	    v.addElement(Integer.toString(n));
-	}
-	return v;
+	public Vector<String> setHVoice() {
+		int n;
+		Vector v = new Vector();
+		for(n = def.min_voice; n <= def.voiceMax; n++) {
+		    v.addElement(Integer.toString(n));
+		}
+		return v;
     }
 
 /**
@@ -732,7 +732,7 @@ public void relocate() {
     	return mn;
     }
     */
-@SuppressWarnings("rawtypes")
+
 public void actionPerformed(ActionEvent e) {
     //System.out.println("Action performed");
     if (this.busy) return;
@@ -860,7 +860,7 @@ public void actionPerformed(ActionEvent e) {
     else if (o == model.combo[model.MINLOUD]) { // min. Loudness
 		this.def.min_amp = model.combo[model.MINLOUD].getSelectedItem().toString();
 		System.out.println("ActionPerformed min. Loudness selected: "+this.def.min_amp);
-		Vector v = setHChoice();
+		Vector<String> v = setHChoice();
 		model.combo[model.MAXLOUD].removeAllItems();
 		for (int pi = 0; pi < v.size() ; pi++) 
 			model.combo[model.MAXLOUD].addItem(v.elementAt(pi));
@@ -869,7 +869,7 @@ public void actionPerformed(ActionEvent e) {
     }
     else if (o == model.combo[model.MAXLOUD]) { // max. Loudness
 		this.def.max_amp = model.combo[model.MAXLOUD].getSelectedItem().toString();
-		Vector v = setLChoice();
+		Vector<String> v = setLChoice();
 		model.combo[model.MINLOUD].removeAllItems();
 		for (int pi = 0; pi < v.size() ; pi++) 
 			model.combo[model.MINLOUD].addItem(v.elementAt(pi));
@@ -878,7 +878,7 @@ public void actionPerformed(ActionEvent e) {
     }
     else if (o == model.combo[model.MINVOICE]) { // min. Voice
 		this.def.min_voice = Integer.parseInt(model.combo[model.MINVOICE].getSelectedItem().toString());
-		Vector v = setHVoice();
+		Vector<String> v = setHVoice();
 		model.combo[model.MAXVOICE].removeAllItems();
 		for (int pi = 0; pi < v.size() ; pi++) 
 			model.combo[model.MAXVOICE].addItem(v.elementAt(pi));
@@ -887,7 +887,7 @@ public void actionPerformed(ActionEvent e) {
     }
     else if (o == model.combo[model.MAXVOICE]) { // max. Voice
 		this.def.max_voice = Integer.parseInt(model.combo[model.MAXVOICE].getSelectedItem().toString());
-		Vector v = setLVoice();
+		Vector<String> v = setLVoice();
 		model.combo[model.MINVOICE].removeAllItems();
 		for (int pi = 0; pi < v.size() ; pi++) 
 			model.combo[model.MINVOICE].addItem(v.elementAt(pi));
@@ -999,7 +999,7 @@ public void actionPerformed(ActionEvent e) {
 				if (nt.tempo > 0)
 					intervall = (int) (nt.tempo * 1000);
 				if (this.def.duration_step_index > 0) 
-					intervall = this.def.durations[this.def.duration_step_index];
+					intervall = Defaults.durations[this.def.duration_step_index];
 				drw[c] = (int) nt.freq;
 		    }
 		   // sleep = (int) (maxd * 1000.0);
@@ -1212,9 +1212,8 @@ public void focusLost(FocusEvent e) {
    
 
 public void doSelectNotes() {
-	Project2 p = new Project2(this.model.pModel);
 	this.model.pModel.def = def;
-	this.model.pModel.notes = this.model.pModel.createNoteTable(this.model.pModel.note_mode, def.min_freq, def.max_freq, this.model.pModel.anfOkt); // respects the min-max freq.
+	this.model.pModel.notes = ProjectModel.createNoteTable(this.model.pModel.note_mode, def.min_freq, def.max_freq, this.model.pModel.anfOkt); // respects the min-max freq.
 	// filer die selectierten Noten aus der Quelle !
 	Vector<OneNote> source = new Vector<OneNote>();
 	for (int n = 0; n < this.model.pModel.notes.size(); n++) {

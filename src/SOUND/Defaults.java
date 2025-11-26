@@ -56,7 +56,7 @@ public class Defaults {
     int IForm_min, IForm_max;
     int iBand_min, iBand_max;
     public Vector<OneNote> selectedNotes;
-    Vector<Integer> channels; 
+    List<Integer> channels; 
     //--- State machine ----------
     public int range, trigger, cascadeCount, stepUp, stepDown;
     public int loopDepth, loopRepeat;
@@ -86,9 +86,9 @@ public boolean loadDef(String path, int build) {
     int q, ii;
     this.selectedNotes = new Vector<OneNote>();
     // set default, overwrite if possible
-    this.channels = new Vector<Integer>();
+    this.channels = new ArrayList<Integer>();
     for(int i = 0; i < (voiceMax+melodyChannels); i++) {
-    	this.channels.addElement(new Integer(10+i*3)); // Old default
+    	this.channels.add(new Integer(10+i*3)); // Old default
     }
     minOct = 0;
     maxOct = 5;
@@ -163,8 +163,8 @@ public boolean loadDef(String path, int build) {
     try {
 	br = new BufferedReader(new InputStreamReader(new FileInputStream(fdes)));
     } catch (java.io.FileNotFoundException e) {
-	System.out.println("Exception "+e);
-	return false;
+    	System.out.println("Exception "+e);
+    	return false;
     }
     
     try {
@@ -294,11 +294,12 @@ public boolean loadDef(String path, int build) {
 		    	if (this.channels == null)
 		    		this.channels = new Vector<Integer>();
 		    	int ic = Converter.getInt(res1.trim(), 0);
-		    	this.channels.addElement(new Integer(ic));
+		    	this.channels.add(new Integer(ic));
 		    }
 		}
 	    }
 	} // end of while
+	br.close();
     } // end of try
     catch (java.io.IOException e) {
 	System.out.println("loadDef in Defaults.java : "+e);
@@ -306,7 +307,7 @@ public boolean loadDef(String path, int build) {
 	return false;
     }
     while(channels.size() < (melodyChannels + this.voiceMax)) {
-    	channels.addElement(new Integer(0));
+    	channels.add(new Integer(0));
     }
     //System.out.println("Default.load() (2) : amplify_amp = "+this.amplify_amp);
     this.text = getText(build);
@@ -404,7 +405,7 @@ public boolean saveDef(String path, String user) {
 	}
 	if (this.channels != null) {
 		for (int q = 0; q < (this.voiceMax+melodyChannels); q++) {
-			Integer I = this.channels.elementAt(q);
+			Integer I = this.channels.get(q);
 			prs.println("CHANNEL="+ I.intValue()+" # channel Instrument");
 		}
 	}
@@ -722,13 +723,13 @@ public String[] getGermanText(int b) {
 }
 public int getInstrumentForChannel(int c) {
 	if (c < (this.voiceMax+melodyChannels)) 
-		return this.channels.elementAt(c).intValue();
+		return this.channels.get(c).intValue();
 	else return c;
 }
 
 public void setInstrumentForChannel(int c, int i) {
 	if (c < (this.voiceMax+melodyChannels)) 
-		this.channels.setElementAt(new Integer(i), c);
+		this.channels.add(c, new Integer(i));
 }
 
 Dimension screenSize = null;

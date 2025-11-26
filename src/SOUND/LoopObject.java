@@ -1,6 +1,8 @@
 package SOUND;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -373,8 +375,8 @@ public class LoopObject {
 		    	}
 		    }
 		    debugOut.accept("Dies wird "+(stimmen)+" stimmig.", 3);
-		    Vector sti = new Vector();
-		    sti.addElement(new Integer((int)freq.freq));
+		    List<Integer> sti = new ArrayList<>();
+		    sti.add(new Integer((int)freq.freq));
 		    // Now see if there are more than 1 voice(s)
 		    for (int st = 1; st < stimmen; st++) { // noch eine Stimme dazu:
 		    	int z = (this.def.population -1 ) - 
@@ -391,7 +393,7 @@ public class LoopObject {
 				 else { 
 				     amplitude = ProjectTools.getAmplitude(rt.readEntry((int)freq.freq), rt.max, min_amplitude, 
 							      max_amplitude, this.def.amplify_amp);	
-				     sti.addElement(new Integer((int)freq.freq));
+				     sti.add(new Integer((int)freq.freq));
 				 }
 				 //debugOut("Resulting amplitude ="+amplitude, 5);
 				 if (this.def.stereo) bal = ProjectTools.getBal(rt.fittest_freq, (int)freq.freq, rt.start, rt.stop);

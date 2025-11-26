@@ -1,6 +1,7 @@
 package SOUND;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 
@@ -73,11 +74,10 @@ public class ProjectTools {
      * @param sti the vector with the used frequencys
      * @return true if it is a double
      */
-    @SuppressWarnings("rawtypes")
-	public static boolean checkDouble(int freq, Vector sti) {
+	  public static boolean checkDouble(int freq, List<Integer> sti) {
 		int n, v;
 		for (n = 0; n < sti.size(); n++) {
-		    v = ((Integer) sti.elementAt(n)).intValue();
+		    v = ((Integer) sti.get(n)).intValue();
 		    if (v == freq) return true;
 		}
 		return false;
@@ -197,25 +197,7 @@ public class ProjectTools {
     	return res;
     }
 	
-	/**
-     * Calculate the frequency from the note-nr
-     * @param n the number of this note
-     * @return the frequency
-     */
-    private static double getFreq(int n) {
-    	double p = java.lang.Math.pow(2.0, ((double) n++ / 12.0));	// 2^(n/12)
-    	double f = 8.175798916 * p; 
-    	return f;
-    }
-    
-    private static double getFreq(int n, int o) {
-    	n += 12 * o;
-    	return getFreq(n);
-    }
-    
-
-
-    @SuppressWarnings("static-access")
+	
 	public static int mapAplitude(int a) {
     	int max = loud[loud.length-1]; // max. c-sound ampl.
     	int res = ( a * 127 / max);

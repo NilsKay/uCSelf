@@ -99,6 +99,7 @@ public class CSoundNote implements Cloneable{
     	Double o2 = new Double(n.start);
     	return o1.compareTo(o2); 
     }
+    
     public double getEndTime() {
     	return this.start + this.dauer + this.delay / 1000.0; 
     }

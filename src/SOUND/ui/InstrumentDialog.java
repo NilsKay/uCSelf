@@ -30,7 +30,7 @@ public class InstrumentDialog extends JDialog {
 	
 	CEditor ce;
 	Dimension screenSize;
-	JComboBox jc[];
+	JComboBox<String> jc[];
 	
 	public InstrumentDialog(CEditor ce, String title) {
 		super((JFrame) ce, title, true);
