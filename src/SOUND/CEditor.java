@@ -596,8 +596,8 @@ public void relocate() {
 	private Vector doOszi() {
 		Vector sco_lines = null;
 		//-------------- generate and save the orc file:
-		ProjectModel m = new ProjectModel(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs); 
-		pr2 = new Project2(m);
+		//ProjectModel m = new ProjectModel(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs); 
+		pr2 = new Project2(this.model.pModel);
 		if (this.def.newFOF) { // In fof mode check for default orc file
 		    sco_lines = new ScoAccess().getFileContent(Home+File.separator+GetEnviroment.DEFAULTFOFORC);
 		}
