@@ -78,6 +78,7 @@ public class CEditorModel {
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public CEditorModel(CEditor ce) {
 		this.pModel = new ProjectModel(ce.qd, ce.Verbosity, (SoundInfoListener) ce, ce.prs); 
+		this.pModel.def = ce.def;
 		this.ce = ce;
 		Toolkit tool = Toolkit.getDefaultToolkit();
 	    Dimension d = tool.getScreenSize();
