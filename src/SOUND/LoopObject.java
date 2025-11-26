@@ -4,16 +4,18 @@ import java.text.DecimalFormat;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+
+import SOUND.models.ProjectModel;
 import Utils.Akkorde;
 import Utils.Converter;
 
 public class LoopObject {
 	private DecimalFormat f = new DecimalFormat("#.###");
 	public OneNote freq;
-	private Vector<Note> loop;
+	private Vector<CSoundNote> loop;
 	public double start;
 	public int f_cnt; 
-	private Vector<Note> loopCopy;
+	private Vector<CSoundNote> loopCopy;
 	private int loopCounter;
 	private boolean requestToInitLoopCopy; 
 	public int transpositionNote;
@@ -22,7 +24,7 @@ public class LoopObject {
 	public int amplitude;
 	public int max_amplitude; // Border values
 	public int min_amplitude;
-	private Note loopNote  = null; 
+	private CSoundNote loopNote  = null; 
 	double bal;
 	double dauer = 0;	// Tondauer
 	double tempo = 0, pDauer = 0;
@@ -44,10 +46,10 @@ public class LoopObject {
 		this.addLog = addLog;
 		this.def = def;
 		this.freq = null;
-		this.loop = new Vector<Note>();
+		this.loop = new Vector<CSoundNote>();
 		this.start = 0;
 		this.f_cnt = 0; 
-		this.loopCopy = new Vector<Note>();
+		this.loopCopy = new Vector<CSoundNote>();
 		this.loopCounter = 0;
 		this.requestToInitLoopCopy = false; 
 		this.transpositionNote = 0;
@@ -59,7 +61,7 @@ public class LoopObject {
 		this.addToLoop = false;
 		if (rt.stateCnt <= 0) {
 	    	// update the loop
-	    	Note tn = new Note(this.start, 0, 0, 0, 0, 0, 0, 0, false);
+	    	CSoundNote tn = new CSoundNote(this.start, 0, 0, 0, 0, 0, 0, 0, false);
 		    tn.note = freq;
 	    	if (loop.size() < def.loopDepth)
 	    		loop.addElement(tn);
@@ -71,8 +73,7 @@ public class LoopObject {
 	    	addToLoop = true;
 	    }
 	    
-	    Note loopNote  = null; 
-	    if (f_cnt >= def.trigger) { // Trigger the state machine, execute it at the next interval
+		if (f_cnt >= def.trigger) { // Trigger the state machine, execute it at the next interval
 	    	try{
 	    		// Auswahl der State machine: INIT 
 	    		Vector<Integer> ssel = new Vector<Integer>();
@@ -153,7 +154,7 @@ public class LoopObject {
 	    	else if (rt.mode == 2) { // LOOP
 	    		// busy doing loop
 	    		try {
-	    			Note tn = loopCopy.elementAt(0);
+	    			CSoundNote tn = loopCopy.elementAt(0);
 	    			freq = tn.note.clone(); // use the oldest element,
 	    			if (!def.permutation)
 	    				loopNote = tn.clone(); // use saved Value
@@ -163,7 +164,7 @@ public class LoopObject {
 	    				loopCounter--;
 	    				if (loopCounter > 0) { // still busy, init again
 	    					rt.stateCnt = loop.size();
-	    	 	    		loopCopy = new Vector<Note>();
+	    	 	    		loopCopy = new Vector<CSoundNote>();
 	    	 	    		loopCopy.addAll(loop);
 	    	 	    		addLog.accept("# Repeat loop nr="+loopCounter);
 	    	 	    		System.out.println("Add new loop "+loopCopy.size());
@@ -261,7 +262,7 @@ public class LoopObject {
 		    	Converter.doBreak();
 		    }
 		    // Create the Note : 
-		    Note nt = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
+		    CSoundNote nt = new CSoundNote(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
 		    nt.note = freq;
 		    boolean transOK = true;
 		    if (def.useTrans) {
@@ -315,7 +316,7 @@ public class LoopObject {
 			    	loop.setElementAt(nt.clone(), last);
 			    	//addLog("Update last loop element size="+loop.size());
 			    	if (requestToInitLoopCopy ) {
-			    		loopCopy = new Vector<Note>();
+			    		loopCopy = new Vector<CSoundNote>();
 			    		loopCopy.addAll(loop);
 			    		requestToInitLoopCopy = false;
 			    	}
@@ -328,7 +329,7 @@ public class LoopObject {
 	    else {
 	    	try {
 	    		if (!def.doLoopBug) {
-	    			Note ln = loopNote.clone();
+	    			CSoundNote ln = loopNote.clone();
 	    			ln.start = start;
 	    			ProjectTools.addToKomposition(ln, skompo);
 	    		}
@@ -357,7 +358,7 @@ public class LoopObject {
 	public void doAkkordeUndStimmen(Soundscape rt,  Vector<OneNote> notes, int generator, int envelope, PrintWriter skompo) {
 		 if( ndVoice != null) {
 		    	// Akkorde !
-		    	Note nta = new Note(start, tempo, dauer, bal, ndVoice.freq, generator, amplitude, envelope, true);
+		    	CSoundNote nta = new CSoundNote(start, tempo, dauer, bal, ndVoice.freq, generator, amplitude, envelope, true);
 		    	nta.channel = 0; 	// first instrument
 		    	nta.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 		    	nta.pDauer = freq.pedal?pDauer:0;
@@ -405,7 +406,7 @@ public class LoopObject {
 				     Converter.doBreak();
 				 }
 				 try {
-					 Note ntn = new Note(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
+					 CSoundNote ntn = new CSoundNote(start, tempo, dauer, bal, frq, generator, amplitude, envelope, false);
 					 ntn.voices = stimmen;	// Anzahl der Stimmen since 1.7a1 for FOF
 					 ntn.channel = st;
 					 ntn.note = freq.clone();

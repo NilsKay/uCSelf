@@ -1,22 +1,13 @@
 package uCSelf;
 
-import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Vector;
-import java.util.function.BiConsumer;
 
-import javax.swing.JFrame;
-
-import SOUND.CDebug;
 import SOUND.OneNote;
-import SOUND.Project2;
-import SOUND.ProjectModel;
 import SOUND.ProjectTools;
-import SOUND.SoundInfoListener;
 import SOUND.Soundscape;
-import Utils.QSort;
-
+import SOUND.models.ProjectModel;
 
 public class Generator {
 	public static final String[] nts = new String[] {

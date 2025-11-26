@@ -2,7 +2,18 @@ package SOUND;
 import java.awt.*;
 import java.awt.event.*;
 
-import javax.swing.*; 
+import javax.swing.*;
+
+import SOUND.csound.ScoAccess;
+import SOUND.csound.ScoGenerator;
+import SOUND.models.CEditorModel;
+import SOUND.models.ProjectModel;
+import SOUND.ui.CDebug;
+import SOUND.ui.CEditorUi;
+import SOUND.ui.GraphCanvas;
+import SOUND.ui.InstrumentDialog;
+import SOUND.ui.SelectDialog;
+import SOUND.ui.StateDialog;
 
 import java.io.*;
 import java.text.DecimalFormat;
@@ -29,7 +40,8 @@ public class CEditor extends JFrame implements ItemListener, FocusListener, Acti
     int x,y;	// windowPosition
     int fontsize = 11;	// Font for min. window size (800*600)
     int subFontsize = 9;
-    boolean child = true, State; //true when we run as a child of another window
+    boolean child = true;
+    public boolean State; //true when we run as a child of another window
     boolean halt = false, mHalt = false;
     String Home;
     String User;
@@ -40,24 +52,24 @@ public class CEditor extends JFrame implements ItemListener, FocusListener, Acti
     String dummy = "                 ";
     int left_Button;
     int right_Button;
-    int digits = 10;	// Anzahl Stellen
-    int post = 5;	// Post colon digits
+    public int digits = 10;	// Anzahl Stellen
+    public int post = 5;	// Post colon digits
     Runner ru;
     PlayMidi pm;
     // --------- Other classes: ---------------
-    Defaults def;
+    public Defaults def;
     GraphCanvas gc;
-    CDebug qd;
+    public CDebug qd;
     Project2 pr2;
     //Project3 pr3;
-    MyMidi mid;
+    public MyMidi mid;
     Timer[] ti;
     // --------- The UI Elements: --------------
     //Choice ch, ch1, ch2, ch3, gam, ch4;	
     JMenuBar mb=null;		//Der Menubalken
-    JMenu m1, m2, lang;			//Das Menu im Balken
+    public JMenu m1, m2, lang;			//Das Menu im Balken
     JMenuItem   mi1_1, mi1_2, mi2_1, mi2_2, mi2_3, mi1_3, mi1_4, mi1_5, instr, stateM;		//
-    JCheckBoxMenuItem mi2_4, mi2_5, ger, eng;
+    public JCheckBoxMenuItem mi2_4, mi2_5, ger, eng;
     JPanel pane;
     
     //-------- L&F-------
@@ -81,10 +93,10 @@ public class CEditor extends JFrame implements ItemListener, FocusListener, Acti
     /**
      * Verbosity: 0= no, 1=important Messages, 2=less important, 3=low debug, 4=higher debug, 5 = high debug, 6 = crazy debug
      */
-    int Verbosity = 1;
+    public int Verbosity = 1;
     //boolean fof = false; // if true, we work as FOF generator, not osci
     
-    String CustomPath = null;
+    public String CustomPath = null;
     String sFile = null;
     String oFile = null;
     public PrintWriter prs = null;
@@ -93,7 +105,7 @@ public class CEditor extends JFrame implements ItemListener, FocusListener, Acti
     CEditorModel model;
     CEditorUi ui;
     
-    Dimension gd;
+    public Dimension gd;
 /**
  * Creates an Evolution Window (Standalone)
  * @param file,path this is the file we should load !
@@ -203,7 +215,7 @@ public CEditor(String home, String user, String opt) {
     JPanel top = new JPanel();
     top.setBackground(bg);
    // top.setGap(0);
-    gc = new GraphCanvas(gd, this.subFontsize, this.bg);
+    gc = new GraphCanvas(gd, this.subFontsize, this.bg); // top Panel in ceditor window
     top.add(gc);
     //pane.add("North", top);
     if (options == null) options = gsp.getOPTIONS();
@@ -792,10 +804,10 @@ public void actionPerformed(ActionEvent e) {
 	
     }   
     else if (o == this.instr) {
-    	new InstrumentDialog(this);
+    	new InstrumentDialog(this, this.def.text[89]);
     }
     else if (o == this.stateM) {
-    	new StateDialog(this);
+    	new StateDialog(this, this.def.text[109]);
     }
     else if (o == mi2_1) {	// About
 		String txt[] = new String[12];
@@ -942,7 +954,7 @@ public void actionPerformed(ActionEvent e) {
 		}
 		this.log = new Vector<String>(); 
 		this.playMidi = true;
-		Note nt;
+		CSoundNote nt;
 		int sl, c;
 		mid.startRecord(12); // instrument
 		double startTime = 0.0, old;
@@ -967,7 +979,7 @@ public void actionPerformed(ActionEvent e) {
 		int intervall = 0;
 		BufferedReader br = null;
 		String ilog = this.Home+File.separator+GetEnviroment.IMAGELOG;
-		Vector<Note> res = null;
+		Vector<CSoundNote> res = null;
     	try {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(ilog)));
 			br = new BufferedReader(isr);
@@ -982,7 +994,7 @@ public void actionPerformed(ActionEvent e) {
 		    // find the delay until the next note:
 		    int[] drw = new int[v.size()];
 		    for ( c = 0; c < v.size(); c++) {
-				nt = (Note)  v.elementAt(c);
+				nt = (CSoundNote)  v.elementAt(c);
 				//maxd = nt.dauer;
 				if (nt.tempo > 0)
 					intervall = (int) (nt.tempo * 1000);
@@ -1003,7 +1015,7 @@ public void actionPerformed(ActionEvent e) {
 		    DecimalFormat format = new DecimalFormat("#.###");
 		    double startIntervall = 0.0;
 		    for ( int ci = 0; ci < v.size(); ci++) {
-				nt = (Note)  v.elementAt(ci);
+				nt = (CSoundNote)  v.elementAt(ci);
 				startIntervall = nt.start * 1000;
 				if (ci == 0) {
 					addLog("");

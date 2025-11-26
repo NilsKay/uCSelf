@@ -6,7 +6,7 @@ import java.awt.*;
  * @version 	$Id$
  * @author 	Nils Kay
  */
-class FitnessTable  {
+public class FitnessTable  {
  
     int[] xp;
     int[] yp;

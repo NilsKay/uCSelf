@@ -1,18 +1,14 @@
 package SOUND;
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
-import Utils.Akkorde;
+import SOUND.models.ProjectModel;
 import Utils.GetEnviroment;
 import Utils.Melody;
-import Utils.QSort;
 import Utils.Converter;
 import Utils.Utils;
 
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -43,7 +39,7 @@ public class Project2 {
     }
    
     @SuppressWarnings({"unused"})
-	private Vector<Note> doKomposition(String home) { // Evolution
+	private Vector<CSoundNote> doKomposition(String home) { // Evolution
     	m.home = home;
     	//boolean doBug = def.doLoopBug;
     	Melody melody = new Melody();
@@ -51,10 +47,10 @@ public class Project2 {
     	//System.out.println("min_dur="+this.def.min_tempo);
     //	this.log = new Vector<String>(); 
     	m.logw = null; 
-    	Note melodyTone = null; // the actual played melody Note
+    	CSoundNote melodyTone = null; // the actual played melody Note
     	String tmp;
     	DecimalFormat f = new DecimalFormat("#.###");
-    	Note nt;
+    	CSoundNote nt;
     	long dela = ProjectModel.DELAY;
     	if (m.def.mode == 0) 
     		dela = ProjectModel.DDELAY;
@@ -279,13 +275,13 @@ public class Project2 {
 				m.dos.close();
 			}catch (Exception ex) {}
 		}
-		Vector<Note> ret = sortKomposition(kompo);
+		Vector<CSoundNote> ret = sortKomposition(kompo);
 		if (def.doMelody) {
 			MelodyObject mo = new MelodyObject(m.qd, def, m::debugOut, m::addLog, min_amplitude, max_amplitude);
 			ret = mo.addMelody(m.notes, ret, melodyChannel, f, m.Verbosity, m.prs);
 			saveOverview(ret);
-			Collections.sort(ret, new Comparator<Note>() {
-				public int compare(Note o1, Note o2){
+			Collections.sort(ret, new Comparator<CSoundNote>() {
+				public int compare(CSoundNote o1, CSoundNote o2){
 					return o1.compareTo(o2);
 				}
 			});
@@ -300,11 +296,11 @@ public class Project2 {
     }
     
     @SuppressWarnings("unused")
-	private void printDebug(Vector<Note> v) {
+	private void printDebug(Vector<CSoundNote> v) {
     	System.out.println("debug---------------");
     	Vector<String> vl = new Vector<String>();
     	for (int n = 0; n < v.size(); n++) { 
-    		Note nt = v.elementAt(n);
+    		CSoundNote nt = v.elementAt(n);
     		String l = nt.saveAsString();
     		System.out.println(l);
     		vl.addElement(l);
@@ -316,22 +312,22 @@ public class Project2 {
     }
     
     @SuppressWarnings({ "unused", "unchecked" })
-	private Vector<Note> getDebug() {
-    	Vector<Note> v = new Vector<Note>();
+	private Vector<CSoundNote> getDebug() {
+    	Vector<CSoundNote> v = new Vector<CSoundNote>();
     	
     	String path = m.home+File.separator+"test.sav";
     	Utils t = new Utils();
     	Vector<String> li = t.readTextFile(path, false);
     	for (int n = 0; n < li.size(); n++)
-    		v.addElement(Note.getFromString(li.elementAt(n)));
+    		v.addElement(CSoundNote.getFromString(li.elementAt(n)));
     	return v;
     }
     
-    private void saveOverview(Vector<Note> v) {
+    private void saveOverview(Vector<CSoundNote> v) {
     	System.out.println("Melody Verify-----------------------------------------");
     	Vector<String> vl = new Vector<String>();
     	for (int n = 0; n < v.size(); n++) { 
-    		Note nt = v.elementAt(n);
+    		CSoundNote nt = v.elementAt(n);
     		String l = getOneLine(nt);
     		System.out.println(l);
     		vl.addElement(l);
@@ -341,7 +337,7 @@ public class Project2 {
     	t.save(path, "ASCII", vl);
     }
     
-    private String getOneLine(Note nt) {
+    private String getOneLine(CSoundNote nt) {
     	String ret = (nt.misc == 222)?"-> Melody":"   Base\t";
     	String st = nt.note.note+nt.note.Octave;
     	ret += "\t"+st; 
@@ -368,24 +364,24 @@ public class Project2 {
 	private void printInvteral(Vector<Vector> interval) {
     	System.out.println("sorted into intervals----");
     	for (int n = 0; n < interval.size(); n++) {
-    		Vector<Note> iv = interval.elementAt(n);
+    		Vector<CSoundNote> iv = interval.elementAt(n);
     		for (int q = 0; q < iv.size(); q++) {
-    			Note nt = iv.elementAt(q);
+    			CSoundNote nt = iv.elementAt(q);
     			System.out.println(nt.start+" "+nt.note);
     		}
     	}
     }
     
     
-    private Vector<Note> sortKomposition(String kompo) {
-    	Vector<Note> res = null;
+    private Vector<CSoundNote> sortKomposition(String kompo) {
+    	Vector<CSoundNote> res = null;
     	try {
 			InputStreamReader isr = new InputStreamReader(new FileInputStream(new File(kompo)));
 			BufferedReader br = new BufferedReader(isr);
-			res = new Vector<Note>();
+			res = new Vector<CSoundNote>();
 			String res0;
 		    while((res0 = br.readLine()) != null) {
-		    	Note nt = Note.getFromString(res0);
+		    	CSoundNote nt = CSoundNote.getFromString(res0);
 		    	res.addElement(nt);
 		    }
 		    br.close();	// close the Buffered Reader
@@ -394,8 +390,8 @@ public class Project2 {
     		return null;
     	}
     	// Now we have the komposition as Vector
-    	Collections.sort(res, new Comparator<Note>() {
- 		   public int compare(Note o1, Note o2){
+    	Collections.sort(res, new Comparator<CSoundNote>() {
+ 		   public int compare(CSoundNote o1, CSoundNote o2){
  			  return o1.compareTo(o2);
  		   }
  		});
@@ -488,7 +484,7 @@ public class Project2 {
      */
     @SuppressWarnings({ "unused"})
 	public Vector<String> generateSound(String home) {
-		Note nt;
+		CSoundNote nt;
 		String tmp;
 		m.komposition = doKomposition(home);	// Evolution
 		Vector<String> result = new Vector<String>();

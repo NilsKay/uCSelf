@@ -9,6 +9,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
+import SOUND.models.SelectModel;
+
 
 @SuppressWarnings("serial")
 public class SelectTable extends JTable {

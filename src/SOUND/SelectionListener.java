@@ -7,6 +7,8 @@ import java.util.Vector;
 import javax.swing.JTable;
 import javax.swing.table.TableColumnModel;
 
+import SOUND.models.SelectModel;
+import SOUND.ui.SelectDialog;
 import Utils.Utils;
 
 

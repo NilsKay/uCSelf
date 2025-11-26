@@ -23,7 +23,7 @@ import Utils.Utils;
  */
 public class Defaults {
 	int maxText = 140;
-	String text[] = new String[maxText];
+	public String text[] = new String[maxText];
     // ---------- All the variables from the ui-mask :
 	public int max_freq, min_freq, lang;
 	public int population, fittest;
@@ -52,10 +52,10 @@ public class Defaults {
     double splitter_t1_min, splitter_t1_max;
     double splitter_t2_min, splitter_t2_max;
     double splitter_t3_min, splitter_t3_max;
-    double gamma;
+    public double gamma;
     int IForm_min, IForm_max;
     int iBand_min, iBand_max;
-    Vector<OneNote> selectedNotes;
+    public Vector<OneNote> selectedNotes;
     Vector<Integer> channels; 
     //--- State machine ----------
     public int range, trigger, cascadeCount, stepUp, stepDown;
@@ -65,7 +65,7 @@ public class Defaults {
     public int m_range, m_trigger;
     public int transP_min, transP_max, minOct, maxOct;
     
-    String[] durationTable = new String[]{
+    public final static String[] durationTable = new String[]{
     	"free", "1/16", "1/8", "1/4", "1/2", "1", "2"
     };
     public static int[] durations = new int[] {

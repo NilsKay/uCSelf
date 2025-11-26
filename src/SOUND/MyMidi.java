@@ -20,8 +20,8 @@ public class MyMidi {
     Sequencer sequencer;
     Sequence sequence;
     MidiChannel[] midiChannels;
-    Instrument[] instruments;
-    Soundbank sb = null;
+    public Instrument[] instruments;
+    public Soundbank sb = null;
     Synthesizer synthesizer;
     Track track;
     long startTime;

@@ -9,8 +9,9 @@ import java.util.Vector;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
+import SOUND.models.ProjectModel;
+import SOUND.ui.CDebug;
 import Utils.Melody;
-import Utils.QSort;
 
 public class MelodyObject {
 
@@ -37,7 +38,7 @@ public class MelodyObject {
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public Vector<Note> addMelody( Vector<OneNote> notes, Vector<Note> in, int channel, DecimalFormat f, int Verbosity, PrintWriter prs) {
+	public Vector<CSoundNote> addMelody( Vector<OneNote> notes, Vector<CSoundNote> in, int channel, DecimalFormat f, int Verbosity, PrintWriter prs) {
     	addLog.accept("#-#-#-#-#-#-#- MELODY Iteration #-#-#-#-#-#-#");
     	/*
     	for (int n = 0; n < in.size(); n++) {
@@ -48,7 +49,7 @@ public class MelodyObject {
     	int envelope = 0;
     	Melody melody = new Melody();
     	//int melodyChannel = def.voiceMax; // (7) first melody channel (after maxVoices) 
-    	Note melodyTone = null;
+    	CSoundNote melodyTone = null;
     	Soundscape shadow = new Soundscape(this.qd, Verbosity, 
    		     this.def.min_freq, this.def.max_freq, this.def.interval, 0.0, 
    		     this.def.impact, prs);
@@ -64,17 +65,16 @@ public class MelodyObject {
     	//-------------
     	Vector<Vector> interval = ProjectTools.getInterval(in, false, def.duration_step_index); // A vector of vectors for each interval 
     	//printInvteral(interval);
-    	Vector<Note> all = null; // all notes of one intervall!
+    	Vector<CSoundNote> all = null; // all notes of one intervall!
     	int it = 0;
     	for (it = 0; it < interval.size(); it++) { // loop over all intervals
     		all = interval.elementAt(it);
-    		Note first = all.firstElement();
+    		CSoundNote first = all.firstElement();
     		start = first.start;
     		shadow.iteration = it;
     		ProjectModel.createPopulation(notes, shadow, this.def.population, 
         			this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
     		ProjectTools.makeWeight(this.def.population, shadow, def.r_Weight, debugOut);// Judge them
-        	QSort q = new QSort(); // ( index = max equals the highest weight)
         	Arrays.sort(shadow.freq, Comparator.comparing(p -> p.weight));
         	//q.sort(shadow.weight, shadow.freq);
         	OneNote sfreq = null;
@@ -117,7 +117,7 @@ public class MelodyObject {
         		sfreq.getMidiNote(); // find the note from the frequency
 		    	OneNote next = melody.findMelodyNote(first.note.noteIndex, 5, m_Tension);
 		    	//OneNote next = melody.findNextMelodyNote(freq.noteIndex, 5, 0);
-		    	melodyTone = new Note(start, 0.0, 0.0, m_bal, next.freq, generator, m_amplitude, envelope, false);
+		    	melodyTone = new CSoundNote(start, 0.0, 0.0, m_bal, next.freq, generator, m_amplitude, envelope, false);
 		    	melodyTone.channel = channel;
 		    	try{
 		    		melodyTone.note = next.clone(); 
@@ -158,7 +158,7 @@ public class MelodyObject {
 		    		//OneNote next = melody.findNextMelodyNote(haupt_note, melody_octave, melodyTone.note.noteIndex);
 		    		// new Melody not:
 		    		int amplitude = m_amplitude; // war 70!
-		    		melodyTone = new Note(start, 0.0, 0.0, m_bal, next.freq, generator, amplitude, envelope, false);
+		    		melodyTone = new CSoundNote(start, 0.0, 0.0, m_bal, next.freq, generator, amplitude, envelope, false);
 			    	melodyTone.channel = channel;
 			    	double ly =  ProjectTools.getKleiner(val, shadow.max, 0.0, this.def.max_tempo) * 1000.0;
 			    	melodyTone.delay = 0.0;
@@ -194,14 +194,14 @@ public class MelodyObject {
     		//addToKomposition(melodyTone);
     	}
     	// now convert the intervalls back to one Note Vector:
-    	Vector<Note> result = new Vector<Note>();
+    	Vector<CSoundNote> result = new Vector<CSoundNote>();
     	for (int n = 0; n < interval.size(); n++) {
-    		Vector<Note> iv = interval.elementAt(n);
+    		Vector<CSoundNote> iv = interval.elementAt(n);
     		result.addAll(iv);
     	}
     	
-    	Collections.sort(result, new Comparator<Note>() {
-			public int compare(Note o1, Note o2){
+    	Collections.sort(result, new Comparator<CSoundNote>() {
+			public int compare(CSoundNote o1, CSoundNote o2){
 				return o1.compareTo(o2);
 			}
 		});
@@ -212,19 +212,19 @@ public class MelodyObject {
     	return result;
     }
     
-    private Vector<Note> correctMelody(Vector<Note> v) {
-    	Vector<Note> m = getMelody(v);
+    private Vector<CSoundNote> correctMelody(Vector<CSoundNote> v) {
+    	Vector<CSoundNote> m = getMelody(v);
     	if (m.size() < 2)
     		return v;
-    	Vector<Note> b = getBase(v);
+    	Vector<CSoundNote> b = getBase(v);
     	// now analyze the melody track only
     	// - no overlaps
     	// - no neg. durations
-    	Note old = null;
-    	Vector<Note> mod = new Vector<Note>();
+    	CSoundNote old = null;
+    	Vector<CSoundNote> mod = new Vector<CSoundNote>();
     	int index = 0;
     	for (int n = 0; n < m.size(); n++) {
-    		Note nt = m.elementAt(n); // a new melody note
+    		CSoundNote nt = m.elementAt(n); // a new melody note
     		if (nt.dauer > 0.0)  { // first > 0!
     			old = nt;
     			index = n;
@@ -234,7 +234,7 @@ public class MelodyObject {
     	//printDebug(m);
     	//m = getDebug();
     	for (int n = index; n < m.size(); n++) {
-    		Note nt = m.elementAt(n); // a new melody note
+    		CSoundNote nt = m.elementAt(n); // a new melody note
     		double m_start = nt.start + nt.delay / 1000.0;
     		double end = nt.getEndTime(); 
     		/*System.out.println("n="+n+" base="+Converter.formatDouble(nt.start, 8)+
@@ -271,8 +271,8 @@ public class MelodyObject {
     		}
     	}
     	mod.addAll(b);
-    	Collections.sort(mod, new Comparator<Note>() {
-			public int compare(Note o1, Note o2){
+    	Collections.sort(mod, new Comparator<CSoundNote>() {
+			public int compare(CSoundNote o1, CSoundNote o2){
 				return o1.compareTo(o2);
 			}
 		});
@@ -281,20 +281,20 @@ public class MelodyObject {
     	
     	return mod;
     }
-    private Vector<Note> getBase(Vector<Note> v) {
-    	Vector<Note> mel = new Vector<Note>();
+    private Vector<CSoundNote> getBase(Vector<CSoundNote> v) {
+    	Vector<CSoundNote> mel = new Vector<CSoundNote>();
     	for (int n= 0; n < v.size(); n++) {
-    		Note nt = v.elementAt(n);
+    		CSoundNote nt = v.elementAt(n);
     		if (nt.misc != 222)
     			mel.addElement(nt);
     	}
     	return mel;
     }
     
-    private Vector<Note> getMelody(Vector<Note> v) {
-    	Vector<Note> mel = new Vector<Note>();
+    private Vector<CSoundNote> getMelody(Vector<CSoundNote> v) {
+    	Vector<CSoundNote> mel = new Vector<CSoundNote>();
     	for (int n= 0; n < v.size(); n++) {
-    		Note nt = v.elementAt(n);
+    		CSoundNote nt = v.elementAt(n);
     		if (nt.misc == 222)
     			mel.addElement(nt);
     	}

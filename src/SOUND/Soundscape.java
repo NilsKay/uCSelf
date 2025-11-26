@@ -2,8 +2,7 @@ package SOUND;
 
 import java.text.DecimalFormat;
 import java.util.*;
-
-import com.sun.jdi.Method;
+import SOUND.ui.CDebug;
 
 import java.io.DataOutputStream;
 import java.io.PrintWriter;
@@ -20,16 +19,16 @@ import Utils.Utils;
 public class Soundscape {
 
     /** The intervall between 2 frequency entrys in the table */
-    int step;
+    public int step;
 
     /** The start frequenz of the frequency table */
-    int start;
+    public int start;
 
     /** The stop frequenz of the frequency table */
-    int stop;
+    public int stop;
 
     /** The default (min) value for the weight */
-    double min;
+    public double min;
 
     /** This is the table */
     public OneNote table[];

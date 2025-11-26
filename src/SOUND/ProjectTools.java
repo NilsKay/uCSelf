@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.util.Vector;
 import java.util.function.BiConsumer;
 
+import SOUND.models.ProjectModel;
 import Utils.Converter;
 
 public class ProjectTools {
@@ -105,7 +106,7 @@ public class ProjectTools {
      * @return
      */
     @SuppressWarnings("rawtypes")
-	public static Vector<Vector> getInterval(Vector<Note> in, boolean quant, int duration_step_index) {
+	public static Vector<Vector> getInterval(Vector<CSoundNote> in, boolean quant, int duration_step_index) {
     	double start = 0.0;
     	int index = 0;
     	Vector<Vector> mi = new Vector<Vector>();
@@ -114,8 +115,8 @@ public class ProjectTools {
 	    	oneQuant = (double) Defaults.durations[duration_step_index] / 1000.0;//this.durations[this.def.duration_step_index]; //getDurationFromTable(dauer);
 	    }
     	while(index < in.size()) {
-    		Note main = in.elementAt(index);
-    		Vector<Note> intervall = new Vector<Note>();
+    		CSoundNote main = in.elementAt(index);
+    		Vector<CSoundNote> intervall = new Vector<CSoundNote>();
     		//System.out.println(index+" Add first element at"+main.start+" "+main.note);
     		if (quant) 
 				main.start = start;
@@ -124,7 +125,7 @@ public class ProjectTools {
     		index += 1;
     		
     		if (index < in.size()) {
-	    		Note nextN = in.elementAt(index);
+	    		CSoundNote nextN = in.elementAt(index);
 	    		double limit = start;
 	    		if (quant)
 	    			limit = start + oneQuant - 0.01;
@@ -161,7 +162,7 @@ public class ProjectTools {
     	return mi;
     }
     
-	public static void addToKomposition(Note nt, PrintWriter skompo) {
+	public static void addToKomposition(CSoundNote nt, PrintWriter skompo) {
     	if (skompo != null)
     		skompo.println(nt.saveAsString());
     }
@@ -172,13 +173,13 @@ public class ProjectTools {
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked"})
-	public static Vector<Note> quantisize(Vector<Note> in, int duration_step_index) {
+	public static Vector<CSoundNote> quantisize(Vector<CSoundNote> in, int duration_step_index) {
     	Vector<Vector> interval = getInterval(in, true, duration_step_index); // A vector of vectors for each interval 
     	
     	// now convert the intervalls back to one Note Vector:
-    	Vector<Note> result = new Vector<Note>();
+    	Vector<CSoundNote> result = new Vector<CSoundNote>();
     	for (int n = 0; n < interval.size(); n++) {
-    		Vector<Note> iv = (Vector) interval.elementAt(n);
+    		Vector<CSoundNote> iv = (Vector) interval.elementAt(n);
     		result.addAll(iv);
     	}
     	
@@ -221,7 +222,7 @@ public class ProjectTools {
     	return res; // midi has 127 as max. amplitude val.
     }
     
-	 public static String digestNote(Note nt, boolean fof, int delay, BiConsumer<String, Integer> debugOut) {
+	 public static String digestNote(CSoundNote nt, boolean fof, int delay, BiConsumer<String, Integer> debugOut) {
 	    	double st = nt.start + (nt.delay / 1000.0);
 	    	String tmp  = ProjectModel.DO+"\t"+Converter.formatDouble(st, 12,6)+"\t";
 	    	if (nt.misc == 222)
