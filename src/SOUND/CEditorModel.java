@@ -69,9 +69,11 @@ public class CEditorModel {
     int post = 5;		// Post colon digits
     CEditor ce;
     //Defaults def;
+    public ProjectModel pModel;
     
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public CEditorModel(CEditor ce) {
+		this.pModel = new ProjectModel(ce.qd, ce.Verbosity, (SoundInfoListener) ce, ce.prs); 
 		this.ce = ce;
 		Toolkit tool = Toolkit.getDefaultToolkit();
 	    Dimension d = tool.getScreenSize();
@@ -159,8 +161,8 @@ public class CEditorModel {
 	    combo[MAXVOICE].setSelectedItem(Integer.toString(ce.def.max_voice));	
 	    
 	    elements = new Vector();
-	    for (int qz = 0; qz < Project2.GAMMAT.length; qz++) 
-	    	elements.addElement(Double.toString(Project2.GAMMAT[qz]));
+	    for (int qz = 0; qz < ProjectModel.GAMMAT.length; qz++) 
+	    	elements.addElement(Double.toString(ProjectModel.GAMMAT[qz]));
 	    getComboPanel(GAMMA, ce.def.text[54], elements);
 	    combo[GAMMA].setSelectedItem(Double.toString(ce.def.gamma));	
 	    

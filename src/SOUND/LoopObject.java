@@ -252,7 +252,7 @@ public class LoopObject {
 		    
 		    if (this.def.tonal) {
 		    	// get freq as double !
-		    	frq = ProjectTools.getExactFreq((int)freq.freq, notes).freq;
+		    	frq = ProjectModel.getExactFreq((int)freq.freq, notes).freq;
 		    }
 		    //else System.out.println("Free: frq="+frq);
 		    //---- erzeuge eine neue Note mit den oben ermittelten Werten.--------------
@@ -398,7 +398,7 @@ public class LoopObject {
 				 frq = (double) freq.freq;
 				 if (this.def.tonal) {
 				     // get freq as double !
-				     frq = ProjectTools.getExactFreq((int)freq.freq, notes).freq;
+				     frq = ProjectModel.getExactFreq((int)freq.freq, notes).freq;
 				 }
 				 if (tempo <= 0) {
 				     System.out.println("tempo (b)="+tempo);

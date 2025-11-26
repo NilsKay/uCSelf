@@ -187,8 +187,8 @@ public class ProjectTools {
     
 	public static int getNoteFromString(String s) {
     	int res = 0;
-    	for (int n = 0; n < Project2.nts.length; n++) {
-    		if(s.equalsIgnoreCase(Project2.nts[n])) {
+    	for (int n = 0; n < ProjectModel.nts.length; n++) {
+    		if(s.equalsIgnoreCase(ProjectModel.nts[n])) {
     			res = n;
     			break;
     		}
@@ -213,46 +213,6 @@ public class ProjectTools {
     }
     
 
-    private static OneNote getClosestMatch(double v, OneNote left, OneNote right) {
-    	double diff = (right.freq - left.freq) / 2.0; // half distance between left and right
-    	double i = v - left.freq;
-    	return ( i > diff)?right:left;
-    }
-    
-    
-	public static OneNote getExactFreq(int freq, Vector<OneNote> notes) {
-    	OneNote right;
-		double f = (double) freq;
-		int n;
-		OneNote left = notes.elementAt(0); // first element
-		for (n = 1; n < notes.size(); n++) {
-		    // right border:
-		    right = notes.elementAt(n); 
-		    if (right.freq > freq) {
-		    	left = getClosestMatch(f, left, right);
-		    	break;
-		    }
-		    left = right; // next left border
-		}
-		//System.out.println("getExactFreq() in="+freq+" out="+left);
-		return left; // max maximum possible
-    }
-	
-	/**
-     * Get a random freq. from the note-table. This table starts with our min.-freq
-     * and ends with the max.-freq.
-     * the indecees are equally distributed, checked 2nd of July 2003 nik
-     * @return a random freq.
-     */
-    public static OneNote getChromaticFrequency(Vector<OneNote> notes) {
-		int index = (int) ((double) (notes.size()) * java.lang.Math.random()); // index
-		//System.out.println("getChromaticFrequency() from max="+this.notes.size()+" r_index="+index);
-		OneNote f = notes.elementAt(index);
-		//this.rndStatic[index]++;
-		//System.out.println("getChromaticFrequency() min="+this.def.min_freq+" max="+this.def.max_freq+" rnd="+f);
-		return f;
-    }
-
 
     @SuppressWarnings("static-access")
 	public static int mapAplitude(int a) {
@@ -263,9 +223,9 @@ public class ProjectTools {
     
 	 public static String digestNote(Note nt, boolean fof, int delay, BiConsumer<String, Integer> debugOut) {
 	    	double st = nt.start + (nt.delay / 1000.0);
-	    	String tmp  = Project2.DO+"\t"+Converter.formatDouble(st, 12,6)+"\t";
+	    	String tmp  = ProjectModel.DO+"\t"+Converter.formatDouble(st, 12,6)+"\t";
 	    	if (nt.misc == 222)
-	    		tmp  = Project2.DOMELODY+"\t"+Converter.formatDouble(st, 12,6)+"\t";
+	    		tmp  = ProjectModel.DOMELODY+"\t"+Converter.formatDouble(st, 12,6)+"\t";
 	    	double dau = nt.dauer;
 	    	if (nt.note.pedal)
 	    		dau = nt.pDauer;
@@ -285,45 +245,7 @@ public class ProjectTools {
 	    	debugOut.accept("add line:"+tmp, 6);
 	    	return tmp;
 	    }
-	public static OneNote makeRandomFrequency(Vector<OneNote> notes, int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
-		double f = 0.0;
-		double diff = (double) (max - min);
-		f = min + (int) (diff  * java.lang.Math.random());
-		OneNote nf = new OneNote(f, 0, 0);
-		
-		if (tonal) {
-		    if (!preferLowerNotes) { // 
-		    	nf = getExactFreq((int) f, notes);
-		    }
-		    else { // prefer lower notes !, so we choose the next lower freq of our frequency
-		    	// 
-		    	nf = getChromaticFrequency(notes);
-		    }
-		}
-		else if (useSelectNotes) {
-			nf = getExactFreq((int) f, notes);
-		}
-		return nf;
-    }
-
-    /**
-     * Enter new population into soundscape (With footprint)
-     * @param rt
-     * @param population
-     * @param min
-     * @param max
-     */
-    public static void createPopulation(Vector<OneNote> notes, Soundscape rt, int population, int min, int max, boolean tonal, boolean preferLowerNotes, boolean useSelectNotes) {
-    	rt.freq = new OneNote[population];
-    	double maxf = 0;
-    	for (int i = 0; i < population; i++) {
-    		rt.freq[i] = makeRandomFrequency(notes, min, max+1, tonal, preferLowerNotes, useSelectNotes);
-    		if (rt.freq[i].freq > maxf )
-    			maxf = rt.freq[i].freq;
-    	}	
-    	//System.out.println("makeNRandomFrequencys Max="+maxf);
-    }
-
+	
 /**
  * Translate the Loudness-code (f, ff etc.) into an amplitude value
  */

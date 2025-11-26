@@ -54,7 +54,7 @@ public class MelodyObject {
    		     this.def.impact, prs);
     	OneNote sFreq = null;
     	if (this.def.seed <= this.def.min_freq | this.def.tonal) { // do random or invalid
-    		sFreq = ProjectTools.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
+    		sFreq = ProjectModel.makeRandomFrequency(notes, this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes);
     	}
     	else 
     		sFreq = new OneNote(this.def.seed, 0, 0);
@@ -71,7 +71,7 @@ public class MelodyObject {
     		Note first = all.firstElement();
     		start = first.start;
     		shadow.iteration = it;
-    		ProjectTools.createPopulation(notes, shadow, this.def.population, 
+    		ProjectModel.createPopulation(notes, shadow, this.def.population, 
         			this.def.min_freq, this.def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
     		ProjectTools.makeWeight(this.def.population, shadow, def.r_Weight, debugOut);// Judge them
         	QSort q = new QSort(); // ( index = max equals the highest weight)

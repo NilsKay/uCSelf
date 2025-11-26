@@ -1,5 +1,6 @@
 package uCSelf;
 
+import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Vector;
@@ -7,8 +8,10 @@ import java.util.function.BiConsumer;
 
 import javax.swing.JFrame;
 
+import SOUND.CDebug;
 import SOUND.OneNote;
 import SOUND.Project2;
+import SOUND.ProjectModel;
 import SOUND.ProjectTools;
 import SOUND.SoundInfoListener;
 import SOUND.Soundscape;
@@ -42,12 +45,12 @@ public class Generator {
 		int interval = 10;
 		int min = 20;
 		int max = 2000;
-		Project2 p2 = new Project2(null, null);
-		Vector<OneNote> notes = p2.createNoteTable(1, min, max);
+		
+		Vector<OneNote> notes = ProjectModel.createNoteTable(1, min, max, 1);
 		Soundscape rt = new Soundscape(null, 1, 
 			     min, max, interval, 0.0, 
 			     impact, null);
-		ProjectTools.createPopulation(notes, rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
+		ProjectModel.createPopulation(notes, rt, numberOfIndividuums, min, max, tonal, preferLowerNotes, useSelectNotes); // create new Population
 		ProjectTools.makeWeight(numberOfIndividuums, rt, impact, Generator::debugOut);// change weight 
 		
 		//rt.writeNEntrys( freq, this.def.degression, this.def.diff_freq ); // degression

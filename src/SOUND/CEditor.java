@@ -596,7 +596,8 @@ public void relocate() {
 	private Vector doOszi() {
 		Vector sco_lines = null;
 		//-------------- generate and save the orc file:
-		pr2 = new Project2(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs);
+		ProjectModel m = new ProjectModel(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs); 
+		pr2 = new Project2(m);
 		if (this.def.newFOF) { // In fof mode check for default orc file
 		    sco_lines = new ScoAccess().getFileContent(Home+File.separator+GetEnviroment.DEFAULTFOFORC);
 		}
@@ -727,6 +728,7 @@ public void actionPerformed(ActionEvent e) {
     Object o = (Object) e.getSource();
     if (this.ignore) return;
     this.ignore = true;
+    ProjectModel p = this.model.pModel;
     if (o == model.bt[model.START]) { // start Button
 	   // body.setEnabled(false);
 	    model.bt[model.START].setEnabled(false);
@@ -828,7 +830,7 @@ public void actionPerformed(ActionEvent e) {
 		if (!playMidi) {
 		    if (!this.halt) {
 		    	this.halt = true;
-		    	pr2.halt = true;
+		    	p.halt = true;
 		    	ru.stop();
 		    }
 		    model.bt[model.STOP].setEnabled(!this.halt);
@@ -930,7 +932,8 @@ public void actionPerformed(ActionEvent e) {
     	if (kompo == null) 
     		return;
     		*/
-		if ( this.pr2.komposition == null | this.pr2.komposition.size() <= 0) return;
+    	ProjectModel p = this.model.pModel;
+		if ( p.komposition == null | p.komposition.size() <= 0) return;
 		mid.close();
 		this.enableMidi = doMidiOpen();
 		if (!this.enableMidi) {
@@ -947,7 +950,7 @@ public void actionPerformed(ActionEvent e) {
 		flow = new Vector();
 		v = new Vector();
 		//-------- Combine the voices :
-		flow = ProjectTools.getInterval(this.pr2.komposition, false, def.duration_step_index);
+		flow = ProjectTools.getInterval(p.komposition, false, def.duration_step_index);
 		
 		// Instruments:
 		for (int i = 0; i < mid.channels.length; i++) { // hier die Instrumente setzen (2 pro stimme wg.akkord ?)
@@ -992,10 +995,10 @@ public void actionPerformed(ActionEvent e) {
 		    SysStartTime = System.currentTimeMillis(); //
 		    try {
 		    	String res0 = br.readLine();
-		    	pr2.rt.setTableFromString(res0);
-		    	displayRT(pr2.rt);
+		    	p.rt.setTableFromString(res0);
+		    	displayRT(p.rt);
 		    } catch (Exception ex) {}
-		    this.gc.showNote(pr2.rt, drw, n);
+		    this.gc.showNote(p.rt, drw, n);
 		    // Loop over all notes in this time-intervall
 		    DecimalFormat format = new DecimalFormat("#.###");
 		    double startIntervall = 0.0;
@@ -1197,13 +1200,13 @@ public void focusLost(FocusEvent e) {
    
 
 public void doSelectNotes() {
-	Project2 p = new Project2(this.qd, this.Verbosity, (SoundInfoListener) this, this.prs);
-	p.def = def;
-	p.createNoteTable(p.note_mode, def.min_freq, def.max_freq); // respects the min-max freq.
+	Project2 p = new Project2(this.model.pModel);
+	this.model.pModel.def = def;
+	this.model.pModel.notes = this.model.pModel.createNoteTable(this.model.pModel.note_mode, def.min_freq, def.max_freq, this.model.pModel.anfOkt); // respects the min-max freq.
 	// filer die selectierten Noten aus der Quelle !
 	Vector<OneNote> source = new Vector<OneNote>();
-	for (int n = 0; n < p.notes.size(); n++) {
-		OneNote no = p.notes.elementAt(n);
+	for (int n = 0; n < this.model.pModel.notes.size(); n++) {
+		OneNote no = this.model.pModel.notes.elementAt(n);
 		if (!contains(def.selectedNotes, no)) // is not in the selected list
 			source.addElement(no);
 	}
