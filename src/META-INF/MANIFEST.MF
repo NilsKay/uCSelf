@@ -1,4 +1,4 @@
 Manifest-Version: 1.0
-Created-By: 1.6.0_25 (Sun Microsystems Inc.)
-Main-Class: SOUND.CEditor
+Main-Class: SOUND.CEditor.Main
+
 

@@ -21,7 +21,16 @@ import java.io.PrintWriter;
  */
 public class Project2 {
    
-    
+    /**
+     * Zuerst wird eine Soundscape mit einer Start- und Endfrequenz sowie einer Schrittweite festgelegt. 
+In einer Schleife mit n-Iterationen, wobei n die Anzahl der zu erzeugenen Töne ist, wird dies gemacht:
+Eine Bevölkerung mit einer Anzahl x Individuen wird zufällig erzeugt
+Die Individuen werden mit einem Gewicht für die Fitness bewertet
+Das fitteste Indiviuum wird ausgewählt
+Es wird in die Soundscape übertragen
+Anhand der Eigenschaften des fittesten Indiviuums werden Eigenschaften des Tones errechnet, wie Lautstärke, Platz im Stereofeld, Dauer etc.
+Das ist ganz grob, ich beschreibe hier z.B. nicht, dass der Fitteste mit einem gewissen Zufall ausgewählt wird.
+     */
 	ProjectModel m;
 	
     /**
@@ -55,7 +64,7 @@ public class Project2 {
     	if (m.def.mode == 0) 
     		dela = ProjectModel.DDELAY;
     	int n, z, it, st;
-    	int generator, envelope = 0;
+    	
 		String kompo = home+File.separator+GetEnviroment.KOMPOSITION;
 		
 		try {
@@ -66,7 +75,12 @@ public class Project2 {
 		catch (java.io.IOException e) {
 			m.skompo = null;
 		} // End of IO Excep
-		generator = 0; 	// ((Integer) this.generators.elementAt(0)).intValue();
+		LoopObject o = new LoopObject(m.def, m::debugOut, m::addLog);
+		o.bal = m.balance;
+		o.amplitude = o.max_amplitude;	// actual value
+		o.max_amplitude =  ProjectTools.getLoundness(m.def.max_amp, m.def.fof); // Border values
+		o.min_amplitude = ProjectTools.getLoundness(m.def.min_amp, m.def.fof);
+		o.generator = 0; 	// ((Integer) this.generators.elementAt(0)).intValue();
 		m.debugOut("KOMPOSITION: (Evolution)", 1);
 		Defaults def = m.def;
 		m.addLog("KOMPOSITION: (Evolution)");
@@ -129,125 +143,13 @@ public class Project2 {
 		m.debugOut("min freq="+def.min_freq+" max_freq="+def.max_freq+" population="+def.population+" degression="+def.degression+" weight="+def.r_Weight, 55);
 		m.addLog("min freq="+def.min_freq+" max_freq="+def.max_freq+" population="+def.population+" degression="+def.degression+" weight="+def.r_Weight);
 		flowControl();
-		int max_amplitude =  ProjectTools.getLoundness(def.max_amp, def.fof); // Border values
-		int min_amplitude =  ProjectTools.getLoundness(def.min_amp, def.fof);
 		
-		
-		LoopObject o = new LoopObject(def, m::debugOut, m::addLog);
-		o.bal = m.balance;
-		o.amplitude = max_amplitude;	// actual value
-		o.max_amplitude = max_amplitude;
-		o.min_amplitude = min_amplitude;
 		
 		// Now iterate and create the komposition
 		for (it = 0; it < m.def.iterations; it++) {
-		    long time = System.currentTimeMillis();
-		    //debugOut("-------> New Iteration step:"+it, 55);
-		    m.addLog("-------> New Iteration step: "+it);
-		    // Step 1 generate n random Frequencys:
-		    m.rt.iteration = it;// needed for the display 
-		    if (m.shadow != null)
-		    	m.shadow.iteration = it;
-		    
-		    ProjectModel.createPopulation(m.notes, m.rt, def.population, 
-					  def.min_freq, def.max_freq,def.tonal, def.preferLowerNotes, def.useSelectNotes); // create new Population
-		    // Now weight array for each random frequency:
-		    ProjectTools.makeWeight(def.population, m.rt, def.r_Weight, m::debugOut);// Judge them
-		    if (m.shadow != null) {
-		    	ProjectModel.createPopulation(m.notes, m.shadow, def.population, 
-					  def.min_freq, def.max_freq, def.tonal, def.preferLowerNotes, def.useSelectNotes); 
-		    	 ProjectTools.makeWeight(def.population, m.shadow, def.r_Weight, m::debugOut);// Judge them
-		    }
-		  
-		    // now sort new population by weight;
-		    Arrays.sort(m.rt.freq, Comparator.comparing(p -> p.weight));
-		   if (m.shadow != null)
-		    	Arrays.sort(m.shadow.freq, Comparator.comparing(p -> p.weight));
-		    	//q.sort(shadow.weight, shadow.freq);
-		    
-		    if (m.Verbosity >= 6 ) {
-		    	for (z = 0; z < def.population; z++) 
-		    		m.debugOut("Sorted: index="+z+" freq="+m.rt.freq[z]+" weight="+m.rt.freq[z].weight, 6);
-		    }
-		   
-		    //--------------------------------------------------------------------
-		    // Next select randomly the fittest (the last ones in the array are the fittest !):
-		    int is = (int) ((double) def.fittest * java.lang.Math.random());
-		    o.is = is;
-		    z = (def.population -1 ) - is;
-		    m.debugOut("Index that will be selected:"+z, 5);
-		    // --------- Nun ist ein Individuum selektiert ! ----------------
-		    freq = m.rt.freq[z];
-		    o.freq = freq;
-		    o.it = it;
-		    // ------------------State Machine :------------------------------
-		    if (is < def.range && m.rt.stateCnt == 0) 
-		    	o.f_cnt++;
-		    else 
-		    	o.f_cnt = 0; // reset hit counter
-		    o.addLoop(m.rt, m.shadow, sFreq);
-		    //----------------f_cnt------------------------------
-		    //System.out.println("Selected Index ="+is+" f_cnt="+f_cnt);
-		    m.addLog("Frequenz selected f="+freq);
-		    m.debugOut("This is our new selection:"+freq+" Hz", 5);
-		    //debugOut("This is our new selection:"+freq+" Hz", 55);
-		    // Mark the new individual in the RT, now update Tables
-		    m.rt.writeNEntrys( freq, def.degression, def.diff_freq ); // footprint
-		    m.sil.displayRT(m.rt);
-		    m.rt.getMaxx();
-		    m.addImageS(m.rt, o.start);
-		   // addImage(rt, start);
-		    int m_amplitude = 0;
-		    int m_Tension = 0;
-		    double m_bal = 0;
-		    //-------------------------------------------------------------------
-		  //--------------------------------------------------------------------
-		    // Next select randomly the fittest (the last ones in the array are the fittest !):
-		    is = (int) ((double) def.fittest * java.lang.Math.random());
-		    int sz = (def.population -1 ) - is;
-		   // --------- Nun ist ein Individuum selektiert ! ----------------
-		    OneNote sfreq = null;
-		    if (m.shadow != null) {
-		    	//addLog("Shadow Index that will be selected:"+sz);
-			    sfreq = m.shadow.freq[sz];
-			    m.addLog("Shadow Index that will be selected:"+sz+" f="+sfreq);
-			    m.shadow.writeNEntrys( sfreq, def.degression, def.diff_freq );
-			   // sil.displayRT(rt);
-			    m.shadow.getMaxx();
-			    m_Tension = (int)  ProjectTools.getKleiner(melody.max, m.rt.max, def.min_tempo, def.max_tempo);
-			    m_amplitude =  ProjectTools.getAmplitude(m.shadow.readEntry((int)sfreq.freq), m.shadow.max, min_amplitude, 
-					     max_amplitude, def.amplify_amp);
-			    if (def.stereo) 
-			    	m_bal =  ProjectTools.getBal(m.shadow.fittest_freq, (int)sfreq.freq, m.shadow.start, m.shadow.stop);
-			   
-		    }
-		    
-		    m.debugOut("Resulting amplitude ="+o.amplitude, 5);
-		    if (def.stereo) o.bal =  ProjectTools.getBal(m.rt.fittest_freq, (int)freq.freq, m.rt.start, m.rt.stop);
-		   
-		    //-------------------------------------------------------------------
-		    o.addLoopProperties(m.rt, m.shadow, sFreq, m.notes, generator, envelope, m.skompo);
-		    //----
-		    o.doAkkordeUndStimmen(m.rt,  m.notes, generator, envelope, m.skompo);
-		    //---- Startzeitpunk nächste note:
-		    o.start += o.tempo;
-		    //---------
-		    if (m.halt) break;	// stop doing it
-		    flowControl();
-		    if (def.mode > 0 | true) {
-			long diff = System.currentTimeMillis() - time;
-			long sleep = dela - diff;
-			int needed = (int) diff;
-			//System.out.println("Run() delay ="+DELAY+" dela="+dela+" needed:"+diff+" sleep:"+sleep);
-			try {
-			    if (sleep > 0) {
-				Thread.sleep(sleep);
-			    }
-			    //else dela -= sleep;
-			    dela -= sleep;
-			}
-			catch (InterruptedException e) {}
-		    }
+			if (!SoundIteration.doIteration(m, it, o, dela, melody))
+				break;
+			flowControl();
 		} // end of iterations loop
 		// flush
 		if (m.cIndex > 0 & false) {
@@ -277,7 +179,7 @@ public class Project2 {
 		}
 		Vector<CSoundNote> ret = sortKomposition(kompo);
 		if (def.doMelody) {
-			MelodyObject mo = new MelodyObject(m.qd, def, m::debugOut, m::addLog, min_amplitude, max_amplitude);
+			MelodyObject mo = new MelodyObject(m.qd, def, m::debugOut, m::addLog, o.min_amplitude, o.max_amplitude);
 			ret = mo.addMelody(m.notes, ret, melodyChannel, f, m.Verbosity, m.prs);
 			saveOverview(ret);
 			Collections.sort(ret, new Comparator<CSoundNote>() {

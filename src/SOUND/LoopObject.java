@@ -14,6 +14,7 @@ import Utils.Converter;
 public class LoopObject {
 	private DecimalFormat f = new DecimalFormat("#.###");
 	public OneNote freq;
+	public OneNote sFreq;
 	private Vector<CSoundNote> loop;
 	public double start;
 	public int f_cnt; 
@@ -38,6 +39,8 @@ public class LoopObject {
 	private BiConsumer<String, Integer> debugOut;
 	private Consumer<String> addLog;
 	public int stimmen = 0;
+	public int generator, envelope = 0;
+	
 	private Akkorde akk;
 	private boolean addToLoop = false;
 	
